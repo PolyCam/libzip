@@ -25,7 +25,7 @@ void diff_output_init(diff_output_t *output, int verbose, char *const archive_na
     output->file_crc = 0;
 }
 
-void diff_output_start_file(diff_output_t *output, const char *name, zip_uint64_t size, zip_uint32_t crc) {
+void diff_output_start_file(diff_output_t *output, const char *name, libzip_uint64_t size, libzip_uint32_t crc) {
     output->file_name = name;
     output->file_size = size;
     output->file_crc = crc;
@@ -56,7 +56,7 @@ void diff_output(diff_output_t *output, int side, const char *fmt, ...) {
     printf("\n");
 }
 
-void diff_output_file(diff_output_t *output, char side, const char *name, zip_uint64_t size, zip_uint32_t crc) {
+void diff_output_file(diff_output_t *output, char side, const char *name, libzip_uint64_t size, libzip_uint32_t crc) {
     if (!output->verbose) {
         return;
     }
@@ -72,7 +72,7 @@ void diff_output_file(diff_output_t *output, char side, const char *name, zip_ui
 }
 
 #define MAX_BYTES 64
-void diff_output_data(diff_output_t *output, int side, const zip_uint8_t *data, zip_uint64_t data_length, const char *fmt, ...) {
+void diff_output_data(diff_output_t *output, int side, const libzip_uint8_t *data, libzip_uint64_t data_length, const char *fmt, ...) {
     char prefix[1024];
     char hexdata[MAX_BYTES * 3 + 6];
     size_t i, offset;

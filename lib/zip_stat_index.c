@@ -1,5 +1,5 @@
 /*
-  zip_stat_index.c -- get information about file by index
+  libzip_stat_index.c -- get information about file by index
   Copyright (C) 1999-2020 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,16 +36,16 @@
 
 
 ZIP_EXTERN int
-zip_stat_index(zip_t *za, zip_uint64_t index, zip_flags_t flags, zip_stat_t *st) {
+libzip_stat_index(libzip_t *za, libzip_uint64_t index, libzip_flags_t flags, libzip_stat_t *st) {
     const char *name;
-    zip_dirent_t *de;
-    zip_entry_t *entry;
+    libzip_dirent_t *de;
+    libzip_entry_t *entry;
 
-    if ((de = _zip_get_dirent(za, index, flags, NULL)) == NULL) {
+    if ((de = _libzip_get_dirent(za, index, flags, NULL)) == NULL) {
         return -1;
     }
 
-    if ((name = zip_get_name(za, index, flags)) == NULL) {
+    if ((name = libzip_get_name(za, index, flags)) == NULL) {
         return -1;
     }
 
@@ -53,8 +53,8 @@ zip_stat_index(zip_t *za, zip_uint64_t index, zip_flags_t flags, zip_stat_t *st)
 
     if ((flags & ZIP_FL_UNCHANGED) == 0 && ZIP_ENTRY_DATA_CHANGED(za->entry + index)) {
 
-        if (zip_source_stat(entry->source, st) < 0) {
-            zip_error_set(&za->error, ZIP_ER_CHANGED, 0);
+        if (libzip_source_stat(entry->source, st) < 0) {
+            libzip_error_set(&za->error, ZIP_ER_CHANGED, 0);
             return -1;
         }
 
@@ -82,13 +82,13 @@ zip_stat_index(zip_t *za, zip_uint64_t index, zip_flags_t flags, zip_stat_t *st)
         }
     }
     else {
-        zip_stat_init(st);
+        libzip_stat_init(st);
 
         st->crc = de->crc;
         st->size = de->uncomp_size;
         st->mtime = de->last_mod;
         st->comp_size = de->comp_size;
-        st->comp_method = (zip_uint16_t)de->comp_method;
+        st->comp_method = (libzip_uint16_t)de->comp_method;
         st->encryption_method = de->encryption_method;
         st->valid = (de->crc_valid ? ZIP_STAT_CRC : 0) | ZIP_STAT_SIZE | ZIP_STAT_MTIME | ZIP_STAT_COMP_SIZE | ZIP_STAT_COMP_METHOD | ZIP_STAT_ENCRYPTION_METHOD;
         if (entry->changes != NULL && entry->changes->changed & ZIP_DIRENT_COMP_METHOD) {
@@ -98,7 +98,7 @@ zip_stat_index(zip_t *za, zip_uint64_t index, zip_flags_t flags, zip_stat_t *st)
 
     if ((za->ch_flags & ZIP_AFL_WANT_TORRENTZIP) && (flags & ZIP_FL_UNCHANGED) == 0) {
         st->comp_method = ZIP_CM_DEFLATE;
-        st->mtime = _zip_d2u_time(0xbc00, 0x2198);
+        st->mtime = _libzip_d2u_time(0xbc00, 0x2198);
         st->valid |= ZIP_STAT_MTIME | ZIP_STAT_COMP_METHOD;
         st->valid &= ~ZIP_STAT_COMP_SIZE;
     }

@@ -1,5 +1,5 @@
 /*
-  zip_entry.c -- struct zip_entry helper functions
+  libzip_entry.c -- struct libzip_entry helper functions
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -35,15 +35,15 @@
 #include "zipint.h"
 
 void
-_zip_entry_finalize(zip_entry_t *e) {
-    _zip_unchange_data(e);
-    _zip_dirent_free(e->orig);
-    _zip_dirent_free(e->changes);
+_libzip_entry_finalize(libzip_entry_t *e) {
+    _libzip_unchange_data(e);
+    _libzip_dirent_free(e->orig);
+    _libzip_dirent_free(e->changes);
 }
 
 
 void
-_zip_entry_init(zip_entry_t *e) {
+_libzip_entry_init(libzip_entry_t *e) {
     e->orig = NULL;
     e->changes = NULL;
     e->source = NULL;

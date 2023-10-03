@@ -1,5 +1,5 @@
 /*
-  zip_random_unix.c -- fill the user's buffer with random stuff (Unix version)
+  libzip_random_unix.c -- fill the user's buffer with random stuff (Unix version)
   Copyright (C) 2016-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -43,15 +43,15 @@
 
 #ifndef HAVE_SECURE_RANDOM
 ZIP_EXTERN bool
-zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
+libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     arc4random_buf(buffer, length);
     return true;
 }
 #endif
 
 #ifndef HAVE_RANDOM_UINT32
-zip_uint32_t
-zip_random_uint32(void) {
+libzip_uint32_t
+libzip_random_uint32(void) {
     return arc4random();
 }
 #endif
@@ -63,7 +63,7 @@ zip_random_uint32(void) {
 #include <unistd.h>
 
 ZIP_EXTERN bool
-zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
+libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     int fd;
 
     if ((fd = open("/dev/urandom", O_RDONLY)) < 0) {
@@ -88,13 +88,13 @@ zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
 #define random rand
 #endif
 
-zip_uint32_t
-zip_random_uint32(void) {
+libzip_uint32_t
+libzip_random_uint32(void) {
     static bool seeded = false;
 
-    zip_uint32_t value;
+    libzip_uint32_t value;
 
-    if (zip_secure_random((zip_uint8_t *)&value, sizeof(value))) {
+    if (libzip_secure_random((libzip_uint8_t *)&value, sizeof(value))) {
         return value;
     }
 
@@ -103,7 +103,7 @@ zip_random_uint32(void) {
         seeded = true;
     }
 
-    return (zip_uint32_t)random();
+    return (libzip_uint32_t)random();
 }
 #endif
 

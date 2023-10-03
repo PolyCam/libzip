@@ -1,5 +1,5 @@
 /*
-  zip_source_file_win32_ansi.c -- source for Windows file opened by ANSI name
+  libzip_source_file_win32_ansi.c -- source for Windows file opened by ANSI name
   Copyright (C) 1999-2020 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -34,12 +34,12 @@
 #include "zip_source_file_win32.h"
 
 static char *ansi_allocate_tempname(const char *name, size_t extra_chars, size_t *lengthp);
-static void ansi_make_tempname(char *buf, size_t len, const char *name, zip_uint32_t i);
+static void ansi_make_tempname(char *buf, size_t len, const char *name, libzip_uint32_t i);
 
 /* clang-format off */
 DONT_WARN_INCOMPATIBLE_FN_PTR_BEGIN
 
-zip_win32_file_operations_t ops_ansi = {
+libzip_win32_file_operations_t ops_ansi = {
     ansi_allocate_tempname,
     CreateFileA,
     DeleteFileA,
@@ -54,23 +54,23 @@ zip_win32_file_operations_t ops_ansi = {
 DONT_WARN_INCOMPATIBLE_FN_PTR_END
 /* clang-format on */
 
-ZIP_EXTERN zip_source_t *
-zip_source_win32a(zip_t *za, const char *fname, zip_uint64_t start, zip_int64_t len) {
+ZIP_EXTERN libzip_source_t *
+libzip_source_win32a(libzip_t *za, const char *fname, libzip_uint64_t start, libzip_int64_t len) {
     if (za == NULL)
         return NULL;
 
-    return zip_source_win32a_create(fname, start, len, &za->error);
+    return libzip_source_win32a_create(fname, start, len, &za->error);
 }
 
 
-ZIP_EXTERN zip_source_t *
-zip_source_win32a_create(const char *fname, zip_uint64_t start, zip_int64_t length, zip_error_t *error) {
+ZIP_EXTERN libzip_source_t *
+libzip_source_win32a_create(const char *fname, libzip_uint64_t start, libzip_int64_t length, libzip_error_t *error) {
     if (fname == NULL || length < ZIP_LENGTH_UNCHECKED) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
 
-    return zip_source_file_common_new(fname, NULL, start, length, NULL, &_zip_source_file_win32_named_ops, &ops_ansi, error);
+    return libzip_source_file_common_new(fname, NULL, start, length, NULL, &_libzip_source_file_win32_named_ops, &ops_ansi, error);
 }
 
 
@@ -82,6 +82,6 @@ ansi_allocate_tempname(const char *name, size_t extra_chars, size_t *lengthp) {
 
 
 static void
-ansi_make_tempname(char *buf, size_t len, const char *name, zip_uint32_t i) {
+ansi_make_tempname(char *buf, size_t len, const char *name, libzip_uint32_t i) {
     snprintf_s(buf, len, "%s.%08x", name, i);
 }

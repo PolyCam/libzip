@@ -1,5 +1,5 @@
 /*
-  zip_get_num_entries.c -- get number of entries in archive
+  libzip_get_num_entries.c -- get number of entries in archive
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -35,9 +35,9 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN zip_int64_t
-zip_get_num_entries(zip_t *za, zip_flags_t flags) {
-    zip_uint64_t n;
+ZIP_EXTERN libzip_int64_t
+libzip_get_num_entries(libzip_t *za, libzip_flags_t flags) {
+    libzip_uint64_t n;
 
     if (za == NULL)
         return -1;
@@ -46,7 +46,7 @@ zip_get_num_entries(zip_t *za, zip_flags_t flags) {
         n = za->nentry;
         while (n > 0 && za->entry[n - 1].orig == NULL)
             --n;
-        return (zip_int64_t)n;
+        return (libzip_int64_t)n;
     }
-    return (zip_int64_t)za->nentry;
+    return (libzip_int64_t)za->nentry;
 }

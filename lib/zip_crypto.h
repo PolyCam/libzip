@@ -1,5 +1,5 @@
 /*
-  zip_crypto.h -- crypto definitions
+  libzip_crypto.h -- crypto definitions
   Copyright (C) 2017-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.

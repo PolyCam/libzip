@@ -1,5 +1,5 @@
 /*
-  zip_source_supports.c -- check for supported functions
+  libzip_source_supports.c -- check for supported functions
   Copyright (C) 2014-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,19 +37,19 @@
 #include "zipint.h"
 
 
-zip_int64_t
-zip_source_supports(zip_source_t *src) {
+libzip_int64_t
+libzip_source_supports(libzip_source_t *src) {
     return src->supports;
 }
 
 bool
-zip_source_supports_reopen(zip_source_t *src) {
-    return (zip_source_supports(src) & ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_SUPPORTS_REOPEN)) != 0;
+libzip_source_supports_reopen(libzip_source_t *src) {
+    return (libzip_source_supports(src) & ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_SUPPORTS_REOPEN)) != 0;
 }
 
-ZIP_EXTERN zip_int64_t
-zip_source_make_command_bitmap(zip_source_cmd_t cmd0, ...) {
-    zip_int64_t bitmap;
+ZIP_EXTERN libzip_int64_t
+libzip_source_make_command_bitmap(libzip_source_cmd_t cmd0, ...) {
+    libzip_int64_t bitmap;
     va_list ap;
 
     bitmap = ZIP_SOURCE_MAKE_COMMAND_BITMASK(cmd0);
@@ -69,6 +69,6 @@ zip_source_make_command_bitmap(zip_source_cmd_t cmd0, ...) {
 }
 
 
-ZIP_EXTERN int zip_source_is_seekable(zip_source_t *src) {
-    return ZIP_SOURCE_CHECK_SUPPORTED(zip_source_supports(src->src), ZIP_SOURCE_SEEK);
+ZIP_EXTERN int libzip_source_is_seekable(libzip_source_t *src) {
+    return ZIP_SOURCE_CHECK_SUPPORTED(libzip_source_supports(src->src), ZIP_SOURCE_SEEK);
 }

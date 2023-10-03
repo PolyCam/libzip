@@ -1,5 +1,5 @@
 /*
-  zip_source_buffer.c -- create zip data source from buffer
+  libzip_source_buffer.c -- create zip data source from buffer
   Copyright (C) 1999-2022 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -41,27 +41,27 @@
 #endif
 
 struct buffer {
-    zip_buffer_fragment_t *fragments; /* fragments */
-    zip_uint64_t *fragment_offsets;   /* offset of each fragment from start of buffer, nfragments+1 entries */
-    zip_uint64_t nfragments;          /* number of allocated fragments */
-    zip_uint64_t fragments_capacity;  /* size of fragments (number of pointers) */
+    libzip_buffer_fragment_t *fragments; /* fragments */
+    libzip_uint64_t *fragment_offsets;   /* offset of each fragment from start of buffer, nfragments+1 entries */
+    libzip_uint64_t nfragments;          /* number of allocated fragments */
+    libzip_uint64_t fragments_capacity;  /* size of fragments (number of pointers) */
 
-    zip_uint64_t first_owned_fragment; /* first fragment to free data from */
+    libzip_uint64_t first_owned_fragment; /* first fragment to free data from */
 
-    zip_uint64_t shared_fragments; /* number of shared fragments */
+    libzip_uint64_t shared_fragments; /* number of shared fragments */
     struct buffer *shared_buffer;  /* buffer fragments are shared with */
 
-    zip_uint64_t size;             /* size of buffer */
-    zip_uint64_t offset;           /* current offset in buffer */
-    zip_uint64_t current_fragment; /* fragment current offset is in */
+    libzip_uint64_t size;             /* size of buffer */
+    libzip_uint64_t offset;           /* current offset in buffer */
+    libzip_uint64_t current_fragment; /* fragment current offset is in */
 };
 
 typedef struct buffer buffer_t;
 
 struct read_data {
-    zip_error_t error;
+    libzip_error_t error;
     time_t mtime;
-    zip_file_attributes_t attributes;
+    libzip_file_attributes_t attributes;
     buffer_t *in;
     buffer_t *out;
 };
@@ -69,79 +69,79 @@ struct read_data {
 #define buffer_capacity(buffer) ((buffer)->fragment_offsets[(buffer)->nfragments])
 #define buffer_size(buffer) ((buffer)->size)
 
-static buffer_t *buffer_clone(buffer_t *buffer, zip_uint64_t length, zip_error_t *error);
-static zip_uint64_t buffer_find_fragment(const buffer_t *buffer, zip_uint64_t offset);
+static buffer_t *buffer_clone(buffer_t *buffer, libzip_uint64_t length, libzip_error_t *error);
+static libzip_uint64_t buffer_find_fragment(const buffer_t *buffer, libzip_uint64_t offset);
 static void buffer_free(buffer_t *buffer);
-static bool buffer_grow_fragments(buffer_t *buffer, zip_uint64_t capacity, zip_error_t *error);
-static buffer_t *buffer_new(const zip_buffer_fragment_t *fragments, zip_uint64_t nfragments, int free_data, zip_error_t *error);
-static zip_int64_t buffer_read(buffer_t *buffer, zip_uint8_t *data, zip_uint64_t length);
-static int buffer_seek(buffer_t *buffer, void *data, zip_uint64_t len, zip_error_t *error);
-static zip_int64_t buffer_write(buffer_t *buffer, const zip_uint8_t *data, zip_uint64_t length, zip_error_t *);
+static bool buffer_grow_fragments(buffer_t *buffer, libzip_uint64_t capacity, libzip_error_t *error);
+static buffer_t *buffer_new(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments, int free_data, libzip_error_t *error);
+static libzip_int64_t buffer_read(buffer_t *buffer, libzip_uint8_t *data, libzip_uint64_t length);
+static int buffer_seek(buffer_t *buffer, void *data, libzip_uint64_t len, libzip_error_t *error);
+static libzip_int64_t buffer_write(buffer_t *buffer, const libzip_uint8_t *data, libzip_uint64_t length, libzip_error_t *);
 
-static zip_int64_t read_data(void *, void *, zip_uint64_t, zip_source_cmd_t);
+static libzip_int64_t read_data(void *, void *, libzip_uint64_t, libzip_source_cmd_t);
 
-zip_source_t *zip_source_buffer_with_attributes_create(const void *data, zip_uint64_t len, int freep, zip_file_attributes_t *attributes, zip_error_t *error);
-zip_source_t *zip_source_buffer_fragment_with_attributes_create(const zip_buffer_fragment_t *fragments, zip_uint64_t nfragments, int freep, zip_file_attributes_t *attributes, zip_error_t *error);
+libzip_source_t *libzip_source_buffer_with_attributes_create(const void *data, libzip_uint64_t len, int freep, libzip_file_attributes_t *attributes, libzip_error_t *error);
+libzip_source_t *libzip_source_buffer_fragment_with_attributes_create(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments, int freep, libzip_file_attributes_t *attributes, libzip_error_t *error);
 
 
-ZIP_EXTERN zip_source_t *
-zip_source_buffer(zip_t *za, const void *data, zip_uint64_t len, int freep) {
+ZIP_EXTERN libzip_source_t *
+libzip_source_buffer(libzip_t *za, const void *data, libzip_uint64_t len, int freep) {
     if (za == NULL)
         return NULL;
 
-    return zip_source_buffer_with_attributes_create(data, len, freep, NULL, &za->error);
+    return libzip_source_buffer_with_attributes_create(data, len, freep, NULL, &za->error);
 }
 
 
-ZIP_EXTERN zip_source_t *
-zip_source_buffer_create(const void *data, zip_uint64_t len, int freep, zip_error_t *error) {
-    return zip_source_buffer_with_attributes_create(data, len, freep, NULL, error);
+ZIP_EXTERN libzip_source_t *
+libzip_source_buffer_create(const void *data, libzip_uint64_t len, int freep, libzip_error_t *error) {
+    return libzip_source_buffer_with_attributes_create(data, len, freep, NULL, error);
 }
 
 
-zip_source_t *
-zip_source_buffer_with_attributes_create(const void *data, zip_uint64_t len, int freep, zip_file_attributes_t *attributes, zip_error_t *error) {
-    zip_buffer_fragment_t fragment;
+libzip_source_t *
+libzip_source_buffer_with_attributes_create(const void *data, libzip_uint64_t len, int freep, libzip_file_attributes_t *attributes, libzip_error_t *error) {
+    libzip_buffer_fragment_t fragment;
 
     if (data == NULL) {
         if (len > 0) {
-            zip_error_set(error, ZIP_ER_INVAL, 0);
+            libzip_error_set(error, ZIP_ER_INVAL, 0);
             return NULL;
         }
 
-        return zip_source_buffer_fragment_with_attributes_create(NULL, 0, freep, attributes, error);
+        return libzip_source_buffer_fragment_with_attributes_create(NULL, 0, freep, attributes, error);
     }
 
-    fragment.data = (zip_uint8_t *)data;
+    fragment.data = (libzip_uint8_t *)data;
     fragment.length = len;
 
-    return zip_source_buffer_fragment_with_attributes_create(&fragment, 1, freep, attributes, error);
+    return libzip_source_buffer_fragment_with_attributes_create(&fragment, 1, freep, attributes, error);
 }
 
 
-ZIP_EXTERN zip_source_t *
-zip_source_buffer_fragment(zip_t *za, const zip_buffer_fragment_t *fragments, zip_uint64_t nfragments, int freep) {
+ZIP_EXTERN libzip_source_t *
+libzip_source_buffer_fragment(libzip_t *za, const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments, int freep) {
     if (za == NULL) {
         return NULL;
     }
 
-    return zip_source_buffer_fragment_with_attributes_create(fragments, nfragments, freep, NULL, &za->error);
+    return libzip_source_buffer_fragment_with_attributes_create(fragments, nfragments, freep, NULL, &za->error);
 }
 
 
-ZIP_EXTERN zip_source_t *
-zip_source_buffer_fragment_create(const zip_buffer_fragment_t *fragments, zip_uint64_t nfragments, int freep, zip_error_t *error) {
-    return zip_source_buffer_fragment_with_attributes_create(fragments, nfragments, freep, NULL, error);
+ZIP_EXTERN libzip_source_t *
+libzip_source_buffer_fragment_create(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments, int freep, libzip_error_t *error) {
+    return libzip_source_buffer_fragment_with_attributes_create(fragments, nfragments, freep, NULL, error);
 }
 
-zip_source_t *
-zip_source_buffer_fragment_with_attributes_create(const zip_buffer_fragment_t *fragments, zip_uint64_t nfragments, int freep, zip_file_attributes_t *attributes, zip_error_t *error) {
+libzip_source_t *
+libzip_source_buffer_fragment_with_attributes_create(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments, int freep, libzip_file_attributes_t *attributes, libzip_error_t *error) {
     struct read_data *ctx;
-    zip_source_t *zs;
+    libzip_source_t *zs;
     buffer_t *buffer;
 
     if (fragments == NULL && nfragments > 0) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
 
@@ -150,7 +150,7 @@ zip_source_buffer_fragment_with_attributes_create(const zip_buffer_fragment_t *f
     }
 
     if ((ctx = (struct read_data *)malloc(sizeof(*ctx))) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         buffer_free(buffer);
         return NULL;
     }
@@ -162,11 +162,11 @@ zip_source_buffer_fragment_with_attributes_create(const zip_buffer_fragment_t *f
         (void)memcpy_s(&ctx->attributes, sizeof(ctx->attributes), attributes, sizeof(ctx->attributes));
     }
     else {
-        zip_file_attributes_init(&ctx->attributes);
+        libzip_file_attributes_init(&ctx->attributes);
     }
-    zip_error_init(&ctx->error);
+    libzip_error_init(&ctx->error);
 
-    if ((zs = zip_source_function_create(read_data, ctx, error)) == NULL) {
+    if ((zs = libzip_source_function_create(read_data, ctx, error)) == NULL) {
         buffer_free(ctx->in);
         free(ctx);
         return NULL;
@@ -176,13 +176,13 @@ zip_source_buffer_fragment_with_attributes_create(const zip_buffer_fragment_t *f
 }
 
 
-zip_source_t *
-zip_source_buffer_with_attributes(zip_t *za, const void *data, zip_uint64_t len, int freep, zip_file_attributes_t *attributes) {
-    return zip_source_buffer_with_attributes_create(data, len, freep, attributes, &za->error);
+libzip_source_t *
+libzip_source_buffer_with_attributes(libzip_t *za, const void *data, libzip_uint64_t len, int freep, libzip_file_attributes_t *attributes) {
+    return libzip_source_buffer_with_attributes_create(data, len, freep, attributes, &za->error);
 }
 
-static zip_int64_t
-read_data(void *state, void *data, zip_uint64_t len, zip_source_cmd_t cmd) {
+static libzip_int64_t
+read_data(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd) {
     struct read_data *ctx = (struct read_data *)state;
 
     switch (cmd) {
@@ -212,7 +212,7 @@ read_data(void *state, void *data, zip_uint64_t len, zip_source_cmd_t cmd) {
         return 0;
 
     case ZIP_SOURCE_ERROR:
-        return zip_error_to_data(&ctx->error, data, len);
+        return libzip_error_to_data(&ctx->error, data, len);
 
     case ZIP_SOURCE_FREE:
         buffer_free(ctx->in);
@@ -222,7 +222,7 @@ read_data(void *state, void *data, zip_uint64_t len, zip_source_cmd_t cmd) {
 
     case ZIP_SOURCE_GET_FILE_ATTRIBUTES: {
         if (len < sizeof(ctx->attributes)) {
-            zip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
             return -1;
         }
 
@@ -238,7 +238,7 @@ read_data(void *state, void *data, zip_uint64_t len, zip_source_cmd_t cmd) {
 
     case ZIP_SOURCE_READ:
         if (len > ZIP_INT64_MAX) {
-            zip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
             return -1;
         }
         return buffer_read(ctx->in, data, len);
@@ -266,16 +266,16 @@ read_data(void *state, void *data, zip_uint64_t len, zip_source_cmd_t cmd) {
         return buffer_seek(ctx->out, data, len, &ctx->error);
 
     case ZIP_SOURCE_STAT: {
-        zip_stat_t *st;
+        libzip_stat_t *st;
 
         if (len < sizeof(*st)) {
-            zip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
             return -1;
         }
 
-        st = (zip_stat_t *)data;
+        st = (libzip_stat_t *)data;
 
-        zip_stat_init(st);
+        libzip_stat_init(st);
         st->mtime = ctx->mtime;
         st->size = ctx->in->size;
         st->comp_size = st->size;
@@ -287,40 +287,40 @@ read_data(void *state, void *data, zip_uint64_t len, zip_source_cmd_t cmd) {
     }
 
     case ZIP_SOURCE_SUPPORTS:
-        return zip_source_make_command_bitmap(ZIP_SOURCE_GET_FILE_ATTRIBUTES, ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_CLOSE, ZIP_SOURCE_STAT, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE, ZIP_SOURCE_SEEK, ZIP_SOURCE_TELL, ZIP_SOURCE_BEGIN_WRITE, ZIP_SOURCE_BEGIN_WRITE_CLONING, ZIP_SOURCE_COMMIT_WRITE, ZIP_SOURCE_REMOVE, ZIP_SOURCE_ROLLBACK_WRITE, ZIP_SOURCE_SEEK_WRITE, ZIP_SOURCE_TELL_WRITE, ZIP_SOURCE_WRITE, ZIP_SOURCE_SUPPORTS_REOPEN, -1);
+        return libzip_source_make_command_bitmap(ZIP_SOURCE_GET_FILE_ATTRIBUTES, ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_CLOSE, ZIP_SOURCE_STAT, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE, ZIP_SOURCE_SEEK, ZIP_SOURCE_TELL, ZIP_SOURCE_BEGIN_WRITE, ZIP_SOURCE_BEGIN_WRITE_CLONING, ZIP_SOURCE_COMMIT_WRITE, ZIP_SOURCE_REMOVE, ZIP_SOURCE_ROLLBACK_WRITE, ZIP_SOURCE_SEEK_WRITE, ZIP_SOURCE_TELL_WRITE, ZIP_SOURCE_WRITE, ZIP_SOURCE_SUPPORTS_REOPEN, -1);
 
     case ZIP_SOURCE_TELL:
         if (ctx->in->offset > ZIP_INT64_MAX) {
-            zip_error_set(&ctx->error, ZIP_ER_TELL, EOVERFLOW);
+            libzip_error_set(&ctx->error, ZIP_ER_TELL, EOVERFLOW);
             return -1;
         }
-        return (zip_int64_t)ctx->in->offset;
+        return (libzip_int64_t)ctx->in->offset;
 
 
     case ZIP_SOURCE_TELL_WRITE:
         if (ctx->out->offset > ZIP_INT64_MAX) {
-            zip_error_set(&ctx->error, ZIP_ER_TELL, EOVERFLOW);
+            libzip_error_set(&ctx->error, ZIP_ER_TELL, EOVERFLOW);
             return -1;
         }
-        return (zip_int64_t)ctx->out->offset;
+        return (libzip_int64_t)ctx->out->offset;
 
     case ZIP_SOURCE_WRITE:
         if (len > ZIP_INT64_MAX) {
-            zip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
             return -1;
         }
         return buffer_write(ctx->out, data, len, &ctx->error);
 
     default:
-        zip_error_set(&ctx->error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(&ctx->error, ZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 }
 
 
 static buffer_t *
-buffer_clone(buffer_t *buffer, zip_uint64_t offset, zip_error_t *error) {
-    zip_uint64_t fragment, fragment_offset, waste;
+buffer_clone(buffer_t *buffer, libzip_uint64_t offset, libzip_error_t *error) {
+    libzip_uint64_t fragment, fragment_offset, waste;
     buffer_t *clone;
 
     if (offset == 0) {
@@ -328,11 +328,11 @@ buffer_clone(buffer_t *buffer, zip_uint64_t offset, zip_error_t *error) {
     }
 
     if (offset > buffer->size) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
     if (buffer->shared_buffer != NULL) {
-        zip_error_set(error, ZIP_ER_INUSE, 0);
+        libzip_error_set(error, ZIP_ER_INUSE, 0);
         return NULL;
     }
 
@@ -347,7 +347,7 @@ buffer_clone(buffer_t *buffer, zip_uint64_t offset, zip_error_t *error) {
     /* TODO: This should also consider the length of the fully shared fragments */
     waste = buffer->fragments[fragment].length - fragment_offset;
     if (waste > offset) {
-        zip_error_set(error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(error, ZIP_ER_OPNOTSUPP, 0);
         return NULL;
     }
 
@@ -373,9 +373,9 @@ buffer_clone(buffer_t *buffer, zip_uint64_t offset, zip_error_t *error) {
 }
 
 
-static zip_uint64_t
-buffer_find_fragment(const buffer_t *buffer, zip_uint64_t offset) {
-    zip_uint64_t low, high, mid;
+static libzip_uint64_t
+buffer_find_fragment(const buffer_t *buffer, libzip_uint64_t offset) {
+    libzip_uint64_t low, high, mid;
 
     if (buffer->nfragments == 0) {
         return 0;
@@ -403,7 +403,7 @@ buffer_find_fragment(const buffer_t *buffer, zip_uint64_t offset) {
 
 static void
 buffer_free(buffer_t *buffer) {
-    zip_uint64_t i;
+    libzip_uint64_t i;
 
     if (buffer == NULL) {
         return;
@@ -426,29 +426,29 @@ buffer_free(buffer_t *buffer) {
 
 
 static bool
-buffer_grow_fragments(buffer_t *buffer, zip_uint64_t capacity, zip_error_t *error) {
-    zip_buffer_fragment_t *fragments;
-    zip_uint64_t *offsets;
+buffer_grow_fragments(buffer_t *buffer, libzip_uint64_t capacity, libzip_error_t *error) {
+    libzip_buffer_fragment_t *fragments;
+    libzip_uint64_t *offsets;
 
     if (capacity < buffer->fragments_capacity) {
         return true;
     }
 
-    zip_uint64_t fragments_size = sizeof(buffer->fragments[0]) * capacity;
-    zip_uint64_t offsets_size = sizeof(buffer->fragment_offsets[0]) * (capacity + 1);
+    libzip_uint64_t fragments_size = sizeof(buffer->fragments[0]) * capacity;
+    libzip_uint64_t offsets_size = sizeof(buffer->fragment_offsets[0]) * (capacity + 1);
 
     if (capacity == ZIP_UINT64_MAX || fragments_size < capacity || fragments_size > SIZE_MAX|| offsets_size < capacity || offsets_size > SIZE_MAX) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return false;
     }
 
     if ((fragments = realloc(buffer->fragments, (size_t)fragments_size)) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return false;
     }
     buffer->fragments = fragments;
     if ((offsets = realloc(buffer->fragment_offsets, (size_t)offsets_size)) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return false;
     }
     buffer->fragment_offsets = offsets;
@@ -459,7 +459,7 @@ buffer_grow_fragments(buffer_t *buffer, zip_uint64_t capacity, zip_error_t *erro
 
 
 static buffer_t *
-buffer_new(const zip_buffer_fragment_t *fragments, zip_uint64_t nfragments, int free_data, zip_error_t *error) {
+buffer_new(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments, int free_data, libzip_error_t *error) {
     buffer_t *buffer;
 
     if ((buffer = malloc(sizeof(*buffer))) == NULL) {
@@ -479,16 +479,16 @@ buffer_new(const zip_buffer_fragment_t *fragments, zip_uint64_t nfragments, int 
     if (nfragments == 0) {
         if ((buffer->fragment_offsets = malloc(sizeof(buffer->fragment_offsets[0]))) == NULL) {
             free(buffer);
-            zip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, ZIP_ER_MEMORY, 0);
             return NULL;
         }
         buffer->fragment_offsets[0] = 0;
     }
     else {
-        zip_uint64_t i, j, offset;
+        libzip_uint64_t i, j, offset;
 
         if (!buffer_grow_fragments(buffer, nfragments, NULL)) {
-            zip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, ZIP_ER_MEMORY, 0);
             buffer_free(buffer);
             return NULL;
         }
@@ -499,7 +499,7 @@ buffer_new(const zip_buffer_fragment_t *fragments, zip_uint64_t nfragments, int 
                 continue;
             }
             if (fragments[i].data == NULL) {
-                zip_error_set(error, ZIP_ER_INVAL, 0);
+                libzip_error_set(error, ZIP_ER_INVAL, 0);
                 buffer_free(buffer);
                 return NULL;
             }
@@ -519,9 +519,9 @@ buffer_new(const zip_buffer_fragment_t *fragments, zip_uint64_t nfragments, int 
     return buffer;
 }
 
-static zip_int64_t
-buffer_read(buffer_t *buffer, zip_uint8_t *data, zip_uint64_t length) {
-    zip_uint64_t n, i, fragment_offset;
+static libzip_int64_t
+buffer_read(buffer_t *buffer, libzip_uint8_t *data, libzip_uint64_t length) {
+    libzip_uint64_t n, i, fragment_offset;
 
     length = ZIP_MIN(length, buffer->size - buffer->offset);
 
@@ -536,7 +536,7 @@ buffer_read(buffer_t *buffer, zip_uint8_t *data, zip_uint64_t length) {
     fragment_offset = buffer->offset - buffer->fragment_offsets[i];
     n = 0;
     while (n < length) {
-        zip_uint64_t left = ZIP_MIN(length - n, buffer->fragments[i].length - fragment_offset);
+        libzip_uint64_t left = ZIP_MIN(length - n, buffer->fragments[i].length - fragment_offset);
 #if ZIP_UINT64_MAX > SIZE_MAX
         left = ZIP_MIN(left, SIZE_MAX);
 #endif
@@ -552,40 +552,40 @@ buffer_read(buffer_t *buffer, zip_uint8_t *data, zip_uint64_t length) {
 
     buffer->offset += n;
     buffer->current_fragment = i;
-    return (zip_int64_t)n;
+    return (libzip_int64_t)n;
 }
 
 
 static int
-buffer_seek(buffer_t *buffer, void *data, zip_uint64_t len, zip_error_t *error) {
-    zip_int64_t new_offset = zip_source_seek_compute_offset(buffer->offset, buffer->size, data, len, error);
+buffer_seek(buffer_t *buffer, void *data, libzip_uint64_t len, libzip_error_t *error) {
+    libzip_int64_t new_offset = libzip_source_seek_compute_offset(buffer->offset, buffer->size, data, len, error);
 
     if (new_offset < 0) {
         return -1;
     }
 
-    buffer->offset = (zip_uint64_t)new_offset;
+    buffer->offset = (libzip_uint64_t)new_offset;
     buffer->current_fragment = buffer_find_fragment(buffer, buffer->offset);
     return 0;
 }
 
 
-static zip_int64_t
-buffer_write(buffer_t *buffer, const zip_uint8_t *data, zip_uint64_t length, zip_error_t *error) {
-    zip_uint64_t copied, i, fragment_offset, capacity;
+static libzip_int64_t
+buffer_write(buffer_t *buffer, const libzip_uint8_t *data, libzip_uint64_t length, libzip_error_t *error) {
+    libzip_uint64_t copied, i, fragment_offset, capacity;
 
     if (buffer->offset + length + WRITE_FRAGMENT_SIZE - 1 < length) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
     /* grow buffer if needed */
     capacity = buffer_capacity(buffer);
     if (buffer->offset + length > capacity) {
-        zip_uint64_t needed_fragments = buffer->nfragments + (length - (capacity - buffer->offset) + WRITE_FRAGMENT_SIZE - 1) / WRITE_FRAGMENT_SIZE;
+        libzip_uint64_t needed_fragments = buffer->nfragments + (length - (capacity - buffer->offset) + WRITE_FRAGMENT_SIZE - 1) / WRITE_FRAGMENT_SIZE;
 
         if (needed_fragments > buffer->fragments_capacity) {
-            zip_uint64_t new_capacity = buffer->fragments_capacity;
+            libzip_uint64_t new_capacity = buffer->fragments_capacity;
 
             if (new_capacity == 0) {
                 new_capacity = 16;
@@ -595,14 +595,14 @@ buffer_write(buffer_t *buffer, const zip_uint8_t *data, zip_uint64_t length, zip
             }
 
             if (!buffer_grow_fragments(buffer, new_capacity, error)) {
-                zip_error_set(error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(error, ZIP_ER_MEMORY, 0);
                 return -1;
             }
         }
 
         while (buffer->nfragments < needed_fragments) {
             if ((buffer->fragments[buffer->nfragments].data = malloc(WRITE_FRAGMENT_SIZE)) == NULL) {
-                zip_error_set(error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(error, ZIP_ER_MEMORY, 0);
                 return -1;
             }
             buffer->fragments[buffer->nfragments].length = WRITE_FRAGMENT_SIZE;
@@ -616,7 +616,7 @@ buffer_write(buffer_t *buffer, const zip_uint8_t *data, zip_uint64_t length, zip
     fragment_offset = buffer->offset - buffer->fragment_offsets[i];
     copied = 0;
     while (copied < length) {
-        zip_uint64_t n = ZIP_MIN(ZIP_MIN(length - copied, buffer->fragments[i].length - fragment_offset), SIZE_MAX);
+        libzip_uint64_t n = ZIP_MIN(ZIP_MIN(length - copied, buffer->fragments[i].length - fragment_offset), SIZE_MAX);
 #if ZIP_UINT64_MAX > SIZE_MAX
         n = ZIP_MIN(n, SIZE_MAX);
 #endif
@@ -639,5 +639,5 @@ buffer_write(buffer_t *buffer, const zip_uint8_t *data, zip_uint64_t length, zip
         buffer->size = buffer->offset;
     }
 
-    return (zip_int64_t)copied;
+    return (libzip_int64_t)copied;
 }

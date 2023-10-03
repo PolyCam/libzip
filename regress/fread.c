@@ -40,13 +40,13 @@
 #include "getopt.h"
 #endif
 
-#include "zip.h"
+#include "libzip.h"
 
 enum when { WHEN_NEVER, WHEN_OPEN, WHEN_READ, WHEN_CLOSE };
 
 const char *when_name[] = {"no", "zip_fopen", "zip_fread", "zip_fclose"};
 
-static int do_read(zip_t *z, const char *name, zip_flags_t flags, enum when when_ex, int ze_ex, int se_ex);
+static int do_read(libzip_t *z, const char *name, libzip_flags_t flags, enum when when_ex, int ze_ex, int se_ex);
 
 int verbose;
 
@@ -57,10 +57,10 @@ int
 main(int argc, char *argv[]) {
     int fail, ze;
     int c;
-    zip_t *z;
-    zip_source_t *zs;
+    libzip_t *z;
+    libzip_source_t *zs;
     char *archive;
-    zip_int64_t idx;
+    libzip_int64_t idx;
 
     verbose = 0;
     fail = 0;
@@ -87,11 +87,11 @@ main(int argc, char *argv[]) {
 
     archive = argv[optind];
 
-    if ((z = zip_open(archive, 0, &ze)) == NULL) {
-        zip_error_t error;
-        zip_error_init_with_code(&error, ze);
-        fprintf(stderr, "%s: can't open zip archive '%s': %s\n", progname, archive, zip_error_strerror(&error));
-        zip_error_fini(&error);
+    if ((z = libzip_open(archive, 0, &ze)) == NULL) {
+        libzip_error_t error;
+        libzip_error_init_with_code(&error, ze);
+        fprintf(stderr, "%s: can't open zip archive '%s': %s\n", progname, archive, libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         return 1;
     }
 
@@ -110,20 +110,20 @@ main(int argc, char *argv[]) {
     fail += do_read(z, "storedok", ZIP_FL_COMPRESSED, WHEN_NEVER, 0, 0);
 
     fail += do_read(z, "cryptok", 0, WHEN_OPEN, ZIP_ER_NOPASSWD, 0);
-    zip_set_default_password(z, "crypt");
+    libzip_set_default_password(z, "crypt");
     fail += do_read(z, "cryptok", 0, WHEN_NEVER, 0, 0);
-    zip_set_default_password(z, "wrong");
+    libzip_set_default_password(z, "wrong");
     fail += do_read(z, "cryptok", 0, WHEN_OPEN, ZIP_ER_WRONGPASSWD, 0);
-    zip_set_default_password(z, NULL);
+    libzip_set_default_password(z, NULL);
 
-    zs = zip_source_buffer(z, "asdf", 4, 0);
-    if ((idx = zip_name_locate(z, "storedok", 0)) < 0) {
-        fprintf(stderr, "%s: can't locate 'storedok' in zip archive '%s': %s\n", progname, archive, zip_strerror(z));
+    zs = libzip_source_buffer(z, "asdf", 4, 0);
+    if ((idx = libzip_name_locate(z, "storedok", 0)) < 0) {
+        fprintf(stderr, "%s: can't locate 'storedok' in zip archive '%s': %s\n", progname, archive, libzip_strerror(z));
         fail++;
     }
     else {
-        if (zip_file_replace(z, (zip_uint64_t)idx, zs, 0) < 0) {
-            fprintf(stderr, "%s: can't replace 'storedok' in zip archive '%s': %s\n", progname, archive, zip_strerror(z));
+        if (libzip_file_replace(z, (libzip_uint64_t)idx, zs, 0) < 0) {
+            fprintf(stderr, "%s: can't replace 'storedok' in zip archive '%s': %s\n", progname, archive, libzip_strerror(z));
             fail++;
         }
         else {
@@ -131,13 +131,13 @@ main(int argc, char *argv[]) {
             fail += do_read(z, "storedok", ZIP_FL_UNCHANGED, WHEN_NEVER, 0, 0);
         }
     }
-    if ((idx = zip_name_locate(z, "storedok", 0)) < 0) {
-        fprintf(stderr, "%s: can't locate 'storedok' in zip archive '%s': %s\n", progname, archive, zip_strerror(z));
+    if ((idx = libzip_name_locate(z, "storedok", 0)) < 0) {
+        fprintf(stderr, "%s: can't locate 'storedok' in zip archive '%s': %s\n", progname, archive, libzip_strerror(z));
         fail++;
     }
     else {
-        if (zip_delete(z, (zip_uint64_t)idx) < 0) {
-            fprintf(stderr, "%s: can't replace 'storedok' in zip archive '%s': %s\n", progname, archive, zip_strerror(z));
+        if (libzip_delete(z, (libzip_uint64_t)idx) < 0) {
+            fprintf(stderr, "%s: can't replace 'storedok' in zip archive '%s': %s\n", progname, archive, libzip_strerror(z));
             fail++;
         }
         else {
@@ -145,18 +145,18 @@ main(int argc, char *argv[]) {
             fail += do_read(z, "storedok", ZIP_FL_UNCHANGED, WHEN_NEVER, 0, 0);
         }
     }
-    zs = zip_source_buffer(z, "asdf", 4, 0);
-    if (zip_file_add(z, "new_file", zs, 0) < 0) {
-        fprintf(stderr, "%s: can't add file to zip archive '%s': %s\n", progname, archive, zip_strerror(z));
+    zs = libzip_source_buffer(z, "asdf", 4, 0);
+    if (libzip_file_add(z, "new_file", zs, 0) < 0) {
+        fprintf(stderr, "%s: can't add file to zip archive '%s': %s\n", progname, archive, libzip_strerror(z));
         fail++;
     }
     else {
         fail += do_read(z, "new_file", 0, WHEN_NEVER, 0, 0);
     }
 
-    zip_unchange_all(z);
-    if (zip_close(z) == -1) {
-        fprintf(stderr, "%s: can't close zip archive '%s': %s\n", progname, archive, zip_strerror(z));
+    libzip_unchange_all(z);
+    if (libzip_close(z) == -1) {
+        fprintf(stderr, "%s: can't close zip archive '%s': %s\n", progname, archive, libzip_strerror(z));
         return 1;
     }
 
@@ -165,44 +165,44 @@ main(int argc, char *argv[]) {
 
 
 static int
-do_read(zip_t *z, const char *name, zip_flags_t flags, enum when when_ex, int ze_ex, int se_ex) {
-    zip_file_t *zf;
+do_read(libzip_t *z, const char *name, libzip_flags_t flags, enum when when_ex, int ze_ex, int se_ex) {
+    libzip_file_t *zf;
     enum when when_got;
-    zip_error_t error_got, error_ex;
-    zip_error_t *zf_error;
+    libzip_error_t error_got, error_ex;
+    libzip_error_t *zf_error;
     int err;
     char b[8192];
-    zip_int64_t n;
+    libzip_int64_t n;
 
     when_got = WHEN_NEVER;
-    zip_error_init(&error_got);
-    zip_error_init(&error_ex);
-    zip_error_set(&error_ex, ze_ex, se_ex);
+    libzip_error_init(&error_got);
+    libzip_error_init(&error_ex);
+    libzip_error_set(&error_ex, ze_ex, se_ex);
 
-    if ((zf = zip_fopen(z, name, flags)) == NULL) {
+    if ((zf = libzip_fopen(z, name, flags)) == NULL) {
         when_got = WHEN_OPEN;
-        zf_error = zip_get_error(z);
-        zip_error_set(&error_got, zip_error_code_zip(zf_error), zip_error_code_system(zf_error));
+        zf_error = libzip_get_error(z);
+        libzip_error_set(&error_got, libzip_error_code_zip(zf_error), libzip_error_code_system(zf_error));
     }
     else {
-        while ((n = zip_fread(zf, b, sizeof(b))) > 0)
+        while ((n = libzip_fread(zf, b, sizeof(b))) > 0)
             ;
         if (n < 0) {
             when_got = WHEN_READ;
-            zf_error = zip_file_get_error(zf);
-            zip_error_set(&error_got, zip_error_code_zip(zf_error), zip_error_code_system(zf_error));
+            zf_error = libzip_file_get_error(zf);
+            libzip_error_set(&error_got, libzip_error_code_zip(zf_error), libzip_error_code_system(zf_error));
         }
-        err = zip_fclose(zf);
+        err = libzip_fclose(zf);
         if (when_got == WHEN_NEVER && err != 0) {
             when_got = WHEN_CLOSE;
-            zip_error_init_with_code(&error_got, err);
+            libzip_error_init_with_code(&error_got, err);
         }
     }
 
-    if (when_got != when_ex || zip_error_code_zip(&error_got) != zip_error_code_zip(&error_ex) || zip_error_code_system(&error_got) != zip_error_code_system(&error_ex)) {
-        printf("%s: %s: got %s error (%s), expected %s error (%s)\n", progname, name, when_name[when_got], zip_error_strerror(&error_got), when_name[when_ex], zip_error_strerror(&error_ex));
-        zip_error_fini(&error_got);
-        zip_error_fini(&error_ex);
+    if (when_got != when_ex || libzip_error_code_zip(&error_got) != libzip_error_code_zip(&error_ex) || libzip_error_code_system(&error_got) != libzip_error_code_system(&error_ex)) {
+        printf("%s: %s: got %s error (%s), expected %s error (%s)\n", progname, name, when_name[when_got], libzip_error_strerror(&error_got), when_name[when_ex], libzip_error_strerror(&error_ex));
+        libzip_error_fini(&error_got);
+        libzip_error_fini(&error_ex);
         return 1;
     }
     else if (verbose)

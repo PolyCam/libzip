@@ -3,7 +3,7 @@
 This file describes changes in the libzip API and how to adapt your
 code for them.
 
-You can define `ZIP_DISABLE_DEPRECATED` before including `<zip.h>` to hide
+You can define `ZIP_DISABLE_DEPRECATED` before including `<libzip.h>` to hide
 prototypes for deprecated functions, to find out about functions that
 might be removed at some point.
 

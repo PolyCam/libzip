@@ -1,5 +1,5 @@
 /*
-  zip_get_file_comment.c -- get file comment
+  libzip_get_file_comment.c -- get file comment
   Copyright (C) 2006-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,11 +37,11 @@
 
 
 ZIP_EXTERN const char *
-zip_get_file_comment(zip_t *za, zip_uint64_t idx, int *lenp, int flags) {
-    zip_uint32_t len;
+libzip_get_file_comment(libzip_t *za, libzip_uint64_t idx, int *lenp, int flags) {
+    libzip_uint32_t len;
     const char *s;
 
-    if ((s = zip_file_get_comment(za, idx, &len, (zip_flags_t)flags)) != NULL) {
+    if ((s = libzip_file_get_comment(za, idx, &len, (libzip_flags_t)flags)) != NULL) {
         if (lenp)
             *lenp = (int)len;
     }

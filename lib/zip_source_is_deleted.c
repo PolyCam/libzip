@@ -1,5 +1,5 @@
 /*
-  zip_source_is_deleted.c -- was archive was removed?
+  libzip_source_is_deleted.c -- was archive was removed?
   Copyright (C) 2014-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,6 +36,6 @@
 
 
 ZIP_EXTERN int
-zip_source_is_deleted(zip_source_t *src) {
+libzip_source_is_deleted(libzip_source_t *src) {
     return src->write_state == ZIP_SOURCE_WRITE_REMOVED;
 }

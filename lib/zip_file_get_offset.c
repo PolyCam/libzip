@@ -1,5 +1,5 @@
 /*
-  zip_file_get_offset.c -- get offset of file data in archive.
+  libzip_file_get_offset.c -- get offset of file data in archive.
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -38,77 +38,77 @@
 #include "zipint.h"
 
 
-/* _zip_file_get_offset(za, ze):
+/* _libzip_file_get_offset(za, ze):
    Returns the offset of the file data for entry ze.
 
    On error, fills in za->error and returns 0.
 */
 
-zip_uint64_t
-_zip_file_get_offset(const zip_t *za, zip_uint64_t idx, zip_error_t *error) {
-    zip_uint64_t offset;
-    zip_int32_t size;
+libzip_uint64_t
+_libzip_file_get_offset(const libzip_t *za, libzip_uint64_t idx, libzip_error_t *error) {
+    libzip_uint64_t offset;
+    libzip_int32_t size;
 
     if (za->entry[idx].orig == NULL) {
-        zip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
         return 0;
     }
 
     offset = za->entry[idx].orig->offset;
 
-    if (zip_source_seek(za->src, (zip_int64_t)offset, SEEK_SET) < 0) {
-        zip_error_set_from_source(error, za->src);
+    if (libzip_source_seek(za->src, (libzip_int64_t)offset, SEEK_SET) < 0) {
+        libzip_error_set_from_source(error, za->src);
         return 0;
     }
 
     /* TODO: cache? */
-    if ((size = _zip_dirent_size(za->src, ZIP_EF_LOCAL, error)) < 0)
+    if ((size = _libzip_dirent_size(za->src, ZIP_EF_LOCAL, error)) < 0)
         return 0;
 
-    if (offset + (zip_uint32_t)size > ZIP_INT64_MAX) {
-        zip_error_set(error, ZIP_ER_SEEK, EFBIG);
+    if (offset + (libzip_uint32_t)size > ZIP_INT64_MAX) {
+        libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
         return 0;
     }
 
-    return offset + (zip_uint32_t)size;
+    return offset + (libzip_uint32_t)size;
 }
 
-zip_uint64_t
-_zip_file_get_end(const zip_t *za, zip_uint64_t index, zip_error_t *error) {
-    zip_uint64_t offset;
-    zip_dirent_t *entry;
+libzip_uint64_t
+_libzip_file_get_end(const libzip_t *za, libzip_uint64_t index, libzip_error_t *error) {
+    libzip_uint64_t offset;
+    libzip_dirent_t *entry;
 
-    if ((offset = _zip_file_get_offset(za, index, error)) == 0) {
+    if ((offset = _libzip_file_get_offset(za, index, error)) == 0) {
         return 0;
     }
 
     entry = za->entry[index].orig;
 
     if (offset + entry->comp_size < offset || offset + entry->comp_size > ZIP_INT64_MAX) {
-        zip_error_set(error, ZIP_ER_SEEK, EFBIG);
+        libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
         return 0;
     }
     offset += entry->comp_size;
 
     if (entry->bitflags & ZIP_GPBF_DATA_DESCRIPTOR) {
-        zip_uint8_t buf[4];
-        if (zip_source_seek(za->src, (zip_int64_t)offset, SEEK_SET) < 0) {
-            zip_error_set_from_source(error, za->src);
+        libzip_uint8_t buf[4];
+        if (libzip_source_seek(za->src, (libzip_int64_t)offset, SEEK_SET) < 0) {
+            libzip_error_set_from_source(error, za->src);
             return 0;
         }
-        if (zip_source_read(za->src, buf, 4) != 4) {
-            zip_error_set_from_source(error, za->src);
+        if (libzip_source_read(za->src, buf, 4) != 4) {
+            libzip_error_set_from_source(error, za->src);
             return 0;
         }
         if (memcmp(buf, DATADES_MAGIC, 4) == 0) {
             offset += 4;
         }
         offset += 12;
-        if (_zip_dirent_needs_zip64(entry, 0)) {
+        if (_libzip_dirent_needs_zip64(entry, 0)) {
             offset += 8;
         }
         if (offset > ZIP_INT64_MAX) {
-            zip_error_set(error, ZIP_ER_SEEK, EFBIG);
+            libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
             return 0;
         }
     }

@@ -1,5 +1,5 @@
 /*
-  zip_string.c -- string handling (with encoding)
+  libzip_string.c -- string handling (with encoding)
   Copyright (C) 2012-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -38,21 +38,21 @@
 
 #include "zipint.h"
 
-zip_uint32_t
-_zip_string_crc32(const zip_string_t *s) {
-    zip_uint32_t crc;
+libzip_uint32_t
+_libzip_string_crc32(const libzip_string_t *s) {
+    libzip_uint32_t crc;
 
-    crc = (zip_uint32_t)crc32(0L, Z_NULL, 0);
+    crc = (libzip_uint32_t)crc32(0L, Z_NULL, 0);
 
     if (s != NULL)
-        crc = (zip_uint32_t)crc32(crc, s->raw, s->length);
+        crc = (libzip_uint32_t)crc32(crc, s->raw, s->length);
 
     return crc;
 }
 
 
 int
-_zip_string_equal(const zip_string_t *a, const zip_string_t *b) {
+_libzip_string_equal(const libzip_string_t *a, const libzip_string_t *b) {
     if (a == NULL || b == NULL)
         return a == b;
 
@@ -66,7 +66,7 @@ _zip_string_equal(const zip_string_t *a, const zip_string_t *b) {
 
 
 void
-_zip_string_free(zip_string_t *s) {
+_libzip_string_free(libzip_string_t *s) {
     if (s == NULL)
         return;
 
@@ -76,9 +76,9 @@ _zip_string_free(zip_string_t *s) {
 }
 
 
-const zip_uint8_t *
-_zip_string_get(zip_string_t *string, zip_uint32_t *lenp, zip_flags_t flags, zip_error_t *error) {
-    static const zip_uint8_t empty[1] = "";
+const libzip_uint8_t *
+_libzip_string_get(libzip_string_t *string, libzip_uint32_t *lenp, libzip_flags_t flags, libzip_error_t *error) {
+    static const libzip_uint8_t empty[1] = "";
 
     if (string == NULL) {
         if (lenp)
@@ -90,12 +90,12 @@ _zip_string_get(zip_string_t *string, zip_uint32_t *lenp, zip_flags_t flags, zip
         /* start guessing */
         if (string->encoding == ZIP_ENCODING_UNKNOWN) {
             /* guess encoding, sets string->encoding */
-            (void)_zip_guess_encoding(string, ZIP_ENCODING_UNKNOWN);
+            (void)_libzip_guess_encoding(string, ZIP_ENCODING_UNKNOWN);
         }
 
         if (((flags & ZIP_FL_ENC_STRICT) && string->encoding != ZIP_ENCODING_ASCII && string->encoding != ZIP_ENCODING_UTF8_KNOWN) || (string->encoding == ZIP_ENCODING_CP437)) {
             if (string->converted == NULL) {
-                if ((string->converted = _zip_cp437_to_utf8(string->raw, string->length, &string->converted_length, error)) == NULL)
+                if ((string->converted = _libzip_cp437_to_utf8(string->raw, string->length, &string->converted_length, error)) == NULL)
                     return NULL;
             }
             if (lenp)
@@ -110,8 +110,8 @@ _zip_string_get(zip_string_t *string, zip_uint32_t *lenp, zip_flags_t flags, zip
 }
 
 
-zip_uint16_t
-_zip_string_length(const zip_string_t *s) {
+libzip_uint16_t
+_libzip_string_length(const libzip_string_t *s) {
     if (s == NULL)
         return 0;
 
@@ -119,10 +119,10 @@ _zip_string_length(const zip_string_t *s) {
 }
 
 
-zip_string_t *
-_zip_string_new(const zip_uint8_t *raw, zip_uint16_t length, zip_flags_t flags, zip_error_t *error) {
-    zip_string_t *s;
-    zip_encoding_type_t expected_encoding;
+libzip_string_t *
+_libzip_string_new(const libzip_uint8_t *raw, libzip_uint16_t length, libzip_flags_t flags, libzip_error_t *error) {
+    libzip_string_t *s;
+    libzip_encoding_type_t expected_encoding;
 
     if (length == 0)
         return NULL;
@@ -138,16 +138,16 @@ _zip_string_new(const zip_uint8_t *raw, zip_uint16_t length, zip_flags_t flags, 
         expected_encoding = ZIP_ENCODING_CP437;
         break;
     default:
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
 
-    if ((s = (zip_string_t *)malloc(sizeof(*s))) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+    if ((s = (libzip_string_t *)malloc(sizeof(*s))) == NULL) {
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
-    if ((s->raw = (zip_uint8_t *)malloc((size_t)length + 1)) == NULL) {
+    if ((s->raw = (libzip_uint8_t *)malloc((size_t)length + 1)) == NULL) {
         free(s);
         return NULL;
     }
@@ -160,9 +160,9 @@ _zip_string_new(const zip_uint8_t *raw, zip_uint16_t length, zip_flags_t flags, 
     s->converted_length = 0;
 
     if (expected_encoding != ZIP_ENCODING_UNKNOWN) {
-        if (_zip_guess_encoding(s, expected_encoding) == ZIP_ENCODING_ERROR) {
-            _zip_string_free(s);
-            zip_error_set(error, ZIP_ER_INVAL, 0);
+        if (_libzip_guess_encoding(s, expected_encoding) == ZIP_ENCODING_ERROR) {
+            _libzip_string_free(s);
+            libzip_error_set(error, ZIP_ER_INVAL, 0);
             return NULL;
         }
     }
@@ -172,9 +172,9 @@ _zip_string_new(const zip_uint8_t *raw, zip_uint16_t length, zip_flags_t flags, 
 
 
 int
-_zip_string_write(zip_t *za, const zip_string_t *s) {
+_libzip_string_write(libzip_t *za, const libzip_string_t *s) {
     if (s == NULL)
         return 0;
 
-    return _zip_write(za, s->raw, s->length);
+    return _libzip_write(za, s->raw, s->length);
 }

@@ -1,5 +1,5 @@
 /*
-  zip_replace.c -- replace file via callback function
+  libzip_replace.c -- replace file via callback function
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,6 +37,6 @@
 
 
 ZIP_EXTERN int
-zip_replace(zip_t *za, zip_uint64_t idx, zip_source_t *source) {
-    return zip_file_replace(za, idx, source, 0);
+libzip_replace(libzip_t *za, libzip_uint64_t idx, libzip_source_t *source) {
+    return libzip_file_replace(za, idx, source, 0);
 }

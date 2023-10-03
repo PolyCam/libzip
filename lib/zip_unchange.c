@@ -1,5 +1,5 @@
 /*
-  zip_unchange.c -- undo changes to file in zip archive
+  libzip_unchange.c -- undo changes to file in zip archive
   Copyright (C) 1999-2022 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -38,18 +38,18 @@
 
 
 ZIP_EXTERN int
-zip_unchange(zip_t *za, zip_uint64_t idx) {
-    return _zip_unchange(za, idx, 0);
+libzip_unchange(libzip_t *za, libzip_uint64_t idx) {
+    return _libzip_unchange(za, idx, 0);
 }
 
 
 int
-_zip_unchange(zip_t *za, zip_uint64_t idx, int allow_duplicates) {
-    zip_int64_t i;
+_libzip_unchange(libzip_t *za, libzip_uint64_t idx, int allow_duplicates) {
+    libzip_int64_t i;
     bool renamed;
 
     if (idx >= za->nentry) {
-        zip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
@@ -59,40 +59,40 @@ _zip_unchange(zip_t *za, zip_uint64_t idx, int allow_duplicates) {
         const char *changed_name = NULL;
 
         if (za->entry[idx].orig != NULL) {
-            if ((orig_name = _zip_get_name(za, idx, ZIP_FL_UNCHANGED, &za->error)) == NULL) {
+            if ((orig_name = _libzip_get_name(za, idx, ZIP_FL_UNCHANGED, &za->error)) == NULL) {
                 return -1;
             }
 
-            i = _zip_name_locate(za, orig_name, 0, NULL);
-            if (i >= 0 && (zip_uint64_t)i != idx) {
-                zip_error_set(&za->error, ZIP_ER_EXISTS, 0);
+            i = _libzip_name_locate(za, orig_name, 0, NULL);
+            if (i >= 0 && (libzip_uint64_t)i != idx) {
+                libzip_error_set(&za->error, ZIP_ER_EXISTS, 0);
                 return -1;
             }
         }
 
         if (renamed) {
-            if ((changed_name = _zip_get_name(za, idx, 0, &za->error)) == NULL) {
+            if ((changed_name = _libzip_get_name(za, idx, 0, &za->error)) == NULL) {
                 return -1;
             }
         }
 
         if (orig_name) {
-            if (_zip_hash_add(za->names, (const zip_uint8_t *)orig_name, idx, 0, &za->error) == false) {
+            if (_libzip_hash_add(za->names, (const libzip_uint8_t *)orig_name, idx, 0, &za->error) == false) {
                 return -1;
             }
         }
         if (changed_name) {
-            if (_zip_hash_delete(za->names, (const zip_uint8_t *)changed_name, &za->error) == false) {
-                _zip_hash_delete(za->names, (const zip_uint8_t *)orig_name, NULL);
+            if (_libzip_hash_delete(za->names, (const libzip_uint8_t *)changed_name, &za->error) == false) {
+                _libzip_hash_delete(za->names, (const libzip_uint8_t *)orig_name, NULL);
                 return -1;
             }
         }
     }
 
-    _zip_dirent_free(za->entry[idx].changes);
+    _libzip_dirent_free(za->entry[idx].changes);
     za->entry[idx].changes = NULL;
 
-    _zip_unchange_data(za->entry + idx);
+    _libzip_unchange_data(za->entry + idx);
 
     return 0;
 }

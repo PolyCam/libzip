@@ -1,5 +1,5 @@
 /*
-  zip_source_get_file_attributes.c -- get attributes for file from source
+  libzip_source_get_file_attributes.c -- get attributes for file from source
   Copyright (C) 2020 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -34,36 +34,36 @@
 #include "zipint.h"
 
 ZIP_EXTERN void
-zip_file_attributes_init(zip_file_attributes_t *attributes) {
+libzip_file_attributes_init(libzip_file_attributes_t *attributes) {
     attributes->valid = 0;
     attributes->version = 1;
 }
 
 int
-zip_source_get_file_attributes(zip_source_t *src, zip_file_attributes_t *attributes) {
+libzip_source_get_file_attributes(libzip_source_t *src, libzip_file_attributes_t *attributes) {
     if (src->source_closed) {
         return -1;
     }
     if (attributes == NULL) {
-        zip_error_set(&src->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
-    zip_file_attributes_init(attributes);
+    libzip_file_attributes_init(attributes);
 
     if (src->supports & ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_GET_FILE_ATTRIBUTES)) {
-        if (_zip_source_call(src, attributes, sizeof(*attributes), ZIP_SOURCE_GET_FILE_ATTRIBUTES) < 0) {
+        if (_libzip_source_call(src, attributes, sizeof(*attributes), ZIP_SOURCE_GET_FILE_ATTRIBUTES) < 0) {
             return -1;
         }
     }
 
     if (ZIP_SOURCE_IS_LAYERED(src)) {
-        zip_file_attributes_t lower_attributes;
+        libzip_file_attributes_t lower_attributes;
 
-        zip_file_attributes_init(&lower_attributes);
+        libzip_file_attributes_init(&lower_attributes);
 
-        if (zip_source_get_file_attributes(src->src, &lower_attributes) < 0) {
-            zip_error_set_from_source(&src->error, src->src);
+        if (libzip_source_get_file_attributes(src->src, &lower_attributes) < 0) {
+            libzip_error_set_from_source(&src->error, src->src);
             return -1;
         }
 

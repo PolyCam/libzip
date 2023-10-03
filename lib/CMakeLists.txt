@@ -192,10 +192,10 @@ if(LIBZIP_DO_INSTALL)
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(FILES zip.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  install(FILES libzip.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
 
-# create zip_err_str.c from zip.h and zipint.h
+# create zip_err_str.c from libzip.h and zipint.h
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/zip_err_str.c
   COMMAND "${CMAKE_COMMAND}"
@@ -204,7 +204,7 @@ add_custom_command(
     "-P" "${PROJECT_SOURCE_DIR}/cmake/GenerateZipErrorStrings.cmake"
   DEPENDS
     ${PROJECT_SOURCE_DIR}/cmake/GenerateZipErrorStrings.cmake
-    ${PROJECT_SOURCE_DIR}/lib/zip.h
+    ${PROJECT_SOURCE_DIR}/lib/libzip.h
     ${PROJECT_SOURCE_DIR}/lib/zipint.h
   COMMENT "Generating zip_err_str.c"
 )

@@ -2,7 +2,7 @@
 #define _HAD_ZIP_SOURCE_FILE_WIN32_H
 
 /*
-  zip_source_file_win32.h -- common header for Windows file implementation
+  libzip_source_file_win32.h -- common header for Windows file implementation
   Copyright (C) 2020 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -49,29 +49,29 @@
 
 #include "zip_source_file.h"
 
-struct zip_win32_file_operations {
+struct libzip_win32_file_operations {
     char *(*allocate_tempname)(const char *name, size_t extra_chars, size_t *lengthp);
     HANDLE(__stdcall *create_file)(const void *name, DWORD access, DWORD share_mode, PSECURITY_ATTRIBUTES security_attributes, DWORD creation_disposition, DWORD file_attributes, HANDLE template_file);
     BOOL(__stdcall *delete_file)(const void *name);
     DWORD(__stdcall *get_file_attributes)(const void *name);
     BOOL(__stdcall *get_file_attributes_ex)(const void *name, GET_FILEEX_INFO_LEVELS info_level, void *information);
-    void (*make_tempname)(char *buf, size_t len, const char *name, zip_uint32_t i);
+    void (*make_tempname)(char *buf, size_t len, const char *name, libzip_uint32_t i);
     BOOL(__stdcall *move_file)(const void *from, const void *to, DWORD flags);
     BOOL(__stdcall *set_file_attributes)(const void *name, DWORD attributes);
     char *(*string_duplicate)(const char *string);
 };
 
-typedef struct zip_win32_file_operations zip_win32_file_operations_t;
+typedef struct libzip_win32_file_operations libzip_win32_file_operations_t;
 
-extern zip_source_file_operations_t _zip_source_file_win32_named_ops;
+extern libzip_source_file_operations_t _libzip_source_file_win32_named_ops;
 
-void _zip_win32_op_close(zip_source_file_context_t *ctx);
-zip_int64_t _zip_win32_op_read(zip_source_file_context_t *ctx, void *buf, zip_uint64_t len);
-bool _zip_win32_op_seek(zip_source_file_context_t *ctx, void *f, zip_int64_t offset, int whence);
-zip_int64_t _zip_win32_op_tell(zip_source_file_context_t *ctx, void *f);
+void _libzip_win32_op_close(libzip_source_file_context_t *ctx);
+libzip_int64_t _libzip_win32_op_read(libzip_source_file_context_t *ctx, void *buf, libzip_uint64_t len);
+bool _libzip_win32_op_seek(libzip_source_file_context_t *ctx, void *f, libzip_int64_t offset, int whence);
+libzip_int64_t _libzip_win32_op_tell(libzip_source_file_context_t *ctx, void *f);
 
-bool _zip_filetime_to_time_t(FILETIME ft, time_t *t);
-int _zip_win32_error_to_errno(DWORD win32err);
+bool _libzip_filetime_to_time_t(FILETIME ft, time_t *t);
+int _libzip_win32_error_to_errno(DWORD win32err);
 
 #ifdef __clang__
 #define DONT_WARN_INCOMPATIBLE_FN_PTR_BEGIN _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wincompatible-function-pointer-types\"")

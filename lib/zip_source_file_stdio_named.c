@@ -1,5 +1,5 @@
 /*
-  zip_source_file_stdio_named.c -- source for stdio file opened by name
+  libzip_source_file_stdio_named.c -- source for stdio file opened by name
   Copyright (C) 1999-2022 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -54,70 +54,70 @@
 #define CAN_CLONE
 #endif
 
-static int create_temp_file(zip_source_file_context_t *ctx, bool create_file);
+static int create_temp_file(libzip_source_file_context_t *ctx, bool create_file);
 
-static zip_int64_t _zip_stdio_op_commit_write(zip_source_file_context_t *ctx);
-static zip_int64_t _zip_stdio_op_create_temp_output(zip_source_file_context_t *ctx);
+static libzip_int64_t _libzip_stdio_op_commit_write(libzip_source_file_context_t *ctx);
+static libzip_int64_t _libzip_stdio_op_create_temp_output(libzip_source_file_context_t *ctx);
 #ifdef CAN_CLONE
-static zip_int64_t _zip_stdio_op_create_temp_output_cloning(zip_source_file_context_t *ctx, zip_uint64_t offset);
+static libzip_int64_t _libzip_stdio_op_create_temp_output_cloning(libzip_source_file_context_t *ctx, libzip_uint64_t offset);
 #endif
-static bool _zip_stdio_op_open(zip_source_file_context_t *ctx);
-static zip_int64_t _zip_stdio_op_remove(zip_source_file_context_t *ctx);
-static void _zip_stdio_op_rollback_write(zip_source_file_context_t *ctx);
-static char *_zip_stdio_op_strdup(zip_source_file_context_t *ctx, const char *string);
-static zip_int64_t _zip_stdio_op_write(zip_source_file_context_t *ctx, const void *data, zip_uint64_t len);
-static FILE *_zip_fopen_close_on_exec(const char *name, bool writeable);
+static bool _libzip_stdio_op_open(libzip_source_file_context_t *ctx);
+static libzip_int64_t _libzip_stdio_op_remove(libzip_source_file_context_t *ctx);
+static void _libzip_stdio_op_rollback_write(libzip_source_file_context_t *ctx);
+static char *_libzip_stdio_op_strdup(libzip_source_file_context_t *ctx, const char *string);
+static libzip_int64_t _libzip_stdio_op_write(libzip_source_file_context_t *ctx, const void *data, libzip_uint64_t len);
+static FILE *_libzip_fopen_close_on_exec(const char *name, bool writeable);
 
 /* clang-format off */
-static zip_source_file_operations_t ops_stdio_named = {
-    _zip_stdio_op_close,
-    _zip_stdio_op_commit_write,
-    _zip_stdio_op_create_temp_output,
+static libzip_source_file_operations_t ops_stdio_named = {
+    _libzip_stdio_op_close,
+    _libzip_stdio_op_commit_write,
+    _libzip_stdio_op_create_temp_output,
 #ifdef CAN_CLONE
-    _zip_stdio_op_create_temp_output_cloning,
+    _libzip_stdio_op_create_temp_output_cloning,
 #else
     NULL,
 #endif
-    _zip_stdio_op_open,
-    _zip_stdio_op_read,
-    _zip_stdio_op_remove,
-    _zip_stdio_op_rollback_write,
-    _zip_stdio_op_seek,
-    _zip_stdio_op_stat,
-    _zip_stdio_op_strdup,
-    _zip_stdio_op_tell,
-    _zip_stdio_op_write
+    _libzip_stdio_op_open,
+    _libzip_stdio_op_read,
+    _libzip_stdio_op_remove,
+    _libzip_stdio_op_rollback_write,
+    _libzip_stdio_op_seek,
+    _libzip_stdio_op_stat,
+    _libzip_stdio_op_strdup,
+    _libzip_stdio_op_tell,
+    _libzip_stdio_op_write
 };
 /* clang-format on */
 
-ZIP_EXTERN zip_source_t *
-zip_source_file(zip_t *za, const char *fname, zip_uint64_t start, zip_int64_t len) {
+ZIP_EXTERN libzip_source_t *
+libzip_source_file(libzip_t *za, const char *fname, libzip_uint64_t start, libzip_int64_t len) {
     if (za == NULL)
         return NULL;
 
-    return zip_source_file_create(fname, start, len, &za->error);
+    return libzip_source_file_create(fname, start, len, &za->error);
 }
 
 
-ZIP_EXTERN zip_source_t *
-zip_source_file_create(const char *fname, zip_uint64_t start, zip_int64_t length, zip_error_t *error) {
+ZIP_EXTERN libzip_source_t *
+libzip_source_file_create(const char *fname, libzip_uint64_t start, libzip_int64_t length, libzip_error_t *error) {
     if (fname == NULL || length < ZIP_LENGTH_UNCHECKED) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
 
-    return zip_source_file_common_new(fname, NULL, start, length, NULL, &ops_stdio_named, NULL, error);
+    return libzip_source_file_common_new(fname, NULL, start, length, NULL, &ops_stdio_named, NULL, error);
 }
 
 
-static zip_int64_t
-_zip_stdio_op_commit_write(zip_source_file_context_t *ctx) {
+static libzip_int64_t
+_libzip_stdio_op_commit_write(libzip_source_file_context_t *ctx) {
     if (fclose(ctx->fout) < 0) {
-        zip_error_set(&ctx->error, ZIP_ER_WRITE, errno);
+        libzip_error_set(&ctx->error, ZIP_ER_WRITE, errno);
         return -1;
     }
     if (rename(ctx->tmpname, ctx->fname) < 0) {
-        zip_error_set(&ctx->error, ZIP_ER_RENAME, errno);
+        libzip_error_set(&ctx->error, ZIP_ER_RENAME, errno);
         return -1;
     }
 
@@ -125,8 +125,8 @@ _zip_stdio_op_commit_write(zip_source_file_context_t *ctx) {
 }
 
 
-static zip_int64_t
-_zip_stdio_op_create_temp_output(zip_source_file_context_t *ctx) {
+static libzip_int64_t
+_libzip_stdio_op_create_temp_output(libzip_source_file_context_t *ctx) {
     int fd = create_temp_file(ctx, true);
     
     if (fd < 0) {
@@ -134,7 +134,7 @@ _zip_stdio_op_create_temp_output(zip_source_file_context_t *ctx) {
     }
     
     if ((ctx->fout = fdopen(fd, "r+b")) == NULL) {
-        zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+        libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
         close(fd);
         (void)remove(ctx->tmpname);
         free(ctx->tmpname);
@@ -146,12 +146,12 @@ _zip_stdio_op_create_temp_output(zip_source_file_context_t *ctx) {
 }
 
 #ifdef CAN_CLONE
-static zip_int64_t
-_zip_stdio_op_create_temp_output_cloning(zip_source_file_context_t *ctx, zip_uint64_t offset) {
+static libzip_int64_t
+_libzip_stdio_op_create_temp_output_cloning(libzip_source_file_context_t *ctx, libzip_uint64_t offset) {
     FILE *tfp;
     
     if (offset > ZIP_OFF_MAX) {
-        zip_error_set(&ctx->error, ZIP_ER_SEEK, E2BIG);
+        libzip_error_set(&ctx->error, ZIP_ER_SEEK, E2BIG);
         return -1;
     }
     
@@ -162,13 +162,13 @@ _zip_stdio_op_create_temp_output_cloning(zip_source_file_context_t *ctx, zip_uin
     }
     
     if (clonefile(ctx->fname, ctx->tmpname, 0) < 0) {
-        zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+        libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
         free(ctx->tmpname);
         ctx->tmpname = NULL;
         return -1;
     }
-    if ((tfp = _zip_fopen_close_on_exec(ctx->tmpname, true)) == NULL) {
-        zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+    if ((tfp = _libzip_fopen_close_on_exec(ctx->tmpname, true)) == NULL) {
+        libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
         (void)remove(ctx->tmpname);
         free(ctx->tmpname);
         ctx->tmpname = NULL;
@@ -181,7 +181,7 @@ _zip_stdio_op_create_temp_output_cloning(zip_source_file_context_t *ctx, zip_uin
         struct stat st;
         
         if (fstat(fileno(ctx->f), &st) < 0) {
-            zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+            libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
             return -1;
         }
         
@@ -197,7 +197,7 @@ _zip_stdio_op_create_temp_output_cloning(zip_source_file_context_t *ctx, zip_uin
         }
         range.dest_offset = 0;
         if (ioctl(fd, FICLONERANGE, &range) < 0) {
-            zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+            libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
             (void)close(fd);
             (void)remove(ctx->tmpname);
             free(ctx->tmpname);
@@ -206,7 +206,7 @@ _zip_stdio_op_create_temp_output_cloning(zip_source_file_context_t *ctx, zip_uin
         }
 
         if ((tfp = fdopen(fd, "r+b")) == NULL) {
-            zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+            libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
             (void)close(fd);
             (void)remove(ctx->tmpname);
             free(ctx->tmpname);
@@ -224,7 +224,7 @@ _zip_stdio_op_create_temp_output_cloning(zip_source_file_context_t *ctx, zip_uin
         return -1;
     }
     if (fseeko(tfp, (off_t)offset, SEEK_SET) < 0) {
-        zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+        libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
         (void)fclose(tfp);
         (void)remove(ctx->tmpname);
         free(ctx->tmpname);
@@ -239,19 +239,19 @@ _zip_stdio_op_create_temp_output_cloning(zip_source_file_context_t *ctx, zip_uin
 #endif
 
 static bool
-_zip_stdio_op_open(zip_source_file_context_t *ctx) {
-    if ((ctx->f = _zip_fopen_close_on_exec(ctx->fname, false)) == NULL) {
-        zip_error_set(&ctx->error, ZIP_ER_OPEN, errno);
+_libzip_stdio_op_open(libzip_source_file_context_t *ctx) {
+    if ((ctx->f = _libzip_fopen_close_on_exec(ctx->fname, false)) == NULL) {
+        libzip_error_set(&ctx->error, ZIP_ER_OPEN, errno);
         return false;
     }
     return true;
 }
 
 
-static zip_int64_t
-_zip_stdio_op_remove(zip_source_file_context_t *ctx) {
+static libzip_int64_t
+_libzip_stdio_op_remove(libzip_source_file_context_t *ctx) {
     if (remove(ctx->fname) < 0) {
-        zip_error_set(&ctx->error, ZIP_ER_REMOVE, errno);
+        libzip_error_set(&ctx->error, ZIP_ER_REMOVE, errno);
         return -1;
     }
     return 0;
@@ -259,7 +259,7 @@ _zip_stdio_op_remove(zip_source_file_context_t *ctx) {
 
 
 static void
-_zip_stdio_op_rollback_write(zip_source_file_context_t *ctx) {
+_libzip_stdio_op_rollback_write(libzip_source_file_context_t *ctx) {
     if (ctx->fout) {
         fclose(ctx->fout);
     }
@@ -267,27 +267,27 @@ _zip_stdio_op_rollback_write(zip_source_file_context_t *ctx) {
 }
 
 static char *
-_zip_stdio_op_strdup(zip_source_file_context_t *ctx, const char *string) {
+_libzip_stdio_op_strdup(libzip_source_file_context_t *ctx, const char *string) {
     return strdup(string);
 }
 
 
-static zip_int64_t
-_zip_stdio_op_write(zip_source_file_context_t *ctx, const void *data, zip_uint64_t len) {
+static libzip_int64_t
+_libzip_stdio_op_write(libzip_source_file_context_t *ctx, const void *data, libzip_uint64_t len) {
     size_t ret;
 
     clearerr((FILE *)ctx->fout);
     ret = fwrite(data, 1, len, (FILE *)ctx->fout);
     if (ret != len || ferror((FILE *)ctx->fout)) {
-        zip_error_set(&ctx->error, ZIP_ER_WRITE, errno);
+        libzip_error_set(&ctx->error, ZIP_ER_WRITE, errno);
         return -1;
     }
 
-    return (zip_int64_t)ret;
+    return (libzip_int64_t)ret;
 }
 
 
-static int create_temp_file(zip_source_file_context_t *ctx, bool create_file) {
+static int create_temp_file(libzip_source_file_context_t *ctx, bool create_file) {
     char *temp;
     int mode;
     struct stat st;
@@ -303,7 +303,7 @@ static int create_temp_file(zip_source_file_context_t *ctx, bool create_file) {
     
     size_t temp_size = strlen(ctx->fname) + 13;
     if ((temp = (char *)malloc(temp_size)) == NULL) {
-        zip_error_set(&ctx->error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(&ctx->error, ZIP_ER_MEMORY, 0);
         return -1;
     }
     snprintf_s(temp, temp_size, "%s.XXXXXX.part", ctx->fname);
@@ -311,7 +311,7 @@ static int create_temp_file(zip_source_file_context_t *ctx, bool create_file) {
     start = end - 6;
     
     for (;;) {
-        zip_uint32_t value = zip_random_uint32();
+        libzip_uint32_t value = libzip_random_uint32();
         char *xs = start;
         
         while (xs < end) {
@@ -338,7 +338,7 @@ static int create_temp_file(zip_source_file_context_t *ctx, bool create_file) {
                 break;
             }
             if (errno != EEXIST) {
-                zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+                libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
                 free(temp);
                 return -1;
             }
@@ -349,7 +349,7 @@ static int create_temp_file(zip_source_file_context_t *ctx, bool create_file) {
                     break;
                 }
                 else {
-                    zip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+                    libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
                     free(temp);
                     return -1;
                 }
@@ -368,7 +368,7 @@ static int create_temp_file(zip_source_file_context_t *ctx, bool create_file) {
  * some implementations support an fopen 'e' flag for that,
  * but e.g. macOS doesn't.
  */
-static FILE *_zip_fopen_close_on_exec(const char *name, bool writeable) {
+static FILE *_libzip_fopen_close_on_exec(const char *name, bool writeable) {
     int fd;
     int flags;
     FILE *fp;

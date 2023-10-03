@@ -1,5 +1,5 @@
 /*
- zip_file_set_mtime.c -- set modification time of entry.
+ libzip_file_set_mtime.c -- set modification time of entry.
  Copyright (C) 2014-2022 Dieter Baron and Thomas Klausner
 
  This file is part of libzip, a library to manipulate ZIP archives.
@@ -34,38 +34,38 @@
 #include "zipint.h"
 
 ZIP_EXTERN int
-zip_file_set_dostime(zip_t *za, zip_uint64_t idx, zip_uint16_t dtime, zip_uint16_t ddate, zip_flags_t flags) {
+libzip_file_set_dostime(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t dtime, libzip_uint16_t ddate, libzip_flags_t flags) {
     time_t mtime;
-    mtime = _zip_d2u_time(dtime, ddate);
-    return zip_file_set_mtime(za, idx, mtime, flags);
+    mtime = _libzip_d2u_time(dtime, ddate);
+    return libzip_file_set_mtime(za, idx, mtime, flags);
 }
 
 ZIP_EXTERN int
-zip_file_set_mtime(zip_t *za, zip_uint64_t idx, time_t mtime, zip_flags_t flags) {
-    zip_entry_t *e;
+libzip_file_set_mtime(libzip_t *za, libzip_uint64_t idx, time_t mtime, libzip_flags_t flags) {
+    libzip_entry_t *e;
 
-    if (_zip_get_dirent(za, idx, 0, NULL) == NULL)
+    if (_libzip_get_dirent(za, idx, 0, NULL) == NULL)
         return -1;
 
     if (ZIP_IS_RDONLY(za)) {
-        zip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
         return -1;
     }
     if (ZIP_WANT_TORRENTZIP(za)) {
-        zip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
     e = za->entry + idx;
 
     if (e->orig != NULL && e->orig->encryption_method == ZIP_EM_TRAD_PKWARE && !ZIP_ENTRY_CHANGED(e, ZIP_DIRENT_ENCRYPTION_METHOD) && !ZIP_ENTRY_DATA_CHANGED(e)) {
-        zip_error_set(&za->error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(&za->error, ZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 
     if (e->changes == NULL) {
-        if ((e->changes = _zip_dirent_clone(e->orig)) == NULL) {
-            zip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+        if ((e->changes = _libzip_dirent_clone(e->orig)) == NULL) {
+            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
             return -1;
         }
     }

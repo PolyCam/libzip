@@ -33,14 +33,14 @@ do
 done
 
 find $SRC/libzip/regress -name "*zip" | \
-     xargs zip $OUT/zip_read_fuzzer_seed_corpus.zip
-cp $SRC/libzip/ossfuzz/zip_read_fuzzer.dict $OUT/
+     xargs zip $OUT/libzip_read_fuzzer_seed_corpus.zip
+cp $SRC/libzip/ossfuzz/libzip_read_fuzzer.dict $OUT/
 
-cp $SRC/libzip/ossfuzz/zip_write_encrypt_aes256_file_fuzzer_seed_corpus.zip $OUT/
+cp $SRC/libzip/ossfuzz/libzip_write_encrypt_aes256_file_fuzzer_seed_corpus.zip $OUT/
 
 for pair in \
-  zip_read_fuzzer:zip_read_file_fuzzer \
-  zip_write_encrypt_aes256_file_fuzzer:zip_write_encrypt_pkware_file_fuzzer
+  libzip_read_fuzzer:libzip_read_file_fuzzer \
+  libzip_write_encrypt_aes256_file_fuzzer:libzip_write_encrypt_pkware_file_fuzzer
 do
   source=${pair%%:*}
   target=${pair##*:}

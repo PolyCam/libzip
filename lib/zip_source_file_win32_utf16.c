@@ -1,5 +1,5 @@
 /*
-  zip_source_file_win32_utf16.c -- source for Windows file opened by UTF-16 name
+  libzip_source_file_win32_utf16.c -- source for Windows file opened by UTF-16 name
   Copyright (C) 1999-2020 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -35,13 +35,13 @@
 
 static char *utf16_allocate_tempname(const char *name, size_t extra_chars, size_t *lengthp);
 static HANDLE __stdcall utf16_create_file(const char *name, DWORD access, DWORD share_mode, PSECURITY_ATTRIBUTES security_attributes, DWORD creation_disposition, DWORD file_attributes, HANDLE template_file);
-static void utf16_make_tempname(char *buf, size_t len, const char *name, zip_uint32_t i);
+static void utf16_make_tempname(char *buf, size_t len, const char *name, libzip_uint32_t i);
 static char *utf16_strdup(const char *string);
 
 /* clang-format off */
 DONT_WARN_INCOMPATIBLE_FN_PTR_BEGIN
 
-zip_win32_file_operations_t ops_utf16 = {
+libzip_win32_file_operations_t ops_utf16 = {
     utf16_allocate_tempname,
     utf16_create_file,
     DeleteFileW,
@@ -56,24 +56,24 @@ zip_win32_file_operations_t ops_utf16 = {
 DONT_WARN_INCOMPATIBLE_FN_PTR_END
 /* clang-format on */
 
-ZIP_EXTERN zip_source_t *
-zip_source_win32w(zip_t *za, const wchar_t *fname, zip_uint64_t start, zip_int64_t len) {
+ZIP_EXTERN libzip_source_t *
+libzip_source_win32w(libzip_t *za, const wchar_t *fname, libzip_uint64_t start, libzip_int64_t len) {
     if (za == NULL)
         return NULL;
 
-    return zip_source_win32w_create(fname, start, len, &za->error);
+    return libzip_source_win32w_create(fname, start, len, &za->error);
 }
 
 
-ZIP_EXTERN zip_source_t *
-zip_source_win32w_create(const wchar_t *fname, zip_uint64_t start, zip_int64_t length, zip_error_t *error) {
+ZIP_EXTERN libzip_source_t *
+libzip_source_win32w_create(const wchar_t *fname, libzip_uint64_t start, libzip_int64_t length, libzip_error_t *error) {
     if (fname == NULL || length < ZIP_LENGTH_UNCHECKED) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
 
 
-    return zip_source_file_common_new((const char *)fname, NULL, start, length, NULL, &_zip_source_file_win32_named_ops, &ops_utf16, error);
+    return libzip_source_file_common_new((const char *)fname, NULL, start, length, NULL, &_libzip_source_file_win32_named_ops, &ops_utf16, error);
 }
 
 
@@ -102,7 +102,7 @@ static HANDLE __stdcall utf16_create_file(const char *name, DWORD access, DWORD 
 
 
 static void
-utf16_make_tempname(char *buf, size_t len, const char *name, zip_uint32_t i) {
+utf16_make_tempname(char *buf, size_t len, const char *name, libzip_uint32_t i) {
     _snwprintf_s((wchar_t *)buf, len, len, L"%s.%08x", (const wchar_t *)name, i);
 }
 

@@ -2,7 +2,7 @@
 #define _HAD_ZIP_SOURCE_FILE_STDIO_H
 
 /*
-  zip_source_file_stdio.h -- common header for stdio file implementation
+  libzip_source_file_stdio.h -- common header for stdio file implementation
   Copyright (C) 2020 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,10 +36,10 @@
 
 #include <stdio.h>
 
-void _zip_stdio_op_close(zip_source_file_context_t *ctx);
-zip_int64_t _zip_stdio_op_read(zip_source_file_context_t *ctx, void *buf, zip_uint64_t len);
-bool _zip_stdio_op_seek(zip_source_file_context_t *ctx, void *f, zip_int64_t offset, int whence);
-bool _zip_stdio_op_stat(zip_source_file_context_t *ctx, zip_source_file_stat_t *st);
-zip_int64_t _zip_stdio_op_tell(zip_source_file_context_t *ctx, void *f);
+void _libzip_stdio_op_close(libzip_source_file_context_t *ctx);
+libzip_int64_t _libzip_stdio_op_read(libzip_source_file_context_t *ctx, void *buf, libzip_uint64_t len);
+bool _libzip_stdio_op_seek(libzip_source_file_context_t *ctx, void *f, libzip_int64_t offset, int whence);
+bool _libzip_stdio_op_stat(libzip_source_file_context_t *ctx, libzip_source_file_stat_t *st);
+libzip_int64_t _libzip_stdio_op_tell(libzip_source_file_context_t *ctx, void *f);
 
 #endif /* _HAD_ZIP_SOURCE_FILE_STDIO_H */

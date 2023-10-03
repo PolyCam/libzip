@@ -1,5 +1,5 @@
 /*
-  zip_crypto_mbedtls.c -- mbed TLS wrapper
+  libzip_crypto_mbedtls.c -- mbed TLS wrapper
   Copyright (C) 2018-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -43,12 +43,12 @@
 
 #include <limits.h>
 
-_zip_crypto_aes_t *
-_zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *error) {
-    _zip_crypto_aes_t *aes;
+_libzip_crypto_aes_t *
+_libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libzip_error_t *error) {
+    _libzip_crypto_aes_t *aes;
 
-    if ((aes = (_zip_crypto_aes_t *)malloc(sizeof(*aes))) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+    if ((aes = (_libzip_crypto_aes_t *)malloc(sizeof(*aes))) == NULL) {
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -59,7 +59,7 @@ _zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *
 }
 
 void
-_zip_crypto_aes_free(_zip_crypto_aes_t *aes) {
+_libzip_crypto_aes_free(_libzip_crypto_aes_t *aes) {
     if (aes == NULL) {
         return;
     }
@@ -69,30 +69,30 @@ _zip_crypto_aes_free(_zip_crypto_aes_t *aes) {
 }
 
 
-_zip_crypto_hmac_t *
-_zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_error_t *error) {
-    _zip_crypto_hmac_t *hmac;
+_libzip_crypto_hmac_t *
+_libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_length, libzip_error_t *error) {
+    _libzip_crypto_hmac_t *hmac;
 
     if (secret_length > INT_MAX) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
 
-    if ((hmac = (_zip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+    if ((hmac = (_libzip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     mbedtls_md_init(hmac);
 
     if (mbedtls_md_setup(hmac, mbedtls_md_info_from_type(MBEDTLS_MD_SHA1), 1) != 0) {
-        zip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
         free(hmac);
         return NULL;
     }
 
     if (mbedtls_md_hmac_starts(hmac, (const unsigned char *)secret, (size_t)secret_length) != 0) {
-        zip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
         free(hmac);
         return NULL;
     }
@@ -102,7 +102,7 @@ _zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_
 
 
 void
-_zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac) {
+_libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac) {
     if (hmac == NULL) {
         return;
     }
@@ -113,7 +113,7 @@ _zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac) {
 
 
 bool
-_zip_crypto_pbkdf2(const zip_uint8_t *key, zip_uint64_t key_length, const zip_uint8_t *salt, zip_uint16_t salt_length, int iterations, zip_uint8_t *output, zip_uint64_t output_length) {
+_libzip_crypto_pbkdf2(const libzip_uint8_t *key, libzip_uint64_t key_length, const libzip_uint8_t *salt, libzip_uint16_t salt_length, int iterations, libzip_uint8_t *output, libzip_uint64_t output_length) {
     mbedtls_md_context_t sha1_ctx;
     bool ok = true;
 
@@ -144,15 +144,15 @@ _zip_crypto_pbkdf2(const zip_uint8_t *key, zip_uint64_t key_length, const zip_ui
 typedef struct {
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-} zip_random_context_t;
+} libzip_random_context_t;
 
 ZIP_EXTERN bool
-zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
-    static zip_random_context_t *ctx = NULL;
+libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
+    static libzip_random_context_t *ctx = NULL;
     const unsigned char *pers = "zip_crypto_mbedtls";
 
     if (!ctx) {
-        ctx = (zip_random_context_t *)malloc(sizeof(zip_random_context_t));
+        ctx = (libzip_random_context_t *)malloc(sizeof(libzip_random_context_t));
         if (!ctx) {
             return false;
         }

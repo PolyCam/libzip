@@ -1,5 +1,5 @@
 /*
-  zip_crypto_win.h -- Windows Crypto API wrapper.
+  libzip_crypto_win.h -- Windows Crypto API wrapper.
   Copyright (C) 2018-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,18 +36,18 @@
 
 #define HAVE_SECURE_RANDOM
 
-typedef struct _zip_crypto_aes_s _zip_crypto_aes_t;
-typedef struct _zip_crypto_hmac_s _zip_crypto_hmac_t;
+typedef struct _libzip_crypto_aes_s _libzip_crypto_aes_t;
+typedef struct _libzip_crypto_hmac_s _libzip_crypto_hmac_t;
 
-void _zip_crypto_aes_free(_zip_crypto_aes_t *aes);
-_zip_crypto_aes_t *_zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *error);
-bool _zip_crypto_aes_encrypt_block(_zip_crypto_aes_t *aes, const zip_uint8_t *in, zip_uint8_t *out);
+void _libzip_crypto_aes_free(_libzip_crypto_aes_t *aes);
+_libzip_crypto_aes_t *_libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libzip_error_t *error);
+bool _libzip_crypto_aes_encrypt_block(_libzip_crypto_aes_t *aes, const libzip_uint8_t *in, libzip_uint8_t *out);
 
-bool _zip_crypto_pbkdf2(const zip_uint8_t *key, zip_uint64_t key_length, const zip_uint8_t *salt, zip_uint16_t salt_length, zip_uint16_t iterations, zip_uint8_t *output, zip_uint16_t output_length);
+bool _libzip_crypto_pbkdf2(const libzip_uint8_t *key, libzip_uint64_t key_length, const libzip_uint8_t *salt, libzip_uint16_t salt_length, libzip_uint16_t iterations, libzip_uint8_t *output, libzip_uint16_t output_length);
 
-_zip_crypto_hmac_t *_zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_error_t *error);
-void _zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac);
-bool _zip_crypto_hmac(_zip_crypto_hmac_t *hmac, zip_uint8_t *data, zip_uint64_t length);
-bool _zip_crypto_hmac_output(_zip_crypto_hmac_t *hmac, zip_uint8_t *data);
+_libzip_crypto_hmac_t *_libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_length, libzip_error_t *error);
+void _libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac);
+bool _libzip_crypto_hmac(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data, libzip_uint64_t length);
+bool _libzip_crypto_hmac_output(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data);
 
 #endif /*  HAD_ZIP_CRYPTO_WIN_H */

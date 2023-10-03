@@ -1,5 +1,5 @@
 /*
-  zip_get_archive_flag.c -- get archive global flag
+  libzip_get_archive_flag.c -- get archive global flag
   Copyright (C) 2008-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,7 +36,7 @@
 
 
 ZIP_EXTERN int
-zip_get_archive_flag(zip_t *za, zip_flags_t flag, zip_flags_t flags) {
+libzip_get_archive_flag(libzip_t *za, libzip_flags_t flag, libzip_flags_t flags) {
     unsigned int fl;
 
     fl = (flags & ZIP_FL_UNCHANGED) ? za->flags : za->ch_flags;

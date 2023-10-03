@@ -39,7 +39,7 @@
 .SH "LIBRARY"
 libzip (-lzip)
 .SH "SYNOPSIS"
-\fB#include <zip.h>\fR
+\fB#include <libzip.h>\fR
 .sp
 \fItype *\fR
 .br

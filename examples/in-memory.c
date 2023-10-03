@@ -37,7 +37,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include <zip.h>
+#include <libzip.h>
 
 static int
 get_data(void **datap, size_t *sizep, const char *archive) {
@@ -83,7 +83,7 @@ get_data(void **datap, size_t *sizep, const char *archive) {
 }
 
 static int
-modify_archive(zip_t *za) {
+modify_archive(libzip_t *za) {
     /* modify the archive */
     return 0;
 }
@@ -123,9 +123,9 @@ use_data(void *data, size_t size, const char *archive) {
 int
 main(int argc, char *argv[]) {
     const char *archive;
-    zip_source_t *src;
-    zip_t *za;
-    zip_error_t error;
+    libzip_source_t *src;
+    libzip_t *za;
+    libzip_error_t error;
     void *data;
     size_t size;
 
@@ -140,73 +140,73 @@ main(int argc, char *argv[]) {
         return 1;
     }
 
-    zip_error_init(&error);
+    libzip_error_init(&error);
     /* create source from buffer */
-    if ((src = zip_source_buffer_create(data, size, 1, &error)) == NULL) {
-        fprintf(stderr, "can't create source: %s\n", zip_error_strerror(&error));
+    if ((src = libzip_source_buffer_create(data, size, 1, &error)) == NULL) {
+        fprintf(stderr, "can't create source: %s\n", libzip_error_strerror(&error));
         free(data);
-        zip_error_fini(&error);
+        libzip_error_fini(&error);
         return 1;
     }
 
     /* open zip archive from source */
-    if ((za = zip_open_from_source(src, 0, &error)) == NULL) {
-        fprintf(stderr, "can't open zip from source: %s\n", zip_error_strerror(&error));
-        zip_source_free(src);
-        zip_error_fini(&error);
+    if ((za = libzip_open_from_source(src, 0, &error)) == NULL) {
+        fprintf(stderr, "can't open zip from source: %s\n", libzip_error_strerror(&error));
+        libzip_source_free(src);
+        libzip_error_fini(&error);
         return 1;
     }
-    zip_error_fini(&error);
+    libzip_error_fini(&error);
 
-    /* we'll want to read the data back after zip_close */
-    zip_source_keep(src);
+    /* we'll want to read the data back after libzip_close */
+    libzip_source_keep(src);
 
     /* modify archive */
     modify_archive(za);
 
     /* close archive */
-    if (zip_close(za) < 0) {
-        fprintf(stderr, "can't close zip archive '%s': %s\n", archive, zip_strerror(za));
+    if (libzip_close(za) < 0) {
+        fprintf(stderr, "can't close zip archive '%s': %s\n", archive, libzip_strerror(za));
         return 1;
     }
 
 
     /* copy new archive to buffer */
 
-    if (zip_source_is_deleted(src)) {
+    if (libzip_source_is_deleted(src)) {
         /* new archive is empty, thus no data */
         data = NULL;
     }
     else {
-        zip_stat_t zst;
+        libzip_stat_t zst;
 
-        if (zip_source_stat(src, &zst) < 0) {
-            fprintf(stderr, "can't stat source: %s\n", zip_error_strerror(zip_source_error(src)));
+        if (libzip_source_stat(src, &zst) < 0) {
+            fprintf(stderr, "can't stat source: %s\n", libzip_error_strerror(libzip_source_error(src)));
             return 1;
         }
 
         size = zst.size;
 
-        if (zip_source_open(src) < 0) {
-            fprintf(stderr, "can't open source: %s\n", zip_error_strerror(zip_source_error(src)));
+        if (libzip_source_open(src) < 0) {
+            fprintf(stderr, "can't open source: %s\n", libzip_error_strerror(libzip_source_error(src)));
             return 1;
         }
         if ((data = malloc(size)) == NULL) {
             fprintf(stderr, "malloc failed: %s\n", strerror(errno));
-            zip_source_close(src);
+            libzip_source_close(src);
             return 1;
         }
-        if ((zip_uint64_t)zip_source_read(src, data, size) < size) {
-            fprintf(stderr, "can't read data from source: %s\n", zip_error_strerror(zip_source_error(src)));
-            zip_source_close(src);
+        if ((libzip_uint64_t)libzip_source_read(src, data, size) < size) {
+            fprintf(stderr, "can't read data from source: %s\n", libzip_error_strerror(libzip_source_error(src)));
+            libzip_source_close(src);
             free(data);
             return 1;
         }
-        zip_source_close(src);
+        libzip_source_close(src);
     }
 
     /* we're done with src */
-    zip_source_free(src);
+    libzip_source_free(src);
 
     /* use new data */
     use_data(data, size, archive);

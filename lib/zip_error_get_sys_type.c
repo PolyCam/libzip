@@ -1,5 +1,5 @@
 /*
-  zip_error_get_sys_type.c -- return type of system error code
+  libzip_error_get_sys_type.c -- return type of system error code
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,10 +36,10 @@
 
 
 ZIP_EXTERN int
-zip_error_get_sys_type(int ze) {
-    if (ze < 0 || ze >= _zip_err_str_count) {
+libzip_error_get_sys_type(int ze) {
+    if (ze < 0 || ze >= _libzip_err_str_count) {
         return 0;
     }
 
-    return _zip_err_str[ze].type;
+    return _libzip_err_str[ze].type;
 }

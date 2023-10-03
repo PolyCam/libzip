@@ -1,5 +1,5 @@
 /*
-  nonrandomopen.c -- override zip_secure_random
+  nonrandomopen.c -- override libzip_secure_random
 
   Copyright (C) 2017-2021 Dieter Baron and Thomas Klausner
 
@@ -37,7 +37,7 @@
 #include "zipint.h"
 
 bool
-zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
+libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     memset(buffer, 0, length);
 
     return true;

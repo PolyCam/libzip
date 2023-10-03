@@ -1,5 +1,5 @@
 # create zip_err_str.c from zip.h and zipint.h
-file(READ ${PROJECT_SOURCE_DIR}/lib/zip.h zip_h)
+file(READ ${PROJECT_SOURCE_DIR}/lib/libzip.h zip_h)
 string(REGEX MATCHALL "#define ZIP_ER_([A-Z0-9_]+) ([0-9]+)[ \t]+/([-*0-9a-zA-Z, ']*)/" zip_h_err ${zip_h})
 file(READ ${PROJECT_SOURCE_DIR}/lib/zipint.h zipint_h)
 string(REGEX MATCHALL "#define ZIP_ER_DETAIL_([A-Z0-9_]+) ([0-9]+)[ \t]+/([-*0-9a-zA-Z, ']*)/" zipint_h_err ${zipint_h})
@@ -19,7 +19,7 @@ set(zip_err_str [=[
 #define E ZIP_DETAIL_ET_ENTRY
 #define G ZIP_DETAIL_ET_GLOBAL
 
-const struct _zip_err_info _zip_err_str[] = {
+const struct _libzip_err_info _libzip_err_str[] = {
 ]=])
 set(zip_err_type)
 foreach(errln ${zip_h_err})
@@ -30,9 +30,9 @@ foreach(errln ${zip_h_err})
 endforeach()
 string(APPEND zip_err_str [=[}\;
 
-const int _zip_err_str_count = sizeof(_zip_err_str)/sizeof(_zip_err_str[0])\;
+const int _libzip_err_str_count = sizeof(_libzip_err_str)/sizeof(_libzip_err_str[0])\;
 
-const struct _zip_err_info _zip_err_details[] = {
+const struct _libzip_err_info _libzip_err_details[] = {
 ]=])
 foreach(errln ${zipint_h_err})
   string(REGEX MATCH "#define ZIP_ER_DETAIL_([A-Z0-9_]+) ([0-9]+)[ \t]+/([-*0-9a-zA-Z, ']*)/" err_t_tt ${errln})
@@ -42,6 +42,6 @@ foreach(errln ${zipint_h_err})
 endforeach()
 string(APPEND zip_err_str [=[}\;
 
-const int _zip_err_details_count = sizeof(_zip_err_details)/sizeof(_zip_err_details[0])\;
+const int _libzip_err_details_count = sizeof(_libzip_err_details)/sizeof(_libzip_err_details[0])\;
 ]=])
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zip_err_str.c ${zip_err_str})

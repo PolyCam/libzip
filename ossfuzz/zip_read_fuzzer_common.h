@@ -1,5 +1,5 @@
 /*
-  zip_read_fuzzer_common.h -- common function for fuzzers to read all files in an archive
+  libzip_read_fuzzer_common.h -- common function for fuzzers to read all files in an archive
   Copyright (C) 2023 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -31,43 +31,43 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "zip.h"
+#include "libzip.h"
 
-void fuzzer_read(zip_t *za, zip_error_t *error, const char *password) {
-    zip_int64_t i, n, ret;
+void fuzzer_read(libzip_t *za, libzip_error_t *error, const char *password) {
+    libzip_int64_t i, n, ret;
     char buf[32768];
 
     if (za == NULL) {
-        fprintf(stderr, "Error opening archive: %s\n", zip_error_strerror(error));
-        zip_error_fini(error);
+        fprintf(stderr, "Error opening archive: %s\n", libzip_error_strerror(error));
+        libzip_error_fini(error);
         return;
     }
 
-    zip_set_default_password(za, password);
+    libzip_set_default_password(za, password);
 
-    zip_error_fini(error);
+    libzip_error_fini(error);
 
-    n = zip_get_num_entries(za, 0);
+    n = libzip_get_num_entries(za, 0);
     for (i = 0; i < n; i++) {
-        zip_file_t *f = zip_fopen_index(za, i, 0);
+        libzip_file_t *f = libzip_fopen_index(za, i, 0);
         if (f == NULL) {
-            fprintf(stderr, "Error opening file %d: %s\n", (int)i, zip_strerror(za));
+            fprintf(stderr, "Error opening file %d: %s\n", (int)i, libzip_strerror(za));
             continue;
         }
 
-        while ((ret = zip_fread(f, buf, sizeof(buf))) > 0) {
+        while ((ret = libzip_fread(f, buf, sizeof(buf))) > 0) {
             ;
         }
         if (ret < 0) {
-            fprintf(stderr, "Error reading file %d: %s\n", (int)i, zip_strerror(za));
+            fprintf(stderr, "Error reading file %d: %s\n", (int)i, libzip_strerror(za));
         }
-        if (zip_fclose(f) < 0) {
-            fprintf(stderr, "Error closing file %d: %s\n", (int)i, zip_strerror(za));
+        if (libzip_fclose(f) < 0) {
+            fprintf(stderr, "Error closing file %d: %s\n", (int)i, libzip_strerror(za));
             continue;
         }
     }
-    if (zip_close(za) < 0) {
-        fprintf(stderr, "Error closing archive: %s\n", zip_strerror(za));
-        zip_discard(za);
+    if (libzip_close(za) < 0) {
+        fprintf(stderr, "Error closing archive: %s\n", libzip_strerror(za));
+        libzip_discard(za);
     }
 }

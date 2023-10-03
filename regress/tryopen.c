@@ -40,7 +40,7 @@
 #include "getopt.h"
 #endif
 
-#include "zip.h"
+#include "libzip.h"
 #define TRYOPEN_USAGE                  \
     "usage: %s [-cent] file\n\n"       \
     "\t-c\tcheck consistency\n"        \
@@ -52,11 +52,11 @@
 int
 main(int argc, char *argv[]) {
     const char *fname;
-    zip_t *z;
+    libzip_t *z;
     int c, flags, ze;
-    zip_int64_t count;
+    libzip_int64_t count;
     int error_count;
-    zip_error_t error;
+    libzip_error_t error;
 
     flags = 0;
 
@@ -86,19 +86,19 @@ main(int argc, char *argv[]) {
         fname = argv[optind];
         errno = 0;
 
-        if ((z = zip_open(fname, flags, &ze)) != NULL) {
-            count = zip_get_num_entries(z, 0);
+        if ((z = libzip_open(fname, flags, &ze)) != NULL) {
+            count = libzip_get_num_entries(z, 0);
             printf("opening '%s' succeeded, %" PRIu64 " entries\n", fname, count);
-            zip_close(z);
+            libzip_close(z);
             continue;
         }
 
-        zip_error_init_with_code(&error, ze);
+        libzip_error_init_with_code(&error, ze);
         printf("opening '%s' returned error %d", fname, ze);
-        switch (zip_error_system_type(&error)) {
+        switch (libzip_error_system_type(&error)) {
             case ZIP_ET_SYS:
             case ZIP_ET_LIBZIP:
-                printf("/%d", zip_error_code_system(&error));
+                printf("/%d", libzip_error_code_system(&error));
                 break;
 
             default:

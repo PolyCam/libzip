@@ -55,7 +55,7 @@
 #endif
 extern int optopt;
 
-#include "zip.h"
+#include "libzip.h"
 
 typedef struct dispatch_table_s {
     const char *cmdline_name;
@@ -65,10 +65,10 @@ typedef struct dispatch_table_s {
     int (*function)(char *argv[]);
 } dispatch_table_t;
 
-static zip_flags_t get_flags(const char *arg);
-static zip_int32_t get_compression_method(const char *arg);
-static zip_uint16_t get_encryption_method(const char *arg);
-static void hexdump(const zip_uint8_t *data, zip_uint16_t len);
+static libzip_flags_t get_flags(const char *arg);
+static libzip_int32_t get_compression_method(const char *arg);
+static libzip_uint16_t get_encryption_method(const char *arg);
+static void hexdump(const libzip_uint8_t *data, libzip_uint16_t len);
 static int parse_archive_flag(const char* arg);
 int ziptool_post_close(const char *archive);
 static const char* decode_filename(const char* name);
@@ -79,26 +79,26 @@ static const char* encode_filename(const char* name);
 #define USAGE_REGRESS ""
 #endif
 
-zip_t *za, *z_in[16];
+libzip_t *za, *z_in[16];
 unsigned int z_in_count;
-zip_flags_t stat_flags;
+libzip_flags_t stat_flags;
 int hex_encoded_filenames = 0; // Can only be set in ziptool_regress.
 
 static int
-cat_impl_backend(zip_uint64_t idx, zip_uint64_t start, zip_uint64_t len, FILE *out) {
-    zip_error_t error;
-    zip_source_t *src;
-    zip_int64_t n;
+cat_impl_backend(libzip_uint64_t idx, libzip_uint64_t start, libzip_uint64_t len, FILE *out) {
+    libzip_error_t error;
+    libzip_source_t *src;
+    libzip_int64_t n;
     char buf[8192];
 
-    zip_error_init(&error);
-    /* we can't pass 0 as a len to zip_source_zip_create because it
+    libzip_error_init(&error);
+    /* we can't pass 0 as a len to libzip_source_libzip_create because it
        will try to give us compressed data */
     if (len == 0) {
-        struct zip_stat sb;
+        struct libzip_stat sb;
 
-        if (zip_stat_index(za, idx, stat_flags, &sb) < 0) {
-            fprintf(stderr, "zip_stat_index failed on '%" PRIu64 "' failed: %s\n", idx, zip_strerror(za));
+        if (libzip_stat_index(za, idx, stat_flags, &sb) < 0) {
+            fprintf(stderr, "zip_stat_index failed on '%" PRIu64 "' failed: %s\n", idx, libzip_strerror(za));
             return -1;
         }
 
@@ -108,42 +108,42 @@ cat_impl_backend(zip_uint64_t idx, zip_uint64_t start, zip_uint64_t len, FILE *o
         }
         len = sb.size;
     }
-    if ((src = zip_source_zip_file_create(za, idx, 0, start, len, NULL, &error)) == NULL) {
-        fprintf(stderr, "can't open file at index '%" PRIu64 "': %s\n", idx, zip_error_strerror(&error));
-        zip_error_fini(&error);
+    if ((src = libzip_source_libzip_file_create(za, idx, 0, start, len, NULL, &error)) == NULL) {
+        fprintf(stderr, "can't open file at index '%" PRIu64 "': %s\n", idx, libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         return -1;
     }
-    zip_error_fini(&error);
+    libzip_error_fini(&error);
 
-    if (zip_source_open(src) < 0) {
-        fprintf(stderr, "can't open file at index '%" PRIu64 "': %s\n", idx, zip_error_strerror(zip_source_error(src)));
-        zip_source_free(src);
+    if (libzip_source_open(src) < 0) {
+        fprintf(stderr, "can't open file at index '%" PRIu64 "': %s\n", idx, libzip_error_strerror(libzip_source_error(src)));
+        libzip_source_free(src);
         return -1;
     }
-    while ((n = zip_source_read(src, buf, sizeof(buf))) > 0) {
+    while ((n = libzip_source_read(src, buf, sizeof(buf))) > 0) {
         if (fwrite(buf, (size_t)n, 1, out) != 1) {
             fprintf(stderr, "can't write file contents: %s\n", strerror(errno));
-            zip_source_free(src);
+            libzip_source_free(src);
             return -1;
         }
     }
     if (n == -1) {
-        fprintf(stderr, "can't read file at index '%" PRIu64 "': %s\n", idx, zip_error_strerror(zip_source_error(src)));
-        zip_source_free(src);
+        fprintf(stderr, "can't read file at index '%" PRIu64 "': %s\n", idx, libzip_error_strerror(libzip_source_error(src)));
+        libzip_source_free(src);
         return -1;
     }
-    if (zip_source_close(src) < 0) {
-        fprintf(stderr, "can't close file at index '%" PRIu64 "': %s\n", idx, zip_error_strerror(zip_source_error(src)));
-        zip_source_free(src);
+    if (libzip_source_close(src) < 0) {
+        fprintf(stderr, "can't close file at index '%" PRIu64 "': %s\n", idx, libzip_error_strerror(libzip_source_error(src)));
+        libzip_source_free(src);
         return -1;
     }
-    zip_source_free(src);
+    libzip_source_free(src);
 
     return 0;
 }
 
 static int
-cat_impl(zip_uint64_t idx, zip_uint64_t start, zip_uint64_t len) {
+cat_impl(libzip_uint64_t idx, libzip_uint64_t start, libzip_uint64_t len) {
 #ifdef _WIN32
     /* Need to set stdout to binary mode for Windows */
     setmode(fileno(stdout), _O_BINARY);
@@ -153,16 +153,16 @@ cat_impl(zip_uint64_t idx, zip_uint64_t start, zip_uint64_t len) {
 
 static int
 add(char *argv[]) {
-    zip_source_t *zs;
+    libzip_source_t *zs;
 
-    if ((zs = zip_source_buffer(za, argv[1], strlen(argv[1]), 0)) == NULL) {
-        fprintf(stderr, "can't create zip_source from buffer: %s\n", zip_strerror(za));
+    if ((zs = libzip_source_buffer(za, argv[1], strlen(argv[1]), 0)) == NULL) {
+        fprintf(stderr, "can't create libzip_source from buffer: %s\n", libzip_strerror(za));
         return -1;
     }
 
-    if (zip_file_add(za, decode_filename(argv[0]), zs, 0) == -1) {
-        zip_source_free(zs);
-        fprintf(stderr, "can't add file '%s': %s\n", argv[0], zip_strerror(za));
+    if (libzip_file_add(za, decode_filename(argv[0]), zs, 0) == -1) {
+        libzip_source_free(zs);
+        fprintf(stderr, "can't add file '%s': %s\n", argv[0], libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -171,8 +171,8 @@ add(char *argv[]) {
 static int
 add_dir(char *argv[]) {
     /* add directory */
-    if (zip_dir_add(za, decode_filename(argv[0]), 0) < 0) {
-        fprintf(stderr, "can't add directory '%s': %s\n", argv[0], zip_strerror(za));
+    if (libzip_dir_add(za, decode_filename(argv[0]), 0) < 0) {
+        fprintf(stderr, "can't add directory '%s': %s\n", argv[0], libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -180,26 +180,26 @@ add_dir(char *argv[]) {
 
 static int
 add_file(char *argv[]) {
-    zip_source_t *zs;
-    zip_uint64_t start = strtoull(argv[2], NULL, 10);
-    zip_int64_t len = strtoll(argv[3], NULL, 10);
+    libzip_source_t *zs;
+    libzip_uint64_t start = strtoull(argv[2], NULL, 10);
+    libzip_int64_t len = strtoll(argv[3], NULL, 10);
 
     if (strcmp(argv[1], "/dev/stdin") == 0) {
-        if ((zs = zip_source_filep(za, stdin, start, len)) == NULL) {
-            fprintf(stderr, "can't create zip_source from stdin: %s\n", zip_strerror(za));
+        if ((zs = libzip_source_filep(za, stdin, start, len)) == NULL) {
+            fprintf(stderr, "can't create libzip_source from stdin: %s\n", libzip_strerror(za));
             return -1;
         }
     }
     else {
-        if ((zs = zip_source_file(za, argv[1], start, len)) == NULL) {
-            fprintf(stderr, "can't create zip_source from file: %s\n", zip_strerror(za));
+        if ((zs = libzip_source_file(za, argv[1], start, len)) == NULL) {
+            fprintf(stderr, "can't create libzip_source from file: %s\n", libzip_strerror(za));
             return -1;
         }
     }
 
-    if (zip_file_add(za, decode_filename(argv[0]), zs, 0) == -1) {
-        zip_source_free(zs);
-        fprintf(stderr, "can't add file '%s': %s\n", argv[0], zip_strerror(za));
+    if (libzip_file_add(za, decode_filename(argv[0]), zs, 0) == -1) {
+        libzip_source_free(zs);
+        fprintf(stderr, "can't add file '%s': %s\n", argv[0], libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -207,34 +207,34 @@ add_file(char *argv[]) {
 
 static int
 add_from_zip(char *argv[]) {
-    zip_uint64_t idx, start;
-    zip_int64_t len;
+    libzip_uint64_t idx, start;
+    libzip_int64_t len;
     int err;
-    zip_source_t *zs;
-    zip_flags_t flags = 0;
+    libzip_source_t *zs;
+    libzip_flags_t flags = 0;
     /* add from another zip file */
     idx = strtoull(argv[2], NULL, 10);
     start = strtoull(argv[3], NULL, 10);
     len = strtoll(argv[4], NULL, 10);
-    if ((z_in[z_in_count] = zip_open(argv[1], ZIP_CHECKCONS, &err)) == NULL) {
-        zip_error_t error;
-        zip_error_init_with_code(&error, err);
-        fprintf(stderr, "can't open zip archive '%s': %s\n", argv[1], zip_error_strerror(&error));
-        zip_error_fini(&error);
+    if ((z_in[z_in_count] = libzip_open(argv[1], ZIP_CHECKCONS, &err)) == NULL) {
+        libzip_error_t error;
+        libzip_error_init_with_code(&error, err);
+        fprintf(stderr, "can't open zip archive '%s': %s\n", argv[1], libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         return -1;
     }
     if (start == 0 && len == -1) {
         flags = ZIP_FL_COMPRESSED;
     }
-    if ((zs = zip_source_zip_file(za, z_in[z_in_count], idx, flags, start, len, NULL)) == NULL) {
-        fprintf(stderr, "error creating file source from '%s' index '%" PRIu64 "': %s\n", argv[1], idx, zip_strerror(za));
-        zip_close(z_in[z_in_count]);
+    if ((zs = libzip_source_libzip_file(za, z_in[z_in_count], idx, flags, start, len, NULL)) == NULL) {
+        fprintf(stderr, "error creating file source from '%s' index '%" PRIu64 "': %s\n", argv[1], idx, libzip_strerror(za));
+        libzip_close(z_in[z_in_count]);
         return -1;
     }
-    if (zip_file_add(za, decode_filename(argv[0]), zs, 0) == -1) {
-        fprintf(stderr, "can't add file '%s': %s\n", argv[0], zip_strerror(za));
-        zip_source_free(zs);
-        zip_close(z_in[z_in_count]);
+    if (libzip_file_add(za, decode_filename(argv[0]), zs, 0) == -1) {
+        fprintf(stderr, "can't add file '%s': %s\n", argv[0], libzip_strerror(za));
+        libzip_source_free(zs);
+        libzip_close(z_in[z_in_count]);
         return -1;
     }
     z_in_count++;
@@ -244,7 +244,7 @@ add_from_zip(char *argv[]) {
 static int
 cat(char *argv[]) {
     /* output file contents to stdout */
-    zip_uint64_t idx;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
 
     return cat_impl(idx, 0, 0);
@@ -253,9 +253,9 @@ cat(char *argv[]) {
 static int
 cat_partial(char *argv[]) {
     /* output partial file contents to stdout */
-    zip_uint64_t idx;
-    zip_uint64_t start;
-    zip_uint64_t len;
+    libzip_uint64_t idx;
+    libzip_uint64_t start;
+    libzip_uint64_t len;
 
     idx = strtoull(argv[0], NULL, 10);
     start = strtoull(argv[1], NULL, 10);
@@ -266,13 +266,13 @@ cat_partial(char *argv[]) {
 
 static int
 count_extra(char *argv[]) {
-    zip_int16_t count;
-    zip_uint64_t idx;
-    zip_flags_t ceflags = 0;
+    libzip_int16_t count;
+    libzip_uint64_t idx;
+    libzip_flags_t ceflags = 0;
     idx = strtoull(argv[0], NULL, 10);
     ceflags = get_flags(argv[1]);
-    if ((count = zip_file_extra_fields_count(za, idx, ceflags)) < 0) {
-        fprintf(stderr, "can't get extra field count for file at index '%" PRIu64 "': %s\n", idx, zip_strerror(za));
+    if ((count = libzip_file_extra_fields_count(za, idx, ceflags)) < 0) {
+        fprintf(stderr, "can't get extra field count for file at index '%" PRIu64 "': %s\n", idx, libzip_strerror(za));
         return -1;
     }
     else {
@@ -283,15 +283,15 @@ count_extra(char *argv[]) {
 
 static int
 count_extra_by_id(char *argv[]) {
-    zip_int16_t count;
-    zip_uint16_t eid;
-    zip_flags_t ceflags = 0;
-    zip_uint64_t idx;
+    libzip_int16_t count;
+    libzip_uint16_t eid;
+    libzip_flags_t ceflags = 0;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
-    eid = (zip_uint16_t)strtoull(argv[1], NULL, 10);
+    eid = (libzip_uint16_t)strtoull(argv[1], NULL, 10);
     ceflags = get_flags(argv[2]);
-    if ((count = zip_file_extra_fields_count_by_id(za, idx, eid, ceflags)) < 0) {
-        fprintf(stderr, "can't get extra field count for file at index '%" PRIu64 "' and for id '%d': %s\n", idx, eid, zip_strerror(za));
+    if ((count = libzip_file_extra_fields_count_by_id(za, idx, eid, ceflags)) < 0) {
+        fprintf(stderr, "can't get extra field count for file at index '%" PRIu64 "' and for id '%d': %s\n", idx, eid, libzip_strerror(za));
         return -1;
     }
     else {
@@ -301,10 +301,10 @@ count_extra_by_id(char *argv[]) {
 }
 
 static int delete (char *argv[]) {
-    zip_uint64_t idx;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
-    if (zip_delete(za, idx) < 0) {
-        fprintf(stderr, "can't delete file at index '%" PRIu64 "': %s\n", idx, zip_strerror(za));
+    if (libzip_delete(za, idx) < 0) {
+        fprintf(stderr, "can't delete file at index '%" PRIu64 "': %s\n", idx, libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -312,14 +312,14 @@ static int delete (char *argv[]) {
 
 static int
 delete_extra(char *argv[]) {
-    zip_flags_t geflags;
-    zip_uint16_t eid;
-    zip_uint64_t idx;
+    libzip_flags_t geflags;
+    libzip_uint16_t eid;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
-    eid = (zip_uint16_t)strtoull(argv[1], NULL, 10);
+    eid = (libzip_uint16_t)strtoull(argv[1], NULL, 10);
     geflags = get_flags(argv[2]);
-    if ((zip_file_extra_field_delete(za, idx, eid, geflags)) < 0) {
-        fprintf(stderr, "can't delete extra field data for file at index '%" PRIu64 "', extra field id '%d': %s\n", idx, eid, zip_strerror(za));
+    if ((libzip_file_extra_field_delete(za, idx, eid, geflags)) < 0) {
+        fprintf(stderr, "can't delete extra field data for file at index '%" PRIu64 "', extra field id '%d': %s\n", idx, eid, libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -327,15 +327,15 @@ delete_extra(char *argv[]) {
 
 static int
 delete_extra_by_id(char *argv[]) {
-    zip_flags_t geflags;
-    zip_uint16_t eid, eidx;
-    zip_uint64_t idx;
+    libzip_flags_t geflags;
+    libzip_uint16_t eid, eidx;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
-    eid = (zip_uint16_t)strtoull(argv[1], NULL, 10);
-    eidx = (zip_uint16_t)strtoull(argv[2], NULL, 10);
+    eid = (libzip_uint16_t)strtoull(argv[1], NULL, 10);
+    eidx = (libzip_uint16_t)strtoull(argv[2], NULL, 10);
     geflags = get_flags(argv[3]);
-    if ((zip_file_extra_field_delete_by_id(za, idx, eid, eidx, geflags)) < 0) {
-        fprintf(stderr, "can't delete extra field data for file at index '%" PRIu64 "', extra field id '%d', extra field idx '%d': %s\n", idx, eid, eidx, zip_strerror(za));
+    if ((libzip_file_extra_field_delete_by_id(za, idx, eid, eidx, geflags)) < 0) {
+        fprintf(stderr, "can't delete extra field data for file at index '%" PRIu64 "', extra field id '%d', extra field idx '%d': %s\n", idx, eid, eidx, libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -346,7 +346,7 @@ get_archive_comment(char *argv[]) {
     const char *comment;
     int len;
     /* get archive comment */
-    if ((comment = zip_get_archive_comment(za, &len, 0)) == NULL || len == 0)
+    if ((comment = libzip_get_archive_comment(za, &len, 0)) == NULL || len == 0)
         printf("No archive comment\n");
     else
         printf("Archive comment: %.*s\n", len, encode_filename(comment));
@@ -361,22 +361,22 @@ get_archive_flag(char *argv[]) {
         return -1;
     }
 
-    printf("%d\n", zip_get_archive_flag(za, flag, 0));
+    printf("%d\n", libzip_get_archive_flag(za, flag, 0));
     return 0;
 }
 
 static int
 get_extra(char *argv[]) {
-    zip_flags_t geflags;
-    zip_uint16_t id, eidx, eflen;
-    const zip_uint8_t *efdata;
-    zip_uint64_t idx;
+    libzip_flags_t geflags;
+    libzip_uint16_t id, eidx, eflen;
+    const libzip_uint8_t *efdata;
+    libzip_uint64_t idx;
     /* get extra field data */
     idx = strtoull(argv[0], NULL, 10);
-    eidx = (zip_uint16_t)strtoull(argv[1], NULL, 10);
+    eidx = (libzip_uint16_t)strtoull(argv[1], NULL, 10);
     geflags = get_flags(argv[2]);
-    if ((efdata = zip_file_extra_field_get(za, idx, eidx, &id, &eflen, geflags)) == NULL) {
-        fprintf(stderr, "can't get extra field data for file at index %" PRIu64 ", extra field %d, flags %u: %s\n", idx, eidx, geflags, zip_strerror(za));
+    if ((efdata = libzip_file_extra_field_get(za, idx, eidx, &id, &eflen, geflags)) == NULL) {
+        fprintf(stderr, "can't get extra field data for file at index %" PRIu64 ", extra field %d, flags %u: %s\n", idx, eidx, geflags, libzip_strerror(za));
         return -1;
     }
     printf("Extra field 0x%04x: len %d", id, eflen);
@@ -390,16 +390,16 @@ get_extra(char *argv[]) {
 
 static int
 get_extra_by_id(char *argv[]) {
-    zip_flags_t geflags;
-    zip_uint16_t eid, eidx, eflen;
-    const zip_uint8_t *efdata;
-    zip_uint64_t idx;
+    libzip_flags_t geflags;
+    libzip_uint16_t eid, eidx, eflen;
+    const libzip_uint8_t *efdata;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
-    eid = (zip_uint16_t)strtoull(argv[1], NULL, 10);
-    eidx = (zip_uint16_t)strtoull(argv[2], NULL, 10);
+    eid = (libzip_uint16_t)strtoull(argv[1], NULL, 10);
+    eidx = (libzip_uint16_t)strtoull(argv[2], NULL, 10);
     geflags = get_flags(argv[3]);
-    if ((efdata = zip_file_extra_field_get_by_id(za, idx, eid, eidx, &eflen, geflags)) == NULL) {
-        fprintf(stderr, "can't get extra field data for file at index %" PRIu64 ", extra field id %d, ef index %d, flags %u: %s\n", idx, eid, eidx, geflags, zip_strerror(za));
+    if ((efdata = libzip_file_extra_field_get_by_id(za, idx, eid, eidx, &eflen, geflags)) == NULL) {
+        fprintf(stderr, "can't get extra field data for file at index %" PRIu64 ", extra field id %d, ef index %d, flags %u: %s\n", idx, eid, eidx, geflags, libzip_strerror(za));
         return -1;
     }
     printf("Extra field 0x%04x: len %d", eid, eflen);
@@ -414,39 +414,39 @@ get_extra_by_id(char *argv[]) {
 static int
 get_file_comment(char *argv[]) {
     const char *comment;
-    zip_uint32_t len;
-    zip_uint64_t idx;
+    libzip_uint32_t len;
+    libzip_uint64_t idx;
     /* get file comment */
     idx = strtoull(argv[0], NULL, 10);
-    if ((comment = zip_file_get_comment(za, idx, &len, 0)) == NULL) {
-        fprintf(stderr, "can't get comment for '%s': %s\n", zip_get_name(za, idx, 0), zip_strerror(za));
+    if ((comment = libzip_file_get_comment(za, idx, &len, 0)) == NULL) {
+        fprintf(stderr, "can't get comment for '%s': %s\n", libzip_get_name(za, idx, 0), libzip_strerror(za));
         return -1;
     }
     else if (len == 0)
-        printf("No comment for '%s'\n", zip_get_name(za, idx, 0));
+        printf("No comment for '%s'\n", libzip_get_name(za, idx, 0));
     else
-        printf("File comment for '%s': %.*s\n", zip_get_name(za, idx, 0), (int)len, comment);
+        printf("File comment for '%s': %.*s\n", libzip_get_name(za, idx, 0), (int)len, comment);
     return 0;
 }
 
 static int
 get_num_entries(char *argv[]) {
-    zip_int64_t count;
-    zip_flags_t flags;
+    libzip_int64_t count;
+    libzip_flags_t flags;
     /* get number of entries in archive */
     flags = get_flags(argv[0]);
-    count = zip_get_num_entries(za, flags);
+    count = libzip_get_num_entries(za, flags);
     printf("%" PRId64 " entr%s in archive\n", count, count == 1 ? "y" : "ies");
     return 0;
 }
 
 static int
 name_locate(char *argv[]) {
-    zip_flags_t flags;
-    zip_int64_t idx;
+    libzip_flags_t flags;
+    libzip_int64_t idx;
     flags = get_flags(argv[1]);
 
-    if ((idx = zip_name_locate(za, decode_filename(argv[0]), flags)) < 0) {
+    if ((idx = libzip_name_locate(za, decode_filename(argv[0]), flags)) < 0) {
         fprintf(stderr, "can't find entry with name '%s' using flags '%s'\n", argv[0], argv[1]);
     }
     else {
@@ -464,23 +464,23 @@ struct progress_userdata_s {
 struct progress_userdata_s progress_userdata;
 
 static void
-progress_callback(zip_t *archive, double percentage, void *ud) {
+progress_callback(libzip_t *archive, double percentage, void *ud) {
     printf("%.1f%% done\n", percentage * 100);
     progress_userdata.percentage = percentage;
 }
 
 static int
 print_progress(char *argv[]) {
-    zip_register_progress_callback_with_state(za, 0.001, progress_callback, NULL, NULL);
+    libzip_register_progress_callback_with_state(za, 0.001, progress_callback, NULL, NULL);
     return 0;
 }
 
 static int
 zrename(char *argv[]) {
-    zip_uint64_t idx;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
-    if (zip_file_rename(za, idx, decode_filename(argv[1]), 0) < 0) {
-        fprintf(stderr, "can't rename file at index '%" PRIu64 "' to '%s': %s\n", idx, argv[1], zip_strerror(za));
+    if (libzip_file_rename(za, idx, decode_filename(argv[1]), 0) < 0) {
+        fprintf(stderr, "can't rename file at index '%" PRIu64 "' to '%s': %s\n", idx, argv[1], libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -490,13 +490,13 @@ static int
 replace_file_contents(char *argv[]) {
     /* replace file contents with data from command line */
     const char *content;
-    zip_source_t *s;
-    zip_uint64_t idx;
+    libzip_source_t *s;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
     content = argv[1];
-    if ((s = zip_source_buffer(za, content, strlen(content), 0)) == NULL || zip_file_replace(za, idx, s, 0) < 0) {
-        zip_source_free(s);
-        fprintf(stderr, "error replacing file data: %s\n", zip_strerror(za));
+    if ((s = libzip_source_buffer(za, content, strlen(content), 0)) == NULL || libzip_file_replace(za, idx, s, 0) < 0) {
+        libzip_source_free(s);
+        fprintf(stderr, "error replacing file data: %s\n", libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -504,17 +504,17 @@ replace_file_contents(char *argv[]) {
 
 static int
 set_extra(char *argv[]) {
-    zip_flags_t geflags;
-    zip_uint16_t eid, eidx;
-    const zip_uint8_t *efdata;
-    zip_uint64_t idx;
+    libzip_flags_t geflags;
+    libzip_uint16_t eid, eidx;
+    const libzip_uint8_t *efdata;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
-    eid = (zip_uint16_t)strtoull(argv[1], NULL, 10);
-    eidx = (zip_uint16_t)strtoull(argv[2], NULL, 10);
+    eid = (libzip_uint16_t)strtoull(argv[1], NULL, 10);
+    eidx = (libzip_uint16_t)strtoull(argv[2], NULL, 10);
     geflags = get_flags(argv[3]);
-    efdata = (zip_uint8_t *)argv[4];
-    if ((zip_file_extra_field_set(za, idx, eid, eidx, efdata, (zip_uint16_t)strlen((const char *)efdata), geflags)) < 0) {
-        fprintf(stderr, "can't set extra field data for file at index '%" PRIu64 "', extra field id '%d', index '%d': %s\n", idx, eid, eidx, zip_strerror(za));
+    efdata = (libzip_uint8_t *)argv[4];
+    if ((libzip_file_extra_field_set(za, idx, eid, eidx, efdata, (libzip_uint16_t)strlen((const char *)efdata), geflags)) < 0) {
+        fprintf(stderr, "can't set extra field data for file at index '%" PRIu64 "', extra field id '%d', index '%d': %s\n", idx, eid, eidx, libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -522,8 +522,8 @@ set_extra(char *argv[]) {
 
 static int
 set_archive_comment(char *argv[]) {
-    if (zip_set_archive_comment(za, argv[0], (zip_uint16_t)strlen(argv[0])) < 0) {
-        fprintf(stderr, "can't set archive comment to '%s': %s\n", argv[0], zip_strerror(za));
+    if (libzip_set_archive_comment(za, argv[0], (libzip_uint16_t)strlen(argv[0])) < 0) {
+        fprintf(stderr, "can't set archive comment to '%s': %s\n", argv[0], libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -539,8 +539,8 @@ set_archive_flag(char *argv[]) {
 
     int value = strcasecmp(argv[1], "1") == 0 || strcasecmp(argv[1], "true") == 0 || strcasecmp(argv[1], "yes") == 0;
 
-    if (zip_set_archive_flag(za, flag, value) < 0) {
-        fprintf(stderr, "can't set archive flag '%s' to %d: %s\n", argv[0], value, zip_strerror(za));
+    if (libzip_set_archive_flag(za, flag, value) < 0) {
+        fprintf(stderr, "can't set archive flag '%s' to %d: %s\n", argv[0], value, libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -549,10 +549,10 @@ set_archive_flag(char *argv[]) {
 
 static int
 set_file_comment(char *argv[]) {
-    zip_uint64_t idx;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
-    if (zip_file_set_comment(za, idx, argv[1], (zip_uint16_t)strlen(argv[1]), 0) < 0) {
-        fprintf(stderr, "can't set file comment at index '%" PRIu64 "' to '%s': %s\n", idx, argv[1], zip_strerror(za));
+    if (libzip_file_set_comment(za, idx, argv[1], (libzip_uint16_t)strlen(argv[1]), 0) < 0) {
+        fprintf(stderr, "can't set file comment at index '%" PRIu64 "' to '%s': %s\n", idx, argv[1], libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -560,14 +560,14 @@ set_file_comment(char *argv[]) {
 
 static int
 set_file_compression(char *argv[]) {
-    zip_int32_t method;
-    zip_uint32_t flags;
-    zip_uint64_t idx;
+    libzip_int32_t method;
+    libzip_uint32_t flags;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
     method = get_compression_method(argv[1]);
-    flags = (zip_uint32_t)strtoull(argv[2], NULL, 10);
-    if (zip_set_file_compression(za, idx, method, flags) < 0) {
-        fprintf(stderr, "can't set file compression method at index '%" PRIu64 "' to '%s', flags '%" PRIu32 "': %s\n", idx, argv[1], flags, zip_strerror(za));
+    flags = (libzip_uint32_t)strtoull(argv[2], NULL, 10);
+    if (libzip_set_file_compression(za, idx, method, flags) < 0) {
+        fprintf(stderr, "can't set file compression method at index '%" PRIu64 "' to '%s', flags '%" PRIu32 "': %s\n", idx, argv[1], flags, libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -575,8 +575,8 @@ set_file_compression(char *argv[]) {
 
 static int
 set_file_encryption(char *argv[]) {
-    zip_uint16_t method;
-    zip_uint64_t idx;
+    libzip_uint16_t method;
+    libzip_uint64_t idx;
     char *password;
     idx = strtoull(argv[0], NULL, 10);
     method = get_encryption_method(argv[1]);
@@ -584,8 +584,8 @@ set_file_encryption(char *argv[]) {
     if (strlen(password) == 0) {
         password = NULL;
     }
-    if (zip_file_set_encryption(za, idx, method, password) < 0) {
-        fprintf(stderr, "can't set file encryption method at index '%" PRIu64 "' to '%s': %s\n", idx, argv[1], zip_strerror(za));
+    if (libzip_file_set_encryption(za, idx, method, password) < 0) {
+        fprintf(stderr, "can't set file encryption method at index '%" PRIu64 "' to '%s': %s\n", idx, argv[1], libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -594,13 +594,13 @@ set_file_encryption(char *argv[]) {
 static int
 set_file_dostime(char *argv[]) {
     /* set file last modification time (mtime) directly */
-    zip_uint16_t dostime, dosdate;
-    zip_uint64_t idx;
+    libzip_uint16_t dostime, dosdate;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
-    dostime = (zip_uint16_t)strtoull(argv[1], NULL, 10);
-    dosdate = (zip_uint16_t)strtoull(argv[2], NULL, 10);
-    if (zip_file_set_dostime(za, idx, dostime, dosdate, 0) < 0) {
-        fprintf(stderr, "can't set file dostime at index '%" PRIu64 "' to '%d'/'%d': %s\n", idx, (int)dostime, (int)dosdate, zip_strerror(za));
+    dostime = (libzip_uint16_t)strtoull(argv[1], NULL, 10);
+    dosdate = (libzip_uint16_t)strtoull(argv[2], NULL, 10);
+    if (libzip_file_set_dostime(za, idx, dostime, dosdate, 0) < 0) {
+        fprintf(stderr, "can't set file dostime at index '%" PRIu64 "' to '%d'/'%d': %s\n", idx, (int)dostime, (int)dosdate, libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -610,11 +610,11 @@ static int
 set_file_mtime(char *argv[]) {
     /* set file last modification time (mtime) */
     time_t mtime;
-    zip_uint64_t idx;
+    libzip_uint64_t idx;
     idx = strtoull(argv[0], NULL, 10);
     mtime = (time_t)strtoull(argv[1], NULL, 10);
-    if (zip_file_set_mtime(za, idx, mtime, 0) < 0) {
-        fprintf(stderr, "can't set file mtime at index '%" PRIu64 "' to '%lld': %s\n", idx, (long long)mtime, zip_strerror(za));
+    if (libzip_file_set_mtime(za, idx, mtime, 0) < 0) {
+        fprintf(stderr, "can't set file mtime at index '%" PRIu64 "' to '%lld': %s\n", idx, (long long)mtime, libzip_strerror(za));
         return -1;
     }
     return 0;
@@ -624,17 +624,17 @@ static int
 set_file_mtime_all(char *argv[]) {
     /* set last modification time (mtime) for all files */
     time_t mtime;
-    zip_int64_t num_entries;
-    zip_uint64_t idx;
+    libzip_int64_t num_entries;
+    libzip_uint64_t idx;
     mtime = (time_t)strtoull(argv[0], NULL, 10);
 
-    if ((num_entries = zip_get_num_entries(za, 0)) < 0) {
-        fprintf(stderr, "can't get number of entries: %s\n", zip_strerror(za));
+    if ((num_entries = libzip_get_num_entries(za, 0)) < 0) {
+        fprintf(stderr, "can't get number of entries: %s\n", libzip_strerror(za));
         return -1;
     }
-    for (idx = 0; idx < (zip_uint64_t)num_entries; idx++) {
-        if (zip_file_set_mtime(za, idx, mtime, 0) < 0) {
-            fprintf(stderr, "can't set file mtime at index '%" PRIu64 "' to '%lld': %s\n", idx, (long long)mtime, zip_strerror(za));
+    for (idx = 0; idx < (libzip_uint64_t)num_entries; idx++) {
+        if (libzip_file_set_mtime(za, idx, mtime, 0) < 0) {
+            fprintf(stderr, "can't set file mtime at index '%" PRIu64 "' to '%lld': %s\n", idx, (long long)mtime, libzip_strerror(za));
             return -1;
         }
     }
@@ -644,7 +644,7 @@ set_file_mtime_all(char *argv[]) {
 static int
 set_password(char *argv[]) {
     /* set default password */
-    if (zip_set_default_password(za, argv[0]) < 0) {
+    if (libzip_set_default_password(za, argv[0]) < 0) {
         fprintf(stderr, "can't set default password to '%s'\n", argv[0]);
         return -1;
     }
@@ -653,13 +653,13 @@ set_password(char *argv[]) {
 
 static int
 zstat(char *argv[]) {
-    zip_uint64_t idx;
+    libzip_uint64_t idx;
     char buf[100];
-    struct zip_stat sb;
+    struct libzip_stat sb;
     idx = strtoull(argv[0], NULL, 10);
 
-    if (zip_stat_index(za, idx, stat_flags, &sb) < 0) {
-        fprintf(stderr, "zip_stat_index failed on '%" PRIu64 "' failed: %s\n", idx, zip_strerror(za));
+    if (libzip_stat_index(za, idx, stat_flags, &sb) < 0) {
+        fprintf(stderr, "zip_stat_index failed on '%" PRIu64 "' failed: %s\n", idx, libzip_strerror(za));
         return -1;
     }
 
@@ -674,7 +674,7 @@ zstat(char *argv[]) {
     if (sb.valid & ZIP_STAT_MTIME) {
         struct tm *tpm;
         struct tm tm;
-        tpm = zip_localtime(&sb.mtime, &tm);
+        tpm = libzip_localtime(&sb.mtime, &tm);
         if (tpm == NULL) {
             printf("mtime: <not valid>\n");
         }
@@ -712,9 +712,9 @@ static int parse_archive_flag(const char* arg) {
     return -1;
 }
 
-static zip_flags_t
+static libzip_flags_t
 get_flags(const char *arg) {
-    zip_flags_t flags = 0;
+    libzip_flags_t flags = 0;
     if (strchr(arg, 'C') != NULL)
         flags |= ZIP_FL_NOCASE;
     if (strchr(arg, 'c') != NULL)
@@ -736,7 +736,7 @@ get_flags(const char *arg) {
     return flags;
 }
 
-static zip_int32_t
+static libzip_int32_t
 get_compression_method(const char *arg) {
     if (strcasecmp(arg, "default") == 0)
         return ZIP_CM_DEFAULT;
@@ -770,7 +770,7 @@ get_compression_method(const char *arg) {
     return 0; /* TODO: error handling */
 }
 
-static zip_uint16_t
+static libzip_uint16_t
 get_encryption_method(const char *arg) {
     if (strcasecmp(arg, "none") == 0)
         return ZIP_EM_NONE;
@@ -784,12 +784,12 @@ get_encryption_method(const char *arg) {
         return ZIP_EM_AES_256;
     else if (strcasecmp(arg, "unknown") == 0)
         return 100;
-    return (zip_uint16_t)-1; /* TODO: error handling */
+    return (libzip_uint16_t)-1; /* TODO: error handling */
 }
 
 static void
-hexdump(const zip_uint8_t *data, zip_uint16_t len) {
-    zip_uint16_t i;
+hexdump(const libzip_uint8_t *data, libzip_uint16_t len) {
+    libzip_uint16_t i;
 
     if (len <= 0)
         return;
@@ -801,31 +801,31 @@ hexdump(const zip_uint8_t *data, zip_uint16_t len) {
 }
 
 
-static zip_t *
-read_from_file(const char *archive, int flags, zip_error_t *error, zip_uint64_t offset, zip_uint64_t length) {
-    zip_t *zaa;
-    zip_source_t *source;
+static libzip_t *
+read_from_file(const char *archive, int flags, libzip_error_t *error, libzip_uint64_t offset, libzip_uint64_t length) {
+    libzip_t *zaa;
+    libzip_source_t *source;
     int err;
 
     if (offset == 0 && length == 0) {
         if (strcmp(archive, "/dev/stdin") == 0) {
-            zaa = zip_fdopen(STDIN_FILENO, flags & ~ZIP_CREATE, &err);
+            zaa = libzip_fdopen(STDIN_FILENO, flags & ~ZIP_CREATE, &err);
         }
         else {
-            zaa = zip_open(archive, flags, &err);
+            zaa = libzip_open(archive, flags, &err);
         }
         if (zaa == NULL) {
-            zip_error_set(error, err, errno);
+            libzip_error_set(error, err, errno);
             return NULL;
         }
     }
     else {
         if (length > ZIP_INT64_MAX) {
-            zip_error_set(error, ZIP_ER_INVAL, 0);
+            libzip_error_set(error, ZIP_ER_INVAL, 0);
             return NULL;
         }
-        if ((source = zip_source_file_create(archive, offset, (zip_int64_t)length, error)) == NULL || (zaa = zip_open_from_source(source, flags, error)) == NULL) {
-            zip_source_free(source);
+        if ((source = libzip_source_file_create(archive, offset, (libzip_int64_t)length, error)) == NULL || (zaa = libzip_open_from_source(source, flags, error)) == NULL) {
+            libzip_source_free(source);
             return NULL;
         }
     }
@@ -851,7 +851,7 @@ dispatch_table_t dispatch_table[] = {{"add", 2, "name content", "add file called
                                      {"get_file_comment", 1, "index", "get file comment", get_file_comment},
                                      {"get_num_entries", 1, "flags", "get number of entries in archive", get_num_entries},
                                      {"name_locate", 2, "name flags", "find entry in archive", name_locate},
-                                     {"print_progress", 0, "", "print progress during zip_close()", print_progress},
+                                     {"print_progress", 0, "", "print progress during libzip_close()", print_progress},
                                      {"rename", 2, "index name", "rename entry", zrename},
                                      {"replace_file_contents", 2, "index data", "replace entry with data", replace_file_contents},
                                      {"set_archive_comment", 1, "comment", "set archive comment", set_archive_comment},
@@ -950,26 +950,26 @@ usage(const char *progname, const char *reason) {
 	         "\twant-torrentzip\n");
     fprintf(out, "\nSupported compression methods are:\n"
                  "\tdefault\n");
-    if (zip_compression_method_supported(ZIP_CM_BZIP2, 1)) {
+    if (libzip_compression_method_supported(ZIP_CM_BZIP2, 1)) {
         fprintf(out, "\tbzip2\n");
     }
     fprintf(out, "\tdeflate\n"
                  "\tstore\n");
-    if (zip_compression_method_supported(ZIP_CM_XZ, 1)) {
+    if (libzip_compression_method_supported(ZIP_CM_XZ, 1)) {
         fprintf(out, "\txz\n");
     }
-    if (zip_compression_method_supported(ZIP_CM_ZSTD, 1)) {
+    if (libzip_compression_method_supported(ZIP_CM_ZSTD, 1)) {
         fprintf(out, "\tzstd\n");
     }
     fprintf(out, "\nSupported encryption methods are:\n"
                  "\tnone\n");
-    if (zip_encryption_method_supported(ZIP_EM_AES_128, 1)) {
+    if (libzip_encryption_method_supported(ZIP_EM_AES_128, 1)) {
         fprintf(out, "\tAES-128\n");
     }
-    if (zip_encryption_method_supported(ZIP_EM_AES_192, 1)) {
+    if (libzip_encryption_method_supported(ZIP_EM_AES_192, 1)) {
         fprintf(out, "\tAES-192\n");
     }
-    if (zip_encryption_method_supported(ZIP_EM_AES_256, 1)) {
+    if (libzip_encryption_method_supported(ZIP_EM_AES_256, 1)) {
         fprintf(out, "\tAES-256\n");
     }
     fprintf(out, "\tPKWARE\n");
@@ -991,8 +991,8 @@ main(int argc, char *argv[]) {
     unsigned int i;
     int c, arg, err, flags;
     const char *prg;
-    zip_uint64_t len = 0, offset = 0;
-    zip_error_t error;
+    libzip_uint64_t len = 0, offset = 0;
+    libzip_error_t error;
 
     flags = 0;
     prg = argv[0];
@@ -1051,14 +1051,14 @@ main(int argc, char *argv[]) {
     if (flags == 0)
         flags = ZIP_CREATE;
 
-    zip_error_init(&error);
+    libzip_error_init(&error);
     za = ziptool_open(archive, flags, &error, offset, len);
     if (za == NULL) {
-        fprintf(stderr, "can't open zip archive '%s': %s\n", archive, zip_error_strerror(&error));
-        zip_error_fini(&error);
+        fprintf(stderr, "can't open zip archive '%s': %s\n", archive, libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         return 1;
     }
-    zip_error_fini(&error);
+    libzip_error_fini(&error);
 
 #ifdef REGRESS_PREPARE_ARGS
     REGRESS_PREPARE_ARGS
@@ -1081,8 +1081,8 @@ main(int argc, char *argv[]) {
     PRECLOSE_REGRESS;
 #endif
 
-    if (zip_close(za) == -1) {
-        fprintf(stderr, "can't close zip archive '%s': %s\n", archive, zip_strerror(za));
+    if (libzip_close(za) == -1) {
+        fprintf(stderr, "can't close zip archive '%s': %s\n", archive, libzip_strerror(za));
         return 1;
     }
     if (ziptool_post_close(archive) < 0) {
@@ -1090,7 +1090,7 @@ main(int argc, char *argv[]) {
     }
 
     for (i = 0; i < z_in_count; i++) {
-        if (zip_close(z_in[i]) < 0) {
+        if (libzip_close(z_in[i]) < 0) {
             err = 1;
         }
     }

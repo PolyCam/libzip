@@ -134,15 +134,15 @@ typedef char bool;
 #ifdef HAVE_LOCALTIME_S
 #ifdef _WIN32
 /* Windows is incompatible to the C11 standard, hurray! */
-#define zip_localtime(t, tm) (localtime_s((tm), (t)) == 0 ? tm : NULL)
+#define libzip_localtime(t, tm) (localtime_s((tm), (t)) == 0 ? tm : NULL)
 #else
-#define zip_localtime localtime_s
+#define libzip_localtime localtime_s
 #endif
 #else
 #ifdef HAVE_LOCALTIME_R
-#define zip_localtime localtime_r
+#define libzip_localtime localtime_r
 #else
-#define zip_localtime(t, tm) (localtime(t))
+#define libzip_localtime(t, tm) (localtime(t))
 #endif
 #endif
 

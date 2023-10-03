@@ -1,5 +1,5 @@
 /*
-  zip_get_name.c -- get filename for a file in zip file
+  libzip_get_name.c -- get filename for a file in zip file
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -38,20 +38,20 @@
 
 
 ZIP_EXTERN const char *
-zip_get_name(zip_t *za, zip_uint64_t idx, zip_flags_t flags) {
-    return _zip_get_name(za, idx, flags, &za->error);
+libzip_get_name(libzip_t *za, libzip_uint64_t idx, libzip_flags_t flags) {
+    return _libzip_get_name(za, idx, flags, &za->error);
 }
 
 
 const char *
-_zip_get_name(zip_t *za, zip_uint64_t idx, zip_flags_t flags, zip_error_t *error) {
-    zip_dirent_t *de;
-    const zip_uint8_t *str;
+_libzip_get_name(libzip_t *za, libzip_uint64_t idx, libzip_flags_t flags, libzip_error_t *error) {
+    libzip_dirent_t *de;
+    const libzip_uint8_t *str;
 
-    if ((de = _zip_get_dirent(za, idx, flags, error)) == NULL)
+    if ((de = _libzip_get_dirent(za, idx, flags, error)) == NULL)
         return NULL;
 
-    if ((str = _zip_string_get(de->filename, NULL, flags, error)) == NULL)
+    if ((str = _libzip_string_get(de->filename, NULL, flags, error)) == NULL)
         return NULL;
 
     return (const char *)str;

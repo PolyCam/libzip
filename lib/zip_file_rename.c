@@ -1,5 +1,5 @@
 /*
-  zip_file_rename.c -- rename file in zip archive
+  libzip_file_rename.c -- rename file in zip archive
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -38,30 +38,30 @@
 
 
 ZIP_EXTERN int
-zip_file_rename(zip_t *za, zip_uint64_t idx, const char *name, zip_flags_t flags) {
+libzip_file_rename(libzip_t *za, libzip_uint64_t idx, const char *name, libzip_flags_t flags) {
     const char *old_name;
     int old_is_dir, new_is_dir;
 
     if (idx >= za->nentry || (name != NULL && strlen(name) > ZIP_UINT16_MAX)) {
-        zip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
     if (ZIP_IS_RDONLY(za)) {
-        zip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
         return -1;
     }
 
-    if ((old_name = zip_get_name(za, idx, 0)) == NULL)
+    if ((old_name = libzip_get_name(za, idx, 0)) == NULL)
         return -1;
 
     new_is_dir = (name != NULL && name[strlen(name) - 1] == '/');
     old_is_dir = (old_name[strlen(old_name) - 1] == '/');
 
     if (new_is_dir != old_is_dir) {
-        zip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
-    return _zip_set_name(za, idx, name, flags);
+    return _libzip_set_name(za, idx, name, flags);
 }

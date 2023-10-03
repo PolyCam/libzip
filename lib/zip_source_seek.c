@@ -1,5 +1,5 @@
 /*
-  zip_source_seek.c -- seek to offset
+  libzip_source_seek.c -- seek to offset
   Copyright (C) 2014-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,21 +36,21 @@
 
 
 ZIP_EXTERN int
-zip_source_seek(zip_source_t *src, zip_int64_t offset, int whence) {
-    zip_source_args_seek_t args;
+libzip_source_seek(libzip_source_t *src, libzip_int64_t offset, int whence) {
+    libzip_source_args_seek_t args;
 
     if (src->source_closed) {
         return -1;
     }
     if (!ZIP_SOURCE_IS_OPEN_READING(src) || (whence != SEEK_SET && whence != SEEK_CUR && whence != SEEK_END)) {
-        zip_error_set(&src->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
     args.offset = offset;
     args.whence = whence;
 
-    if (_zip_source_call(src, &args, sizeof(args), ZIP_SOURCE_SEEK) < 0) {
+    if (_libzip_source_call(src, &args, sizeof(args), ZIP_SOURCE_SEEK) < 0) {
         return -1;
     }
 
@@ -59,10 +59,10 @@ zip_source_seek(zip_source_t *src, zip_int64_t offset, int whence) {
 }
 
 
-zip_int64_t
-zip_source_seek_compute_offset(zip_uint64_t offset, zip_uint64_t length, void *data, zip_uint64_t data_length, zip_error_t *error) {
-    zip_int64_t new_offset;
-    zip_source_args_seek_t *args = ZIP_SOURCE_GET_ARGS(zip_source_args_seek_t, data, data_length, error);
+libzip_int64_t
+libzip_source_seek_compute_offset(libzip_uint64_t offset, libzip_uint64_t length, void *data, libzip_uint64_t data_length, libzip_error_t *error) {
+    libzip_int64_t new_offset;
+    libzip_source_args_seek_t *args = ZIP_SOURCE_GET_ARGS(libzip_source_args_seek_t, data, data_length, error);
 
     if (args == NULL) {
         return -1;
@@ -70,11 +70,11 @@ zip_source_seek_compute_offset(zip_uint64_t offset, zip_uint64_t length, void *d
 
     switch (args->whence) {
     case SEEK_CUR:
-        new_offset = (zip_int64_t)offset + args->offset;
+        new_offset = (libzip_int64_t)offset + args->offset;
         break;
 
     case SEEK_END:
-        new_offset = (zip_int64_t)length + args->offset;
+        new_offset = (libzip_int64_t)length + args->offset;
         break;
 
     case SEEK_SET:
@@ -82,12 +82,12 @@ zip_source_seek_compute_offset(zip_uint64_t offset, zip_uint64_t length, void *d
         break;
 
     default:
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
-    if (new_offset < 0 || (zip_uint64_t)new_offset > length) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+    if (new_offset < 0 || (libzip_uint64_t)new_offset > length) {
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return -1;
     }
 

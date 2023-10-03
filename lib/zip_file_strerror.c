@@ -1,5 +1,5 @@
 /*
-  zip_file_sterror.c -- get string representation of zip file error
+  libzip_file_sterror.c -- get string representation of zip file error
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,6 +36,6 @@
 
 
 ZIP_EXTERN const char *
-zip_file_strerror(zip_file_t *zf) {
-    return zip_error_strerror(&zf->error);
+libzip_file_strerror(libzip_file_t *zf) {
+    return libzip_error_strerror(&zf->error);
 }

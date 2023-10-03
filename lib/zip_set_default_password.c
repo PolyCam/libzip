@@ -1,5 +1,5 @@
 /*
-  zip_set_default_password.c -- set default password for decryption
+  libzip_set_default_password.c -- set default password for decryption
   Copyright (C) 2009-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -39,7 +39,7 @@
 
 
 ZIP_EXTERN int
-zip_set_default_password(zip_t *za, const char *passwd) {
+libzip_set_default_password(libzip_t *za, const char *passwd) {
     if (za == NULL)
         return -1;
 
@@ -47,7 +47,7 @@ zip_set_default_password(zip_t *za, const char *passwd) {
 
     if (passwd && passwd[0] != '\0') {
         if ((za->default_password = strdup(passwd)) == NULL) {
-            zip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
             return -1;
         }
     }

@@ -1,5 +1,5 @@
 /*
-  zip_source_rollback_write.c -- discard changes
+  libzip_source_rollback_write.c -- discard changes
   Copyright (C) 2014-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,7 +36,7 @@
 
 
 ZIP_EXTERN void
-zip_source_rollback_write(zip_source_t *src) {
+libzip_source_rollback_write(libzip_source_t *src) {
     if (ZIP_SOURCE_IS_LAYERED(src)) {
         return;
     }
@@ -45,6 +45,6 @@ zip_source_rollback_write(zip_source_t *src) {
         return;
     }
 
-    _zip_source_call(src, NULL, 0, ZIP_SOURCE_ROLLBACK_WRITE);
+    _libzip_source_call(src, NULL, 0, ZIP_SOURCE_ROLLBACK_WRITE);
     src->write_state = ZIP_SOURCE_WRITE_CLOSED;
 }

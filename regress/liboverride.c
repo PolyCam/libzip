@@ -1,5 +1,5 @@
 /*
-  liboverride.c -- override function called by zip_open()
+  liboverride.c -- override function called by libzip_open()
 
   Copyright (C) 2017-2021 Dieter Baron and Thomas Klausner
 
@@ -35,13 +35,13 @@
 #include "zipint.h"
 
 /*
- Some systems bind functions called and defined within a shared library, so the override doesn't work. This overrides a function called by zip_open to return an invalid error code so we can check whether the override works.
+ Some systems bind functions called and defined within a shared library, so the override doesn't work. This overrides a function called by libzip_open to return an invalid error code so we can check whether the override works.
  */
 
-zip_source_t *
-zip_source_file_create(const char *fname, zip_uint64_t start, zip_int64_t length, zip_error_t *error) {
+libzip_source_t *
+libzip_source_file_create(const char *fname, libzip_uint64_t start, libzip_int64_t length, libzip_error_t *error) {
     if (error != NULL) {
-        error->zip_err = 32000;
+        error->libzip_err = 32000;
     }
     
     return NULL;

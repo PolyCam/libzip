@@ -31,30 +31,30 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <zip.h>
+#include <libzip.h>
 
-zip_t *
+libzip_t *
 windows_open(const wchar_t *name, int flags) {
-    zip_source_t *src;
-    zip_t *za;
-    zip_error_t error;
+    libzip_source_t *src;
+    libzip_t *za;
+    libzip_error_t error;
 
-    zip_error_init(&error);
+    libzip_error_init(&error);
     /* create source from buffer */
-    if ((src = zip_source_win32w_create(name, 0, -1, &error)) == NULL) {
-        fprintf(stderr, "can't create source: %s\n", zip_error_strerror(&error));
-        zip_error_fini(&error);
+    if ((src = libzip_source_win32w_create(name, 0, -1, &error)) == NULL) {
+        fprintf(stderr, "can't create source: %s\n", libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         return NULL;
     }
 
     /* open zip archive from source */
-    if ((za = zip_open_from_source(src, flags, &error)) == NULL) {
-        fprintf(stderr, "can't open zip from source: %s\n", zip_error_strerror(&error));
-        zip_source_free(src);
-        zip_error_fini(&error);
+    if ((za = libzip_open_from_source(src, flags, &error)) == NULL) {
+        fprintf(stderr, "can't open zip from source: %s\n", libzip_error_strerror(&error));
+        libzip_source_free(src);
+        libzip_error_fini(&error);
         return NULL;
     }
-    zip_error_fini(&error);
+    libzip_error_fini(&error);
 
     return za;
 }

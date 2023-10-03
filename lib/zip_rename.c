@@ -1,5 +1,5 @@
 /*
-  zip_rename.c -- rename file in zip archive
+  libzip_rename.c -- rename file in zip archive
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,6 +37,6 @@
 
 
 ZIP_EXTERN int
-zip_rename(zip_t *za, zip_uint64_t idx, const char *name) {
-    return zip_file_rename(za, idx, name, 0);
+libzip_rename(libzip_t *za, libzip_uint64_t idx, const char *name) {
+    return libzip_file_rename(za, idx, name, 0);
 }

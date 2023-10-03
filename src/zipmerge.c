@@ -44,7 +44,7 @@
 #include "getopt.h"
 #endif
 
-#include "zip.h"
+#include "libzip.h"
 
 char *progname;
 
@@ -78,19 +78,19 @@ Copyright (C) 2004-2022 Dieter Baron and Thomas Klausner\n\
 #define CONFIRM_SAME_NO 0x020
 
 int confirm;
-zip_flags_t name_flags;
+libzip_flags_t name_flags;
 int keep_stored;
 
-static int confirm_replace(zip_t *, const char *, zip_uint64_t, zip_t *, const char *, zip_uint64_t);
-static void copy_extra_fields(zip_t *destination_archive, zip_uint64_t destination_index, zip_t *source_archive, zip_uint64_t source_index, zip_flags_t flags);
-static int copy_file(zip_t *destination_archive, zip_int64_t destination_index, zip_t *source_archive, zip_uint64_t source_index, const char* name);
-static zip_t *merge_zip(zip_t *, const char *, const char *);
+static int confirm_replace(libzip_t *, const char *, libzip_uint64_t, libzip_t *, const char *, libzip_uint64_t);
+static void copy_extra_fields(libzip_t *destination_archive, libzip_uint64_t destination_index, libzip_t *source_archive, libzip_uint64_t source_index, libzip_flags_t flags);
+static int copy_file(libzip_t *destination_archive, libzip_int64_t destination_index, libzip_t *source_archive, libzip_uint64_t source_index, const char* name);
+static libzip_t *merge_zip(libzip_t *, const char *, const char *);
 
 
 int
 main(int argc, char *argv[]) {
-    zip_t *za;
-    zip_t **zs;
+    libzip_t *za;
+    libzip_t **zs;
     int c, err;
     unsigned int i, n;
     char *tname;
@@ -148,16 +148,16 @@ main(int argc, char *argv[]) {
     argv += optind;
 
     n = (unsigned int)(argc - optind);
-    if ((zs = (zip_t **)malloc(sizeof(zs[0]) * n)) == NULL) {
+    if ((zs = (libzip_t **)malloc(sizeof(zs[0]) * n)) == NULL) {
         fprintf(stderr, "%s: out of memory\n", progname);
         exit(1);
     }
 
-    if ((za = zip_open(tname, ZIP_CREATE, &err)) == NULL) {
-        zip_error_t error;
-        zip_error_init_with_code(&error, err);
-        fprintf(stderr, "%s: can't open zip archive '%s': %s\n", progname, tname, zip_error_strerror(&error));
-        zip_error_fini(&error);
+    if ((za = libzip_open(tname, ZIP_CREATE, &err)) == NULL) {
+        libzip_error_t error;
+        libzip_error_init_with_code(&error, err);
+        fprintf(stderr, "%s: can't open zip archive '%s': %s\n", progname, tname, libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         exit(1);
     }
 
@@ -166,34 +166,34 @@ main(int argc, char *argv[]) {
             exit(1);
     }
 
-    if (zip_close(za) < 0) {
-        fprintf(stderr, "%s: cannot write zip archive '%s': %s\n", progname, tname, zip_strerror(za));
+    if (libzip_close(za) < 0) {
+        fprintf(stderr, "%s: cannot write zip archive '%s': %s\n", progname, tname, libzip_strerror(za));
         exit(1);
     }
 
     for (i = 0; i < n; i++)
-        zip_close(zs[i]);
+        libzip_close(zs[i]);
 
     exit(0);
 }
 
 
 static int
-confirm_replace(zip_t *za, const char *tname, zip_uint64_t it, zip_t *zs, const char *sname, zip_uint64_t is) {
+confirm_replace(libzip_t *za, const char *tname, libzip_uint64_t it, libzip_t *zs, const char *sname, libzip_uint64_t is) {
     char line[1024];
-    struct zip_stat st, ss;
+    struct libzip_stat st, ss;
 
     if (confirm & CONFIRM_ALL_YES)
         return 1;
     else if (confirm & CONFIRM_ALL_NO)
         return 0;
 
-    if (zip_stat_index(za, it, ZIP_FL_UNCHANGED, &st) < 0) {
-        fprintf(stderr, "%s: cannot stat file %" PRIu64 " in '%s': %s\n", progname, it, tname, zip_strerror(za));
+    if (libzip_stat_index(za, it, ZIP_FL_UNCHANGED, &st) < 0) {
+        fprintf(stderr, "%s: cannot stat file %" PRIu64 " in '%s': %s\n", progname, it, tname, libzip_strerror(za));
         return -1;
     }
-    if (zip_stat_index(zs, is, 0, &ss) < 0) {
-        fprintf(stderr, "%s: cannot stat file %" PRIu64 " in '%s': %s\n", progname, is, sname, zip_strerror(zs));
+    if (libzip_stat_index(zs, is, 0, &ss) < 0) {
+        fprintf(stderr, "%s: cannot stat file %" PRIu64 " in '%s': %s\n", progname, is, sname, libzip_strerror(zs));
         return -1;
     }
 
@@ -221,45 +221,45 @@ confirm_replace(zip_t *za, const char *tname, zip_uint64_t it, zip_t *zs, const 
 }
 
 
-static zip_t *
-merge_zip(zip_t *za, const char *tname, const char *sname) {
-    zip_t *zs;
-    zip_int64_t ret, idx;
-    zip_uint64_t i;
+static libzip_t *
+merge_zip(libzip_t *za, const char *tname, const char *sname) {
+    libzip_t *zs;
+    libzip_int64_t ret, idx;
+    libzip_uint64_t i;
     int err;
     const char *fname;
 
-    if ((zs = zip_open(sname, 0, &err)) == NULL) {
-        zip_error_t error;
-        zip_error_init_with_code(&error, err);
-        fprintf(stderr, "%s: can't open zip archive '%s': %s\n", progname, sname, zip_error_strerror(&error));
-        zip_error_fini(&error);
+    if ((zs = libzip_open(sname, 0, &err)) == NULL) {
+        libzip_error_t error;
+        libzip_error_init_with_code(&error, err);
+        fprintf(stderr, "%s: can't open zip archive '%s': %s\n", progname, sname, libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         return NULL;
     }
 
-    ret = zip_get_num_entries(zs, 0);
+    ret = libzip_get_num_entries(zs, 0);
     if (ret < 0) {
-        fprintf(stderr, "%s: cannot get number of entries for '%s': %s\n", progname, sname, zip_strerror(za));
+        fprintf(stderr, "%s: cannot get number of entries for '%s': %s\n", progname, sname, libzip_strerror(za));
         return NULL;
     }
-    for (i = 0; i < (zip_uint64_t)ret; i++) {
-        fname = zip_get_name(zs, i, 0);
+    for (i = 0; i < (libzip_uint64_t)ret; i++) {
+        fname = libzip_get_name(zs, i, 0);
 
-        if ((idx = zip_name_locate(za, fname, name_flags)) >= 0) {
-            switch (confirm_replace(za, tname, (zip_uint64_t)idx, zs, sname, i)) {
+        if ((idx = libzip_name_locate(za, fname, name_flags)) >= 0) {
+            switch (confirm_replace(za, tname, (libzip_uint64_t)idx, zs, sname, i)) {
             case 0:
                 break;
 
             case 1:
                 if (copy_file(za, idx, zs, i, NULL) < 0) {
-                    fprintf(stderr, "%s: cannot replace '%s' in `%s': %s\n", progname, fname, tname, zip_strerror(za));
-                    zip_close(zs);
+                    fprintf(stderr, "%s: cannot replace '%s' in `%s': %s\n", progname, fname, tname, libzip_strerror(za));
+                    libzip_close(zs);
                     return NULL;
                 }
                 break;
 
             case -1:
-                zip_close(zs);
+                libzip_close(zs);
                 return NULL;
 
             default:
@@ -267,14 +267,14 @@ merge_zip(zip_t *za, const char *tname, const char *sname) {
                         "%s: internal error: "
                         "unexpected return code from confirm (%d)\n",
                         progname, err);
-                zip_close(zs);
+                libzip_close(zs);
                 return NULL;
             }
         }
         else {
             if (copy_file(za, -1, zs, i, fname) < 0) {
-                fprintf(stderr, "%s: cannot add '%s' to `%s': %s\n", progname, fname, tname, zip_strerror(za));
-                zip_close(zs);
+                fprintf(stderr, "%s: cannot add '%s' to `%s': %s\n", progname, fname, tname, libzip_strerror(za));
+                libzip_close(zs);
                 return NULL;
             }
         }
@@ -284,33 +284,33 @@ merge_zip(zip_t *za, const char *tname, const char *sname) {
 }
 
 
-static int copy_file(zip_t *destination_archive, zip_int64_t destination_index, zip_t *source_archive, zip_uint64_t source_index, const char* name) {
-    zip_source_t *source = zip_source_zip_file(destination_archive, source_archive, source_index, ZIP_FL_COMPRESSED, 0, -1, NULL);
+static int copy_file(libzip_t *destination_archive, libzip_int64_t destination_index, libzip_t *source_archive, libzip_uint64_t source_index, const char* name) {
+    libzip_source_t *source = libzip_source_libzip_file(destination_archive, source_archive, source_index, ZIP_FL_COMPRESSED, 0, -1, NULL);
 
     if (source == NULL) {
         return -1;
     }
 
     if (destination_index >= 0) {
-        if (zip_file_replace(destination_archive, (zip_uint64_t)destination_index, source, 0) < 0) {
-            zip_source_free(source);
+        if (libzip_file_replace(destination_archive, (libzip_uint64_t)destination_index, source, 0) < 0) {
+            libzip_source_free(source);
             return -1;
         }
     }
     else {
-        destination_index = zip_file_add(destination_archive, name, source, 0);
+        destination_index = libzip_file_add(destination_archive, name, source, 0);
         if (destination_index < 0) {
-            zip_source_free(source);
+            libzip_source_free(source);
             return -1;
         }
     }
 
-    copy_extra_fields(destination_archive, (zip_uint64_t)destination_index, source_archive, source_index, ZIP_FL_CENTRAL);
-    copy_extra_fields(destination_archive, (zip_uint64_t)destination_index, source_archive, source_index, ZIP_FL_LOCAL);
+    copy_extra_fields(destination_archive, (libzip_uint64_t)destination_index, source_archive, source_index, ZIP_FL_CENTRAL);
+    copy_extra_fields(destination_archive, (libzip_uint64_t)destination_index, source_archive, source_index, ZIP_FL_LOCAL);
     if (keep_stored) {
-        zip_stat_t st;
-        if (zip_stat_index(source_archive, source_index, 0, &st) == 0 && (st.valid & ZIP_STAT_COMP_METHOD) && st.comp_method == ZIP_CM_STORE) {
-            zip_set_file_compression(destination_archive, destination_index, ZIP_CM_STORE, 0);
+        libzip_stat_t st;
+        if (libzip_stat_index(source_archive, source_index, 0, &st) == 0 && (st.valid & ZIP_STAT_COMP_METHOD) && st.comp_method == ZIP_CM_STORE) {
+            libzip_set_file_compression(destination_archive, destination_index, ZIP_CM_STORE, 0);
         }
     }
 
@@ -318,19 +318,19 @@ static int copy_file(zip_t *destination_archive, zip_int64_t destination_index, 
 }
 
 
-static void copy_extra_fields(zip_t *destination_archive, zip_uint64_t destination_index, zip_t *source_archive, zip_uint64_t source_index, zip_flags_t flags) {
-    zip_int16_t n;
-    zip_uint16_t i, id, length;
-    const zip_uint8_t *data;
+static void copy_extra_fields(libzip_t *destination_archive, libzip_uint64_t destination_index, libzip_t *source_archive, libzip_uint64_t source_index, libzip_flags_t flags) {
+    libzip_int16_t n;
+    libzip_uint16_t i, id, length;
+    const libzip_uint8_t *data;
 
-    if ((n = zip_file_extra_fields_count(source_archive, source_index, flags)) < 0) {
+    if ((n = libzip_file_extra_fields_count(source_archive, source_index, flags)) < 0) {
         return;
     }
 
     for (i = 0; i < n; i++) {
-        if ((data = zip_file_extra_field_get(source_archive, source_index, i, &id, &length, flags)) == NULL) {
+        if ((data = libzip_file_extra_field_get(source_archive, source_index, i, &id, &length, flags)) == NULL) {
             continue;
         }
-        zip_file_extra_field_set(destination_archive, destination_index, id, ZIP_EXTRA_FIELD_NEW, data, length, flags);
+        libzip_file_extra_field_set(destination_archive, destination_index, id, ZIP_EXTRA_FIELD_NEW, data, length, flags);
     }
 }

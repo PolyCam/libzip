@@ -1,5 +1,5 @@
 /*
-  zip_pkware.c -- Traditional PKWARE de/encryption backend routines
+  libzip_pkware.c -- Traditional PKWARE de/encryption backend routines
   Copyright (C) 2009-2020 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -43,25 +43,25 @@
 
 
 static void
-update_keys(zip_pkware_keys_t *keys, zip_uint8_t b) {
-    keys->key[0] = (zip_uint32_t)crc32(keys->key[0] ^ 0xffffffffUL, &b, 1) ^ 0xffffffffUL;
+update_keys(libzip_pkware_keys_t *keys, libzip_uint8_t b) {
+    keys->key[0] = (libzip_uint32_t)crc32(keys->key[0] ^ 0xffffffffUL, &b, 1) ^ 0xffffffffUL;
     keys->key[1] = (keys->key[1] + (keys->key[0] & 0xff)) * 134775813 + 1;
-    b = (zip_uint8_t)(keys->key[1] >> 24);
-    keys->key[2] = (zip_uint32_t)crc32(keys->key[2] ^ 0xffffffffUL, &b, 1) ^ 0xffffffffUL;
+    b = (libzip_uint8_t)(keys->key[1] >> 24);
+    keys->key[2] = (libzip_uint32_t)crc32(keys->key[2] ^ 0xffffffffUL, &b, 1) ^ 0xffffffffUL;
 }
 
 
-static zip_uint8_t
-crypt_byte(zip_pkware_keys_t *keys) {
-    zip_uint16_t tmp;
-    tmp = (zip_uint16_t)(keys->key[2] | 2);
-    tmp = (zip_uint16_t)(((zip_uint32_t)tmp * (tmp ^ 1)) >> 8);
-    return (zip_uint8_t)tmp;
+static libzip_uint8_t
+crypt_byte(libzip_pkware_keys_t *keys) {
+    libzip_uint16_t tmp;
+    tmp = (libzip_uint16_t)(keys->key[2] | 2);
+    tmp = (libzip_uint16_t)(((libzip_uint32_t)tmp * (tmp ^ 1)) >> 8);
+    return (libzip_uint8_t)tmp;
 }
 
 
 void
-_zip_pkware_keys_reset(zip_pkware_keys_t *keys) {
+_libzip_pkware_keys_reset(libzip_pkware_keys_t *keys) {
     keys->key[0] = PKWARE_KEY0;
     keys->key[1] = PKWARE_KEY1;
     keys->key[2] = PKWARE_KEY2;
@@ -69,10 +69,10 @@ _zip_pkware_keys_reset(zip_pkware_keys_t *keys) {
 
 
 void
-_zip_pkware_encrypt(zip_pkware_keys_t *keys, zip_uint8_t *out, const zip_uint8_t *in, zip_uint64_t len) {
-    zip_uint64_t i;
-    zip_uint8_t b;
-    zip_uint8_t tmp;
+_libzip_pkware_encrypt(libzip_pkware_keys_t *keys, libzip_uint8_t *out, const libzip_uint8_t *in, libzip_uint64_t len) {
+    libzip_uint64_t i;
+    libzip_uint8_t b;
+    libzip_uint8_t tmp;
 
     for (i = 0; i < len; i++) {
         b = in[i];
@@ -92,10 +92,10 @@ _zip_pkware_encrypt(zip_pkware_keys_t *keys, zip_uint8_t *out, const zip_uint8_t
 
 
 void
-_zip_pkware_decrypt(zip_pkware_keys_t *keys, zip_uint8_t *out, const zip_uint8_t *in, zip_uint64_t len) {
-    zip_uint64_t i;
-    zip_uint8_t b;
-    zip_uint8_t tmp;
+_libzip_pkware_decrypt(libzip_pkware_keys_t *keys, libzip_uint8_t *out, const libzip_uint8_t *in, libzip_uint64_t len) {
+    libzip_uint64_t i;
+    libzip_uint8_t b;
+    libzip_uint8_t tmp;
 
     for (i = 0; i < len; i++) {
         b = in[i];

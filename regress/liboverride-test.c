@@ -1,5 +1,5 @@
 /*
-  liboverride.c -- override function called by zip_open()
+  liboverride.c -- override function called by libzip_open()
 
   Copyright (C) 2017-2022 Dieter Baron and Thomas Klausner
 
@@ -49,10 +49,10 @@ int main(int argc, const char *argv[]) {
 #include <errno.h>
 #include <unistd.h>
 
-#include "zip.h"
+#include "libzip.h"
 
 /*
- Some systems bind functions called and defined within a shared library, so the override doesn't work. This program calls zip_open and checks whether the override worked.
+ Some systems bind functions called and defined within a shared library, so the override doesn't work. This program calls libzip_open and checks whether the override worked.
  */
 
 int
@@ -84,7 +84,7 @@ main(int argc, const char *argv[]) {
         exit(2);
     }
     
-    if (zip_open("nosuchfile", 0, &error_code) != NULL) {
+    if (libzip_open("nosuchfile", 0, &error_code) != NULL) {
         /* We expect failure. */
         if (verbose) {
             printf("open succeeded\n");

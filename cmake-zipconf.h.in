@@ -19,14 +19,14 @@ ${ZIP_NULLABLE_DEFINES}
 
 ${LIBZIP_TYPES_INCLUDE}
 
-typedef ${ZIP_INT8_T} zip_int8_t;
-typedef ${ZIP_UINT8_T} zip_uint8_t;
-typedef ${ZIP_INT16_T} zip_int16_t;
-typedef ${ZIP_UINT16_T} zip_uint16_t;
-typedef ${ZIP_INT32_T} zip_int32_t;
-typedef ${ZIP_UINT32_T} zip_uint32_t;
-typedef ${ZIP_INT64_T} zip_int64_t;
-typedef ${ZIP_UINT64_T} zip_uint64_t;
+typedef ${ZIP_INT8_T} libzip_int8_t;
+typedef ${ZIP_UINT8_T} libzip_uint8_t;
+typedef ${ZIP_INT16_T} libzip_int16_t;
+typedef ${ZIP_UINT16_T} libzip_uint16_t;
+typedef ${ZIP_INT32_T} libzip_int32_t;
+typedef ${ZIP_UINT32_T} libzip_uint32_t;
+typedef ${ZIP_INT64_T} libzip_int64_t;
+typedef ${ZIP_UINT64_T} libzip_uint64_t;
 
 #define ZIP_INT8_MIN	 (-ZIP_INT8_MAX-1)
 #define ZIP_INT8_MAX	 0x7f

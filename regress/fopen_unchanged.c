@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "zip.h"
+#include "libzip.h"
 
 const char *teststr = "This is a test.\n";
 const char *file = "teststring.txt";
@@ -44,8 +44,8 @@ const char *file = "teststring.txt";
 int
 main(int argc, char *argv[]) {
     const char *archive;
-    zip_t *za;
-    zip_source_t *zs;
+    libzip_t *za;
+    libzip_source_t *zs;
     int err;
 
     if (argc != 2) {
@@ -55,34 +55,34 @@ main(int argc, char *argv[]) {
 
     archive = argv[1];
 
-    if ((za = zip_open(archive, ZIP_CREATE, &err)) == NULL) {
-        zip_error_t error;
-        zip_error_init_with_code(&error, err);
-        fprintf(stderr, "can't open zip archive '%s': %s\n", archive, zip_error_strerror(&error));
-        zip_error_fini(&error);
+    if ((za = libzip_open(archive, ZIP_CREATE, &err)) == NULL) {
+        libzip_error_t error;
+        libzip_error_init_with_code(&error, err);
+        fprintf(stderr, "can't open zip archive '%s': %s\n", archive, libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         return 1;
     }
 
-    if ((zs = zip_source_buffer(za, teststr, strlen(teststr), 0)) == NULL) {
-        fprintf(stderr, "can't create zip_source from buffer: %s\n", zip_strerror(za));
+    if ((zs = libzip_source_buffer(za, teststr, strlen(teststr), 0)) == NULL) {
+        fprintf(stderr, "can't create libzip_source from buffer: %s\n", libzip_strerror(za));
         exit(1);
     }
 
-    if (zip_file_add(za, file, zs, 0) == -1) {
-        fprintf(stderr, "can't add file '%s': %s\n", file, zip_strerror(za));
-        (void)zip_source_free(zs);
-        (void)zip_close(za);
+    if (libzip_file_add(za, file, zs, 0) == -1) {
+        fprintf(stderr, "can't add file '%s': %s\n", file, libzip_strerror(za));
+        (void)libzip_source_free(zs);
+        (void)libzip_close(za);
         return 1;
     }
 
-    if (zip_fopen(za, file, ZIP_FL_UNCHANGED) == NULL) {
-        fprintf(stderr, "can't zip_fopen file '%s': %s\n", file, zip_strerror(za));
-        (void)zip_discard(za);
+    if (libzip_fopen(za, file, ZIP_FL_UNCHANGED) == NULL) {
+        fprintf(stderr, "can't libzip_fopen file '%s': %s\n", file, libzip_strerror(za));
+        (void)libzip_discard(za);
         return 1;
     }
 
-    if (zip_close(za) == -1) {
-        fprintf(stderr, "can't close zip archive '%s': %s\n", archive, zip_strerror(za));
+    if (libzip_close(za) == -1) {
+        fprintf(stderr, "can't close zip archive '%s': %s\n", archive, libzip_strerror(za));
         return 1;
     }
 

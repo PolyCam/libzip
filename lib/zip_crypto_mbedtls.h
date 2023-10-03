@@ -1,5 +1,5 @@
 /*
-  zip_crypto_mbedtls.h -- definitions for mbedtls wrapper
+  libzip_crypto_mbedtls.h -- definitions for mbedtls wrapper
   Copyright (C) 2018-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -39,18 +39,18 @@
 #include <mbedtls/aes.h>
 #include <mbedtls/md.h>
 
-#define _zip_crypto_aes_t mbedtls_aes_context
-#define _zip_crypto_hmac_t mbedtls_md_context_t
+#define _libzip_crypto_aes_t mbedtls_aes_context
+#define _libzip_crypto_hmac_t mbedtls_md_context_t
 
-_zip_crypto_aes_t *_zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *error);
-#define _zip_crypto_aes_encrypt_block(aes, in, out) (mbedtls_aes_crypt_ecb((aes), MBEDTLS_AES_ENCRYPT, (in), (out)) == 0)
-void _zip_crypto_aes_free(_zip_crypto_aes_t *aes);
+_libzip_crypto_aes_t *_libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libzip_error_t *error);
+#define _libzip_crypto_aes_encrypt_block(aes, in, out) (mbedtls_aes_crypt_ecb((aes), MBEDTLS_AES_ENCRYPT, (in), (out)) == 0)
+void _libzip_crypto_aes_free(_libzip_crypto_aes_t *aes);
 
-_zip_crypto_hmac_t *_zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_error_t *error);
-#define _zip_crypto_hmac(hmac, data, length) (mbedtls_md_hmac_update((hmac), (data), (length)) == 0)
-#define _zip_crypto_hmac_output(hmac, data) (mbedtls_md_hmac_finish((hmac), (data)) == 0)
-void _zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac);
+_libzip_crypto_hmac_t *_libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_length, libzip_error_t *error);
+#define _libzip_crypto_hmac(hmac, data, length) (mbedtls_md_hmac_update((hmac), (data), (length)) == 0)
+#define _libzip_crypto_hmac_output(hmac, data) (mbedtls_md_hmac_finish((hmac), (data)) == 0)
+void _libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac);
 
-bool _zip_crypto_pbkdf2(const zip_uint8_t *key, zip_uint64_t key_length, const zip_uint8_t *salt, zip_uint16_t salt_length, int iterations, zip_uint8_t *output, zip_uint64_t output_length);
+bool _libzip_crypto_pbkdf2(const libzip_uint8_t *key, libzip_uint64_t key_length, const libzip_uint8_t *salt, libzip_uint16_t salt_length, int iterations, libzip_uint8_t *output, libzip_uint64_t output_length);
 
 #endif /*  HAD_ZIP_CRYPTO_MBEDTLS_H */

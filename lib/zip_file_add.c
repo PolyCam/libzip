@@ -1,5 +1,5 @@
 /*
-  zip_file_add.c -- add file via callback function
+  libzip_file_add.c -- add file via callback function
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -41,12 +41,12 @@
         ZIP_UINT64_MAX, and each entry is larger than 2 bytes.
 */
 
-ZIP_EXTERN zip_int64_t
-zip_file_add(zip_t *za, const char *name, zip_source_t *source, zip_flags_t flags) {
+ZIP_EXTERN libzip_int64_t
+libzip_file_add(libzip_t *za, const char *name, libzip_source_t *source, libzip_flags_t flags) {
     if (name == NULL || source == NULL) {
-        zip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
-    return _zip_file_replace(za, ZIP_UINT64_MAX, name, source, flags);
+    return _libzip_file_replace(za, ZIP_UINT64_MAX, name, source, flags);
 }

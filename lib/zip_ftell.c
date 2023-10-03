@@ -1,5 +1,5 @@
 /*
-  zip_ftell.c -- tell position in file
+  libzip_ftell.c -- tell position in file
   Copyright (C) 2016-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -34,19 +34,19 @@
 
 #include "zipint.h"
 
-ZIP_EXTERN zip_int64_t
-zip_ftell(zip_file_t *zf) {
-    zip_int64_t res;
+ZIP_EXTERN libzip_int64_t
+libzip_ftell(libzip_file_t *zf) {
+    libzip_int64_t res;
 
     if (!zf)
         return -1;
 
-    if (zf->error.zip_err != 0)
+    if (zf->error.libzip_err != 0)
         return -1;
 
-    res = zip_source_tell(zf->src);
+    res = libzip_source_tell(zf->src);
     if (res < 0) {
-        zip_error_set_from_source(&zf->error, zf->src);
+        libzip_error_set_from_source(&zf->error, zf->src);
         return -1;
     }
 

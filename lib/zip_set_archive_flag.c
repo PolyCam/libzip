@@ -1,5 +1,5 @@
 /*
-  zip_get_archive_flag.c -- set archive global flag
+  libzip_get_archive_flag.c -- set archive global flag
   Copyright (C) 2008-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,11 +36,11 @@
 
 
 ZIP_EXTERN int
-zip_set_archive_flag(zip_t *za, zip_flags_t flag, int value) {
+libzip_set_archive_flag(libzip_t *za, libzip_flags_t flag, int value) {
     unsigned int new_flags;
 
     if (flag == ZIP_AFL_IS_TORRENTZIP) {
-        zip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
@@ -59,13 +59,13 @@ zip_set_archive_flag(zip_t *za, zip_flags_t flag, int value) {
 
     /* Allow removing ZIP_AFL_RDONLY if manually set, not if archive was opened read-only. */
     if (za->flags & ZIP_AFL_RDONLY) {
-        zip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
         return -1;
     }
 
     if ((flag & ZIP_AFL_RDONLY) && value && (za->ch_flags & ZIP_AFL_RDONLY) == 0) {
-        if (_zip_changed(za, NULL)) {
-            zip_error_set(&za->error, ZIP_ER_CHANGED, 0);
+        if (_libzip_changed(za, NULL)) {
+            libzip_error_set(&za->error, ZIP_ER_CHANGED, 0);
             return -1;
         }
     }

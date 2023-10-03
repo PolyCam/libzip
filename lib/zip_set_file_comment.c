@@ -1,5 +1,5 @@
 /*
-  zip_set_file_comment.c -- set comment for file in archive
+  libzip_set_file_comment.c -- set comment for file in archive
   Copyright (C) 2006-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,10 +37,10 @@
 
 
 ZIP_EXTERN int
-zip_set_file_comment(zip_t *za, zip_uint64_t idx, const char *comment, int len) {
+libzip_set_file_comment(libzip_t *za, libzip_uint64_t idx, const char *comment, int len) {
     if (len < 0 || len > ZIP_UINT16_MAX) {
-        zip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
         return -1;
     }
-    return zip_file_set_comment(za, idx, comment, (zip_uint16_t)len, 0);
+    return libzip_file_set_comment(za, idx, comment, (libzip_uint16_t)len, 0);
 }

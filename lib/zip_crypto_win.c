@@ -1,5 +1,5 @@
 /*
-  zip_crypto_win.c -- Windows Crypto API wrapper.
+  libzip_crypto_win.c -- Windows Crypto API wrapper.
   Copyright (C) 2018-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -85,7 +85,7 @@ There is no #ifdef to control that, because this is working for all supported OS
 #ifdef HAS_BCRYPTDERIVEKEYPBKDF2
 
 bool
-_zip_crypto_pbkdf2(const zip_uint8_t *key, zip_uint64_t key_length, const zip_uint8_t *salt, zip_uint16_t salt_length, zip_uint16_t iterations, zip_uint8_t *output, zip_uint16_t output_length) {
+_libzip_crypto_pbkdf2(const libzip_uint8_t *key, libzip_uint64_t key_length, const libzip_uint8_t *salt, libzip_uint16_t salt_length, libzip_uint16_t iterations, libzip_uint8_t *output, libzip_uint16_t output_length) {
     BCRYPT_ALG_HANDLE hAlgorithm = NULL;
     bool result;
 
@@ -289,56 +289,56 @@ PBKDF2_end:
 }
 
 bool
-_zip_crypto_pbkdf2(const zip_uint8_t *key, zip_uint64_t key_length, const zip_uint8_t *salt, zip_uint16_t salt_length, zip_uint16_t iterations, zip_uint8_t *output, zip_uint16_t output_length) {
+_libzip_crypto_pbkdf2(const libzip_uint8_t *key, libzip_uint64_t key_length, const libzip_uint8_t *salt, libzip_uint16_t salt_length, libzip_uint16_t iterations, libzip_uint8_t *output, libzip_uint16_t output_length) {
     return (key_length <= ZIP_UINT32_MAX) && pbkdf2((PUCHAR)key, (ULONG)key_length, (PUCHAR)salt, salt_length, iterations, output, output_length);
 }
 
 #endif
 
 
-struct _zip_crypto_aes_s {
+struct _libzip_crypto_aes_s {
     BCRYPT_ALG_HANDLE hAlgorithm;
     BCRYPT_KEY_HANDLE hKey;
     ULONG cbKeyObject;
     PUCHAR pbKeyObject;
 };
 
-_zip_crypto_aes_t *
-_zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *error) {
-    _zip_crypto_aes_t *aes = (_zip_crypto_aes_t *)calloc(1, sizeof(*aes));
+_libzip_crypto_aes_t *
+_libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libzip_error_t *error) {
+    _libzip_crypto_aes_t *aes = (_libzip_crypto_aes_t *)calloc(1, sizeof(*aes));
 
     ULONG cbResult;
     ULONG key_length = key_size / 8;
 
     if (aes == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     if (!BCRYPT_SUCCESS(BCryptOpenAlgorithmProvider(&aes->hAlgorithm, BCRYPT_AES_ALGORITHM, NULL, 0))) {
-        _zip_crypto_aes_free(aes);
+        _libzip_crypto_aes_free(aes);
         return NULL;
     }
 
     if (!BCRYPT_SUCCESS(BCryptSetProperty(aes->hAlgorithm, BCRYPT_CHAINING_MODE, (PUCHAR)BCRYPT_CHAIN_MODE_ECB, sizeof(BCRYPT_CHAIN_MODE_ECB), 0))) {
-        _zip_crypto_aes_free(aes);
+        _libzip_crypto_aes_free(aes);
         return NULL;
     }
 
     if (!BCRYPT_SUCCESS(BCryptGetProperty(aes->hAlgorithm, BCRYPT_OBJECT_LENGTH, (PUCHAR)&aes->cbKeyObject, sizeof(aes->cbKeyObject), &cbResult, 0))) {
-        _zip_crypto_aes_free(aes);
+        _libzip_crypto_aes_free(aes);
         return NULL;
     }
 
     aes->pbKeyObject = malloc(aes->cbKeyObject);
     if (aes->pbKeyObject == NULL) {
-        _zip_crypto_aes_free(aes);
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        _libzip_crypto_aes_free(aes);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     if (!BCRYPT_SUCCESS(BCryptGenerateSymmetricKey(aes->hAlgorithm, &aes->hKey, aes->pbKeyObject, aes->cbKeyObject, (PUCHAR)key, key_length, 0))) {
-        _zip_crypto_aes_free(aes);
+        _libzip_crypto_aes_free(aes);
         return NULL;
     }
 
@@ -346,7 +346,7 @@ _zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *
 }
 
 void
-_zip_crypto_aes_free(_zip_crypto_aes_t *aes) {
+_libzip_crypto_aes_free(_libzip_crypto_aes_t *aes) {
     if (aes == NULL) {
         return;
     }
@@ -367,13 +367,13 @@ _zip_crypto_aes_free(_zip_crypto_aes_t *aes) {
 }
 
 bool
-_zip_crypto_aes_encrypt_block(_zip_crypto_aes_t *aes, const zip_uint8_t *in, zip_uint8_t *out) {
+_libzip_crypto_aes_encrypt_block(_libzip_crypto_aes_t *aes, const libzip_uint8_t *in, libzip_uint8_t *out) {
     ULONG cbResult;
     NTSTATUS status = BCryptEncrypt(aes->hKey, (PUCHAR)in, ZIP_CRYPTO_AES_BLOCK_LENGTH, NULL, NULL, 0, (PUCHAR)out, ZIP_CRYPTO_AES_BLOCK_LENGTH, &cbResult, 0);
     return BCRYPT_SUCCESS(status);
 }
 
-struct _zip_crypto_hmac_s {
+struct _libzip_crypto_hmac_s {
     BCRYPT_ALG_HANDLE hAlgorithm;
     BCRYPT_HASH_HANDLE hHash;
     DWORD cbHashObject;
@@ -384,59 +384,59 @@ struct _zip_crypto_hmac_s {
 
 /* https://code.msdn.microsoft.com/windowsdesktop/Hmac-Computation-Sample-11fe8ec1/sourcecode?fileId=42820&pathId=283874677 */
 
-_zip_crypto_hmac_t *
-_zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_error_t *error) {
+_libzip_crypto_hmac_t *
+_libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_length, libzip_error_t *error) {
     NTSTATUS status;
     ULONG cbResult;
-    _zip_crypto_hmac_t *hmac;
+    _libzip_crypto_hmac_t *hmac;
 
     if (secret_length > INT_MAX) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
 
-    hmac = (_zip_crypto_hmac_t *)calloc(1, sizeof(*hmac));
+    hmac = (_libzip_crypto_hmac_t *)calloc(1, sizeof(*hmac));
 
     if (hmac == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     status = BCryptOpenAlgorithmProvider(&hmac->hAlgorithm, BCRYPT_SHA1_ALGORITHM, NULL, BCRYPT_ALG_HANDLE_HMAC_FLAG);
     if (!BCRYPT_SUCCESS(status)) {
-        _zip_crypto_hmac_free(hmac);
+        _libzip_crypto_hmac_free(hmac);
         return NULL;
     }
 
     status = BCryptGetProperty(hmac->hAlgorithm, BCRYPT_OBJECT_LENGTH, (PUCHAR)&hmac->cbHashObject, sizeof(hmac->cbHashObject), &cbResult, 0);
     if (!BCRYPT_SUCCESS(status)) {
-        _zip_crypto_hmac_free(hmac);
+        _libzip_crypto_hmac_free(hmac);
         return NULL;
     }
 
     hmac->pbHashObject = malloc(hmac->cbHashObject);
     if (hmac->pbHashObject == NULL) {
-        _zip_crypto_hmac_free(hmac);
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        _libzip_crypto_hmac_free(hmac);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     status = BCryptGetProperty(hmac->hAlgorithm, BCRYPT_HASH_LENGTH, (PUCHAR)&hmac->cbHash, sizeof(hmac->cbHash), &cbResult, 0);
     if (!BCRYPT_SUCCESS(status)) {
-        _zip_crypto_hmac_free(hmac);
+        _libzip_crypto_hmac_free(hmac);
         return NULL;
     }
 
     hmac->pbHash = malloc(hmac->cbHash);
     if (hmac->pbHash == NULL) {
-        _zip_crypto_hmac_free(hmac);
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        _libzip_crypto_hmac_free(hmac);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     status = BCryptCreateHash(hmac->hAlgorithm, &hmac->hHash, hmac->pbHashObject, hmac->cbHashObject, (PUCHAR)secret, (ULONG)secret_length, 0);
     if (!BCRYPT_SUCCESS(status)) {
-        _zip_crypto_hmac_free(hmac);
+        _libzip_crypto_hmac_free(hmac);
         return NULL;
     }
 
@@ -444,7 +444,7 @@ _zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_
 }
 
 void
-_zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac) {
+_libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac) {
     if (hmac == NULL) {
         return;
     }
@@ -469,7 +469,7 @@ _zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac) {
 }
 
 bool
-_zip_crypto_hmac(_zip_crypto_hmac_t *hmac, zip_uint8_t *data, zip_uint64_t length) {
+_libzip_crypto_hmac(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data, libzip_uint64_t length) {
     if (hmac == NULL || length > ULONG_MAX) {
         return false;
     }
@@ -478,7 +478,7 @@ _zip_crypto_hmac(_zip_crypto_hmac_t *hmac, zip_uint8_t *data, zip_uint64_t lengt
 }
 
 bool
-_zip_crypto_hmac_output(_zip_crypto_hmac_t *hmac, zip_uint8_t *data) {
+_libzip_crypto_hmac_output(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data) {
     if (hmac == NULL) {
         return false;
     }
@@ -487,6 +487,6 @@ _zip_crypto_hmac_output(_zip_crypto_hmac_t *hmac, zip_uint8_t *data) {
 }
 
 ZIP_EXTERN bool
-zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
+libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     return BCRYPT_SUCCESS(BCryptGenRandom(NULL, buffer, length, BCRYPT_USE_SYSTEM_PREFERRED_RNG));
 }

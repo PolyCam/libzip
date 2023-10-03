@@ -1,5 +1,5 @@
 /*
-  zip_algorithm_deflate.c -- deflate (de)compression routines
+  libzip_algorithm_deflate.c -- deflate (de)compression routines
   Copyright (C) 2017-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -38,7 +38,7 @@
 #include <zlib.h>
 
 struct ctx {
-    zip_error_t *error;
+    libzip_error_t *error;
     bool compress;
     int level;
     int mem_level;
@@ -47,11 +47,11 @@ struct ctx {
 };
 
 
-static zip_uint64_t
-maximum_compressed_size(zip_uint64_t uncompressed_size) {
+static libzip_uint64_t
+maximum_compressed_size(libzip_uint64_t uncompressed_size) {
     /* max deflate size increase: size + ceil(size/16k)*5+6 */
 
-    zip_uint64_t compressed_size = uncompressed_size + (uncompressed_size + 16383) / 16384 * 5 + 6;
+    libzip_uint64_t compressed_size = uncompressed_size + (uncompressed_size + 16383) / 16384 * 5 + 6;
 
     if (compressed_size < uncompressed_size) {
         return ZIP_UINT64_MAX;
@@ -61,11 +61,11 @@ maximum_compressed_size(zip_uint64_t uncompressed_size) {
 
 
 static void *
-allocate(bool compress, zip_uint32_t compression_flags, zip_error_t *error) {
+allocate(bool compress, libzip_uint32_t compression_flags, libzip_error_t *error) {
     struct ctx *ctx;
 
     if ((ctx = (struct ctx *)malloc(sizeof(*ctx))) == NULL) {
-        zip_error_set(error, ZIP_ET_SYS, errno);
+        libzip_error_set(error, ZIP_ET_SYS, errno);
         return NULL;
     }
 
@@ -89,14 +89,14 @@ allocate(bool compress, zip_uint32_t compression_flags, zip_error_t *error) {
 
 
 static void *
-compress_allocate(zip_uint16_t method, zip_uint32_t compression_flags, zip_error_t *error) {
+compress_allocate(libzip_uint16_t method, libzip_uint32_t compression_flags, libzip_error_t *error) {
     (void)method;
     return allocate(true, compression_flags, error);
 }
 
 
 static void *
-decompress_allocate(zip_uint16_t method, zip_uint32_t compression_flags, zip_error_t *error) {
+decompress_allocate(libzip_uint16_t method, libzip_uint32_t compression_flags, libzip_error_t *error) {
     (void)method;
     return allocate(false, compression_flags, error);
 }
@@ -110,7 +110,7 @@ deallocate(void *ud) {
 }
 
 
-static zip_uint16_t
+static libzip_uint16_t
 general_purpose_bit_flags(void *ud) {
     struct ctx *ctx = (struct ctx *)ud;
 
@@ -129,7 +129,7 @@ general_purpose_bit_flags(void *ud) {
 
 
 static bool
-start(void *ud, zip_stat_t *st, zip_file_attributes_t *attributes) {
+start(void *ud, libzip_stat_t *st, libzip_file_attributes_t *attributes) {
     struct ctx *ctx = (struct ctx *)ud;
     int ret;
 
@@ -150,7 +150,7 @@ start(void *ud, zip_stat_t *st, zip_file_attributes_t *attributes) {
     }
 
     if (ret != Z_OK) {
-        zip_error_set(ctx->error, ZIP_ER_ZLIB, ret);
+        libzip_error_set(ctx->error, ZIP_ER_ZLIB, ret);
         return false;
     }
 
@@ -172,7 +172,7 @@ end(void *ud) {
     }
 
     if (err != Z_OK) {
-        zip_error_set(ctx->error, ZIP_ER_ZLIB, err);
+        libzip_error_set(ctx->error, ZIP_ER_ZLIB, err);
         return false;
     }
 
@@ -181,11 +181,11 @@ end(void *ud) {
 
 
 static bool
-input(void *ud, zip_uint8_t *data, zip_uint64_t length) {
+input(void *ud, libzip_uint8_t *data, libzip_uint64_t length) {
     struct ctx *ctx = (struct ctx *)ud;
 
     if (length > UINT_MAX || ctx->zstr.avail_in > 0) {
-        zip_error_set(ctx->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(ctx->error, ZIP_ER_INVAL, 0);
         return false;
     }
 
@@ -204,8 +204,8 @@ end_of_input(void *ud) {
 }
 
 
-static zip_compression_status_t
-process(void *ud, zip_uint8_t *data, zip_uint64_t *length) {
+static libzip_compression_status_t
+process(void *ud, libzip_uint8_t *data, libzip_uint64_t *length) {
     struct ctx *ctx = (struct ctx *)ud;
     uInt avail_out;
 
@@ -239,14 +239,14 @@ process(void *ud, zip_uint8_t *data, zip_uint64_t *length) {
         /* fallthrough */
 
     default:
-        zip_error_set(ctx->error, ZIP_ER_ZLIB, ret);
+        libzip_error_set(ctx->error, ZIP_ER_ZLIB, ret);
         return ZIP_COMPRESSION_ERROR;
     }
 }
 
 /* clang-format off */
 
-zip_compression_algorithm_t zip_algorithm_deflate_compress = {
+libzip_compression_algorithm_t libzip_algorithm_deflate_compress = {
     maximum_compressed_size,
     compress_allocate,
     deallocate,
@@ -260,7 +260,7 @@ zip_compression_algorithm_t zip_algorithm_deflate_compress = {
 };
 
 
-zip_compression_algorithm_t zip_algorithm_deflate_decompress = {
+libzip_compression_algorithm_t libzip_algorithm_deflate_decompress = {
     maximum_compressed_size,
     decompress_allocate,
     deallocate,

@@ -1,5 +1,5 @@
 /*
-  zip_crypto_openssl.h -- definitions for OpenSSL wrapper.
+  libzip_crypto_openssl.h -- definitions for OpenSSL wrapper.
   Copyright (C) 2018-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -47,27 +47,27 @@
 #define USE_OPENSSL_3_API
 #endif
 
-#define _zip_crypto_aes_t EVP_CIPHER_CTX
+#define _libzip_crypto_aes_t EVP_CIPHER_CTX
 #ifdef USE_OPENSSL_3_API
-struct _zip_crypto_hmac_t {
+struct _libzip_crypto_hmac_t {
     EVP_MAC *mac;
     EVP_MAC_CTX *ctx;
 };
-typedef struct _zip_crypto_hmac_t _zip_crypto_hmac_t;
-#define _zip_crypto_hmac(hmac, data, length) (EVP_MAC_update((hmac->ctx), (data), (length)) == 1)
+typedef struct _libzip_crypto_hmac_t _libzip_crypto_hmac_t;
+#define _libzip_crypto_hmac(hmac, data, length) (EVP_MAC_update((hmac->ctx), (data), (length)) == 1)
 #else
-#define _zip_crypto_hmac_t HMAC_CTX
-#define _zip_crypto_hmac(hmac, data, length) (HMAC_Update((hmac), (data), (length)) == 1)
+#define _libzip_crypto_hmac_t HMAC_CTX
+#define _libzip_crypto_hmac(hmac, data, length) (HMAC_Update((hmac), (data), (length)) == 1)
 #endif
 
-void _zip_crypto_aes_free(_zip_crypto_aes_t *aes);
-bool _zip_crypto_aes_encrypt_block(_zip_crypto_aes_t *aes, const zip_uint8_t *in, zip_uint8_t *out);
-_zip_crypto_aes_t *_zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *error);
+void _libzip_crypto_aes_free(_libzip_crypto_aes_t *aes);
+bool _libzip_crypto_aes_encrypt_block(_libzip_crypto_aes_t *aes, const libzip_uint8_t *in, libzip_uint8_t *out);
+_libzip_crypto_aes_t *_libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libzip_error_t *error);
 
-void _zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac);
-_zip_crypto_hmac_t *_zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_error_t *error);
-bool _zip_crypto_hmac_output(_zip_crypto_hmac_t *hmac, zip_uint8_t *data);
+void _libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac);
+_libzip_crypto_hmac_t *_libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_length, libzip_error_t *error);
+bool _libzip_crypto_hmac_output(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data);
 
-#define _zip_crypto_pbkdf2(key, key_length, salt, salt_length, iterations, output, output_length) (PKCS5_PBKDF2_HMAC_SHA1((const char *)(key), (key_length), (salt), (salt_length), (iterations), (output_length), (output)))
+#define _libzip_crypto_pbkdf2(key, key_length, salt, salt_length, iterations, output, output_length) (PKCS5_PBKDF2_HMAC_SHA1((const char *)(key), (key_length), (salt), (salt_length), (iterations), (output_length), (output)))
 
 #endif /*  HAD_ZIP_CRYPTO_OPENSSL_H */

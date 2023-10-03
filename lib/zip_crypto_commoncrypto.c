@@ -1,5 +1,5 @@
 /*
-  zip_crypto_commoncrypto.c -- CommonCrypto wrapper.
+  libzip_crypto_commoncrypto.c -- CommonCrypto wrapper.
   Copyright (C) 2018-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -41,7 +41,7 @@
 #include <unistd.h>
 
 void
-_zip_crypto_aes_free(_zip_crypto_aes_t *aes) {
+_libzip_crypto_aes_free(_libzip_crypto_aes_t *aes) {
     if (aes == NULL) {
         return;
     }
@@ -51,16 +51,16 @@ _zip_crypto_aes_free(_zip_crypto_aes_t *aes) {
 
 
 bool
-_zip_crypto_aes_encrypt_block(_zip_crypto_aes_t *aes, const zip_uint8_t *in, zip_uint8_t *out) {
+_libzip_crypto_aes_encrypt_block(_libzip_crypto_aes_t *aes, const libzip_uint8_t *in, libzip_uint8_t *out) {
     size_t len;
     CCCryptorUpdate(aes, in, ZIP_CRYPTO_AES_BLOCK_LENGTH, out, ZIP_CRYPTO_AES_BLOCK_LENGTH, &len);
     return true;
 }
 
 
-_zip_crypto_aes_t *
-_zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *error) {
-    _zip_crypto_aes_t *aes;
+_libzip_crypto_aes_t *
+_libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libzip_error_t *error) {
+    _libzip_crypto_aes_t *aes;
     CCCryptorStatus ret;
 
     ret = CCCryptorCreate(kCCEncrypt, kCCAlgorithmAES, kCCOptionECBMode, key, key_size / 8, NULL, &aes);
@@ -70,37 +70,37 @@ _zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *
         return aes;
 
     case kCCMemoryFailure:
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
 
     case kCCParamError:
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
 
     default:
-        zip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
         return NULL;
     }
 }
 
 
 void
-_zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac) {
+_libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac) {
     if (hmac == NULL) {
         return;
     }
 
-    _zip_crypto_clear(hmac, sizeof(*hmac));
+    _libzip_crypto_clear(hmac, sizeof(*hmac));
     free(hmac);
 }
 
 
-_zip_crypto_hmac_t *
-_zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_error_t *error) {
-    _zip_crypto_hmac_t *hmac;
+_libzip_crypto_hmac_t *
+_libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_length, libzip_error_t *error) {
+    _libzip_crypto_hmac_t *hmac;
 
-    if ((hmac = (_zip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+    if ((hmac = (_libzip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 

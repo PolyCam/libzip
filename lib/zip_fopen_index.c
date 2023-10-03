@@ -1,5 +1,5 @@
 /*
-  zip_fopen_index.c -- open file in zip archive for reading by index
+  libzip_fopen_index.c -- open file in zip archive for reading by index
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -35,7 +35,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN zip_file_t *
-zip_fopen_index(zip_t *za, zip_uint64_t index, zip_flags_t flags) {
-    return zip_fopen_index_encrypted(za, index, flags, za->default_password);
+ZIP_EXTERN libzip_file_t *
+libzip_fopen_index(libzip_t *za, libzip_uint64_t index, libzip_flags_t flags) {
+    return libzip_fopen_index_encrypted(za, index, flags, za->default_password);
 }

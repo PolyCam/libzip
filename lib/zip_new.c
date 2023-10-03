@@ -1,5 +1,5 @@
 /*
-  zip_new.c -- create and init struct zip
+  libzip_new.c -- create and init struct zip
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,28 +37,28 @@
 #include "zipint.h"
 
 
-/* _zip_new:
+/* _libzip_new:
    creates a new zipfile struct, and sets the contents to zero; returns
    the new struct. */
 
-zip_t *
-_zip_new(zip_error_t *error) {
-    zip_t *za;
+libzip_t *
+_libzip_new(libzip_error_t *error) {
+    libzip_t *za;
 
-    za = (zip_t *)malloc(sizeof(struct zip));
+    za = (libzip_t *)malloc(sizeof(struct zip));
     if (!za) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
-    if ((za->names = _zip_hash_new(error)) == NULL) {
+    if ((za->names = _libzip_hash_new(error)) == NULL) {
         free(za);
         return NULL;
     }
 
     za->src = NULL;
     za->open_flags = 0;
-    zip_error_init(&za->error);
+    libzip_error_init(&za->error);
     za->flags = za->ch_flags = 0;
     za->default_password = NULL;
     za->comment_orig = za->comment_changes = NULL;

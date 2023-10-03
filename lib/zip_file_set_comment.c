@@ -1,5 +1,5 @@
 /*
-  zip_file_set_comment.c -- set comment for file in archive
+  libzip_file_set_comment.c -- set comment for file in archive
   Copyright (C) 2006-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -38,32 +38,32 @@
 
 
 ZIP_EXTERN int
-zip_file_set_comment(zip_t *za, zip_uint64_t idx, const char *comment, zip_uint16_t len, zip_flags_t flags) {
-    zip_entry_t *e;
-    zip_string_t *cstr;
+libzip_file_set_comment(libzip_t *za, libzip_uint64_t idx, const char *comment, libzip_uint16_t len, libzip_flags_t flags) {
+    libzip_entry_t *e;
+    libzip_string_t *cstr;
     int changed;
 
-    if (_zip_get_dirent(za, idx, 0, NULL) == NULL)
+    if (_libzip_get_dirent(za, idx, 0, NULL) == NULL)
         return -1;
 
     if (ZIP_IS_RDONLY(za)) {
-        zip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
         return -1;
     }
     if (ZIP_WANT_TORRENTZIP(za)) {
-        zip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
     if (len > 0 && comment == NULL) {
-        zip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
     if (len > 0) {
-        if ((cstr = _zip_string_new((const zip_uint8_t *)comment, len, flags, &za->error)) == NULL)
+        if ((cstr = _libzip_string_new((const libzip_uint8_t *)comment, len, flags, &za->error)) == NULL)
             return -1;
-        if ((flags & ZIP_FL_ENCODING_ALL) == ZIP_FL_ENC_GUESS && _zip_guess_encoding(cstr, ZIP_ENCODING_UNKNOWN) == ZIP_ENCODING_UTF8_GUESSED)
+        if ((flags & ZIP_FL_ENCODING_ALL) == ZIP_FL_ENC_GUESS && _libzip_guess_encoding(cstr, ZIP_ENCODING_UNKNOWN) == ZIP_ENCODING_UTF8_GUESSED)
             cstr->encoding = ZIP_ENCODING_UTF8_KNOWN;
     }
     else
@@ -72,21 +72,21 @@ zip_file_set_comment(zip_t *za, zip_uint64_t idx, const char *comment, zip_uint1
     e = za->entry + idx;
 
     if (e->changes) {
-        _zip_string_free(e->changes->comment);
+        _libzip_string_free(e->changes->comment);
         e->changes->comment = NULL;
         e->changes->changed &= ~ZIP_DIRENT_COMMENT;
     }
 
     if (e->orig && e->orig->comment)
-        changed = !_zip_string_equal(e->orig->comment, cstr);
+        changed = !_libzip_string_equal(e->orig->comment, cstr);
     else
         changed = (cstr != NULL);
 
     if (changed) {
         if (e->changes == NULL) {
-            if ((e->changes = _zip_dirent_clone(e->orig)) == NULL) {
-                zip_error_set(&za->error, ZIP_ER_MEMORY, 0);
-                _zip_string_free(cstr);
+            if ((e->changes = _libzip_dirent_clone(e->orig)) == NULL) {
+                libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+                _libzip_string_free(cstr);
                 return -1;
             }
         }
@@ -94,9 +94,9 @@ zip_file_set_comment(zip_t *za, zip_uint64_t idx, const char *comment, zip_uint1
         e->changes->changed |= ZIP_DIRENT_COMMENT;
     }
     else {
-        _zip_string_free(cstr);
+        _libzip_string_free(cstr);
         if (e->changes && e->changes->changed == 0) {
-            _zip_dirent_free(e->changes);
+            _libzip_dirent_free(e->changes);
             e->changes = NULL;
         }
     }

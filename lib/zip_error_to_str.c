@@ -1,5 +1,5 @@
 /*
-  zip_error_to_str.c -- get string representation of zip error code
+  libzip_error_to_str.c -- get string representation of zip error code
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -40,19 +40,19 @@
 
 
 ZIP_EXTERN int
-zip_error_to_str(char *buf, zip_uint64_t len, int ze, int se) {
-    zip_error_t error;
+libzip_error_to_str(char *buf, libzip_uint64_t len, int ze, int se) {
+    libzip_error_t error;
     const char *error_string;
     int ret;
 
-    zip_error_init(&error);
-    zip_error_set(&error, ze, se);
+    libzip_error_init(&error);
+    libzip_error_set(&error, ze, se);
 
-    error_string = zip_error_strerror(&error);
+    error_string = libzip_error_strerror(&error);
 
     ret = snprintf_s(buf, ZIP_MIN(len, SIZE_MAX), error_string, strlen(error_string));
 
-    zip_error_fini(&error);
+    libzip_error_fini(&error);
 
     return ret;
 }

@@ -1,5 +1,5 @@
 /*
-  zip_error.c -- zip_error_t helper functions
+  libzip_error.c -- libzip_error_t helper functions
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,36 +37,36 @@
 
 
 ZIP_EXTERN int
-zip_error_code_system(const zip_error_t *error) {
+libzip_error_code_system(const libzip_error_t *error) {
     return error->sys_err;
 }
 
 
 ZIP_EXTERN int
-zip_error_code_zip(const zip_error_t *error) {
-    return error->zip_err;
+libzip_error_code_zip(const libzip_error_t *error) {
+    return error->libzip_err;
 }
 
 
 ZIP_EXTERN void
-zip_error_fini(zip_error_t *err) {
+libzip_error_fini(libzip_error_t *err) {
     free(err->str);
     err->str = NULL;
 }
 
 
 ZIP_EXTERN void
-zip_error_init(zip_error_t *err) {
-    err->zip_err = ZIP_ER_OK;
+libzip_error_init(libzip_error_t *err) {
+    err->libzip_err = ZIP_ER_OK;
     err->sys_err = 0;
     err->str = NULL;
 }
 
 ZIP_EXTERN void
-zip_error_init_with_code(zip_error_t *error, int ze) {
-    zip_error_init(error);
-    error->zip_err = ze;
-    switch (zip_error_system_type(error)) {
+libzip_error_init_with_code(libzip_error_t *error, int ze) {
+    libzip_error_init(error);
+    error->libzip_err = ze;
+    switch (libzip_error_system_type(error)) {
         case ZIP_ET_SYS:
         case ZIP_ET_LIBZIP:
             error->sys_err = errno;
@@ -80,41 +80,41 @@ zip_error_init_with_code(zip_error_t *error, int ze) {
 
 
 ZIP_EXTERN int
-zip_error_system_type(const zip_error_t *error) {
-    if (error->zip_err < 0 || error->zip_err >= _zip_err_str_count)
+libzip_error_system_type(const libzip_error_t *error) {
+    if (error->libzip_err < 0 || error->libzip_err >= _libzip_err_str_count)
         return ZIP_ET_NONE;
 
-    return _zip_err_str[error->zip_err].type;
+    return _libzip_err_str[error->libzip_err].type;
 }
 
 
 void
-_zip_error_clear(zip_error_t *err) {
+_libzip_error_clear(libzip_error_t *err) {
     if (err == NULL)
         return;
 
-    err->zip_err = ZIP_ER_OK;
+    err->libzip_err = ZIP_ER_OK;
     err->sys_err = 0;
 }
 
 
 void
-_zip_error_copy(zip_error_t *dst, const zip_error_t *src) {
+_libzip_error_copy(libzip_error_t *dst, const libzip_error_t *src) {
     if (dst == NULL) {
         return;
     }
 
-    dst->zip_err = src->zip_err;
+    dst->libzip_err = src->libzip_err;
     dst->sys_err = src->sys_err;
 }
 
 
 void
-_zip_error_get(const zip_error_t *err, int *zep, int *sep) {
+_libzip_error_get(const libzip_error_t *err, int *zep, int *sep) {
     if (zep)
-        *zep = err->zip_err;
+        *zep = err->libzip_err;
     if (sep) {
-        if (zip_error_system_type(err) != ZIP_ET_NONE)
+        if (libzip_error_system_type(err) != ZIP_ET_NONE)
             *sep = err->sys_err;
         else
             *sep = 0;
@@ -123,34 +123,34 @@ _zip_error_get(const zip_error_t *err, int *zep, int *sep) {
 
 
 void
-zip_error_set(zip_error_t *err, int ze, int se) {
+libzip_error_set(libzip_error_t *err, int ze, int se) {
     if (err) {
-        err->zip_err = ze;
+        err->libzip_err = ze;
         err->sys_err = se;
     }
 }
 
 
 void
-zip_error_set_from_source(zip_error_t *err, zip_source_t *src) {
+libzip_error_set_from_source(libzip_error_t *err, libzip_source_t *src) {
     if (src == NULL) {
-        zip_error_set(err, ZIP_ER_INVAL, 0);
+        libzip_error_set(err, ZIP_ER_INVAL, 0);
         return;
     }
 
-    _zip_error_copy(err, zip_source_error(src));
+    _libzip_error_copy(err, libzip_source_error(src));
 }
 
 
-zip_int64_t
-zip_error_to_data(const zip_error_t *error, void *data, zip_uint64_t length) {
+libzip_int64_t
+libzip_error_to_data(const libzip_error_t *error, void *data, libzip_uint64_t length) {
     int *e = (int *)data;
 
     if (length < sizeof(int) * 2) {
         return -1;
     }
 
-    e[0] = zip_error_code_zip(error);
-    e[1] = zip_error_code_system(error);
+    e[0] = libzip_error_code_zip(error);
+    e[1] = libzip_error_code_system(error);
     return sizeof(int) * 2;
 }

@@ -1,5 +1,5 @@
 /*
-  zip_crypto_openssl.c -- OpenSSL wrapper.
+  libzip_crypto_openssl.c -- OpenSSL wrapper.
   Copyright (C) 2018-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -41,15 +41,15 @@
 #include <openssl/rand.h>
 
 #ifdef USE_OPENSSL_3_API
-static _zip_crypto_hmac_t* hmac_new() {
-    _zip_crypto_hmac_t *hmac = (_zip_crypto_hmac_t*)malloc(sizeof(*hmac));
+static _libzip_crypto_hmac_t* hmac_new() {
+    _libzip_crypto_hmac_t *hmac = (_libzip_crypto_hmac_t*)malloc(sizeof(*hmac));
     if (hmac != NULL) {
         hmac->mac = NULL;
         hmac->ctx = NULL;
     }
     return hmac;
 }
-static void hmac_free(_zip_crypto_hmac_t* hmac) {
+static void hmac_free(_libzip_crypto_hmac_t* hmac) {
     if (hmac != NULL) {
         if (hmac->ctx != NULL) {
             EVP_MAC_CTX_free(hmac->ctx);
@@ -62,9 +62,9 @@ static void hmac_free(_zip_crypto_hmac_t* hmac) {
 }
 #endif
 
-_zip_crypto_aes_t *
-_zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *error) {
-    _zip_crypto_aes_t *aes;
+_libzip_crypto_aes_t *
+_libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libzip_error_t *error) {
+    _libzip_crypto_aes_t *aes;
     const EVP_CIPHER* cipher_type;
 
     switch (key_size) {
@@ -78,19 +78,19 @@ _zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *
         cipher_type = EVP_aes_256_ecb();
         break;
     default:
-        zip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
         return NULL;
     }
 
 #ifdef USE_OPENSSL_1_0_API
-    if ((aes = (_zip_crypto_aes_t *)malloc(sizeof(*aes))) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+    if ((aes = (_libzip_crypto_aes_t *)malloc(sizeof(*aes))) == NULL) {
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
     memset(aes, 0, sizeof(*aes));
 #else
     if ((aes = EVP_CIPHER_CTX_new()) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 #endif
@@ -101,7 +101,7 @@ _zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *
 #else
         EVP_CIPHER_CTX_free(aes);
 #endif
-        zip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
         return NULL;
     }
 
@@ -109,14 +109,14 @@ _zip_crypto_aes_new(const zip_uint8_t *key, zip_uint16_t key_size, zip_error_t *
 }
 
 void
-_zip_crypto_aes_free(_zip_crypto_aes_t *aes) {
+_libzip_crypto_aes_free(_libzip_crypto_aes_t *aes) {
     if (aes == NULL) {
         return;
     }
 
 #ifdef USE_OPENSSL_1_0_API
     EVP_CIPHER_CTX_cleanup(aes);
-    _zip_crypto_clear(aes, sizeof(*aes));
+    _libzip_crypto_clear(aes, sizeof(*aes));
     free(aes);
 #else
     EVP_CIPHER_CTX_free(aes);
@@ -125,10 +125,10 @@ _zip_crypto_aes_free(_zip_crypto_aes_t *aes) {
 
 
 bool
-_zip_crypto_aes_encrypt_block(_zip_crypto_aes_t *aes, const zip_uint8_t *in, zip_uint8_t *out) {
+_libzip_crypto_aes_encrypt_block(_libzip_crypto_aes_t *aes, const libzip_uint8_t *in, libzip_uint8_t *out) {
     int len = 0;
     /* TODO: The memset() is just for testing the memory sanitizer,
-       _zip_winzip_aes_new() will overwrite the same bytes */
+       _libzip_winlibzip_aes_new() will overwrite the same bytes */
     memset(out, 0xff, ZIP_CRYPTO_AES_BLOCK_LENGTH);
     if (EVP_EncryptUpdate(aes, out, &len, in, ZIP_CRYPTO_AES_BLOCK_LENGTH) != 1
         || len != ZIP_CRYPTO_AES_BLOCK_LENGTH) {
@@ -138,12 +138,12 @@ _zip_crypto_aes_encrypt_block(_zip_crypto_aes_t *aes, const zip_uint8_t *in, zip
 }
 
 
-_zip_crypto_hmac_t *
-_zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_error_t *error) {
-    _zip_crypto_hmac_t *hmac;
+_libzip_crypto_hmac_t *
+_libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_length, libzip_error_t *error) {
+    _libzip_crypto_hmac_t *hmac;
 
     if (secret_length > INT_MAX) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
 
@@ -152,7 +152,7 @@ _zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_
         || (hmac->mac = EVP_MAC_fetch(NULL, "HMAC", "provider=default")) == NULL
         || (hmac->ctx = EVP_MAC_CTX_new(hmac->mac)) == NULL) {
         hmac_free(hmac);
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -162,28 +162,28 @@ _zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_
         params[1] = OSSL_PARAM_construct_end();
 
         if (!EVP_MAC_init(hmac->ctx, (const unsigned char *)secret, secret_length, params)) {
-            zip_error_set(error, ZIP_ER_INTERNAL, 0);
+            libzip_error_set(error, ZIP_ER_INTERNAL, 0);
             hmac_free(hmac);
             return NULL;
         }
     }
 #else
 #ifdef USE_OPENSSL_1_0_API
-    if ((hmac = (_zip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+    if ((hmac = (_libzip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
         HMAC_CTX_init(hmac);
 #else
     if ((hmac = HMAC_CTX_new()) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 #endif
 
     if (HMAC_Init_ex(hmac, secret, (int)secret_length, EVP_sha1(), NULL) != 1) {
-        zip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
 #ifdef USE_OPENSSL_1_0_API
         free(hmac);
 #else
@@ -198,7 +198,7 @@ _zip_crypto_hmac_new(const zip_uint8_t *secret, zip_uint64_t secret_length, zip_
 
 
 void
-_zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac) {
+_libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac) {
     if (hmac == NULL) {
         return;
     }
@@ -207,7 +207,7 @@ _zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac) {
     hmac_free(hmac);
 #elif defined(USE_OPENSSL_1_0_API)
     HMAC_CTX_cleanup(hmac);
-    _zip_crypto_clear(hmac, sizeof(*hmac));
+    _libzip_crypto_clear(hmac, sizeof(*hmac));
     free(hmac);
 #else
     HMAC_CTX_free(hmac);
@@ -216,9 +216,9 @@ _zip_crypto_hmac_free(_zip_crypto_hmac_t *hmac) {
 
 
 bool
-_zip_crypto_hmac_output(_zip_crypto_hmac_t *hmac, zip_uint8_t *data) {
+_libzip_crypto_hmac_output(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data) {
     /* TODO: The memset() is just for testing the memory sanitizer,
-       _zip_winzip_aes_new() will overwrite the same bytes */
+       _libzip_winlibzip_aes_new() will overwrite the same bytes */
     memset(data, 0xff, ZIP_CRYPTO_SHA1_LENGTH);
 #ifdef USE_OPENSSL_3_API
     size_t length = 0;
@@ -231,6 +231,6 @@ _zip_crypto_hmac_output(_zip_crypto_hmac_t *hmac, zip_uint8_t *data) {
 
 
 ZIP_EXTERN bool
-zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
+libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     return RAND_bytes(buffer, length) == 1;
 }

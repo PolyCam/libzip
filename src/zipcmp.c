@@ -51,7 +51,7 @@
 #include "getopt.h"
 #endif
 
-#include "zip.h"
+#include "libzip.h"
 
 #include "compat.h"
 
@@ -59,8 +59,8 @@
 
 struct archive {
     const char *name;
-    zip_t *za;
-    zip_uint64_t nentry;
+    libzip_t *za;
+    libzip_uint64_t nentry;
     struct entry *entry;
     const char *comment;
     size_t comment_length;
@@ -68,21 +68,21 @@ struct archive {
 
 struct ef {
     const char *name;
-    zip_uint16_t flags;
-    zip_uint16_t id;
-    zip_uint16_t size;
-    const zip_uint8_t *data;
+    libzip_uint16_t flags;
+    libzip_uint16_t id;
+    libzip_uint16_t size;
+    const libzip_uint8_t *data;
 };
 
 struct entry {
     char *name;
-    zip_uint64_t size;
-    zip_uint32_t crc;
-    zip_uint32_t comp_method;
+    libzip_uint64_t size;
+    libzip_uint32_t crc;
+    libzip_uint32_t comp_method;
     struct ef *extra_fields;
-    zip_uint16_t n_extra_fields;
+    libzip_uint16_t n_extra_fields;
     const char *comment;
-    zip_uint32_t comment_length;
+    libzip_uint32_t comment_length;
 };
 
 
@@ -211,12 +211,12 @@ Copyright (C) 2003-2022 Dieter Baron and Thomas Klausner\n\
 #define BOTH_ARE_ZIPS(a) (a[0].za && a[1].za)
 
 static int comment_compare(const char *c1, size_t l1, const char *c2, size_t l2);
-static int compare_list(char *const name[2], const void *list[2], const zip_uint64_t list_length[2], int element_size, int (*cmp)(const void *a, const void *b), int (*ignore)(const void *list, int last, const void *other), int (*check)(char *const name[2], const void *a, const void *b), void (*print)(char side, const void *element), void (*start_file)(const void *element));
+static int compare_list(char *const name[2], const void *list[2], const libzip_uint64_t list_length[2], int element_size, int (*cmp)(const void *a, const void *b), int (*ignore)(const void *list, int last, const void *other), int (*check)(char *const name[2], const void *a, const void *b), void (*print)(char side, const void *element), void (*start_file)(const void *element));
 static int compare_zip(char *const zn[]);
 static int ef_compare(char *const name[2], const struct entry *e1, const struct entry *e2);
 static int ef_order(const void *a, const void *b);
 static void ef_print(char side, const void *p);
-static int ef_read(zip_t *za, zip_uint64_t idx, struct entry *e);
+static int ef_read(libzip_t *za, libzip_uint64_t idx, struct entry *e);
 static int entry_cmp(const void *p1, const void *p2);
 static int entry_ignore(const void *p1, int last, const void *o);
 static int entry_paranoia_checks(char *const name[2], const void *p1, const void *p2);
@@ -229,7 +229,7 @@ static int is_directory(const char *name);
 static int list_directory(const char *name, struct archive *a);
 #endif
 static int list_zip(const char *name, struct archive *a);
-static int test_file(zip_t *za, zip_uint64_t idx, const char *zipname, const char *filename, zip_uint64_t size, zip_uint32_t crc);
+static int test_file(libzip_t *za, libzip_uint64_t idx, const char *zipname, const char *filename, libzip_uint64_t size, libzip_uint32_t crc);
 
 int ignore_case, test_files, paranoid, verbose, have_directory, check_consistency, summary;
 int plus_count = 0, minus_count = 0;
@@ -303,7 +303,7 @@ static int
 compare_zip(char *const zn[]) {
     struct archive a[2];
     struct entry *e[2];
-    zip_uint64_t n[2];
+    libzip_uint64_t n[2];
     int i;
     int res;
 
@@ -345,11 +345,11 @@ compare_zip(char *const zn[]) {
     if (paranoid) {
         if (comment_compare(a[0].comment, a[0].comment_length, a[1].comment, a[1].comment_length) != 0) {
             if (a[0].comment_length > 0) {
-                diff_output_data(&output, '-', (const zip_uint8_t *)a[0].comment, a[0].comment_length, "archive comment");
+                diff_output_data(&output, '-', (const libzip_uint8_t *)a[0].comment, a[0].comment_length, "archive comment");
 		minus_count++;
             }
             if (a[1].comment_length > 0) {
-                diff_output_data(&output, '+', (const zip_uint8_t *)a[1].comment, a[1].comment_length, "archive comment");
+                diff_output_data(&output, '+', (const libzip_uint8_t *)a[1].comment, a[1].comment_length, "archive comment");
 		plus_count++;
             }
             res = 1;
@@ -357,10 +357,10 @@ compare_zip(char *const zn[]) {
     }
 
     for (i = 0; i < 2; i++) {
-        zip_uint64_t j;
+        libzip_uint64_t j;
 
         if (a[i].za) {
-            zip_close(a[i].za);
+            libzip_close(a[i].za);
         }
         for (j = 0; j < a[i].nentry; j++) {
             free(a[i].entry[j].name);
@@ -385,7 +385,7 @@ compare_zip(char *const zn[]) {
 }
 
 #ifdef HAVE_FTS_H
-static zip_int64_t
+static libzip_int64_t
 compute_crc(const char *fname) {
     FILE *f;
     uLong crc = crc32(0L, Z_NULL, 0);
@@ -410,7 +410,7 @@ compute_crc(const char *fname) {
 
     fclose(f);
 
-    return (zip_int64_t)crc;
+    return (libzip_int64_t)crc;
 }
 #endif
 
@@ -431,7 +431,7 @@ static int
 list_directory(const char *name, struct archive *a) {
     FTS *fts;
     FTSENT *ent;
-    zip_uint64_t nalloc;
+    libzip_uint64_t nalloc;
     size_t prefix_length;
 
     char *const names[2] = {(char *)name, NULL};
@@ -446,7 +446,7 @@ list_directory(const char *name, struct archive *a) {
     nalloc = 0;
 
     while ((ent = fts_read(fts))) {
-        zip_int64_t crc;
+        libzip_int64_t crc;
 
         switch (ent->fts_info) {
             case FTS_DOT:
@@ -500,13 +500,13 @@ list_directory(const char *name, struct archive *a) {
                 }
                 else {
                     a->entry[a->nentry].name = strdup(ent->fts_path + prefix_length);
-                    a->entry[a->nentry].size = (zip_uint64_t)ent->fts_statp->st_size;
+                    a->entry[a->nentry].size = (libzip_uint64_t)ent->fts_statp->st_size;
                     if ((crc = compute_crc(ent->fts_accpath)) < 0) {
                         fts_close(fts);
                         return -1;
                     }
                 
-                    a->entry[a->nentry].crc = (zip_uint32_t)crc;
+                    a->entry[a->nentry].crc = (libzip_uint32_t)crc;
                 }
                 a->nentry++;
                 break;
@@ -525,21 +525,21 @@ list_directory(const char *name, struct archive *a) {
 
 static int
 list_zip(const char *name, struct archive *a) {
-    zip_t *za;
+    libzip_t *za;
     int err;
-    struct zip_stat st;
+    struct libzip_stat st;
     unsigned int i;
 
-    if ((za = zip_open(name, check_consistency ? ZIP_CHECKCONS : 0, &err)) == NULL) {
-        zip_error_t error;
-        zip_error_init_with_code(&error, err);
-        fprintf(stderr, "%s: cannot open zip archive '%s': %s\n", progname, name, zip_error_strerror(&error));
-        zip_error_fini(&error);
+    if ((za = libzip_open(name, check_consistency ? ZIP_CHECKCONS : 0, &err)) == NULL) {
+        libzip_error_t error;
+        libzip_error_init_with_code(&error, err);
+        fprintf(stderr, "%s: cannot open zip archive '%s': %s\n", progname, name, libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         return -1;
     }
 
     a->za = za;
-    a->nentry = (zip_uint64_t)zip_get_num_entries(za, 0);
+    a->nentry = (libzip_uint64_t)libzip_get_num_entries(za, 0);
 
     if (a->nentry == 0)
         a->entry = NULL;
@@ -550,7 +550,7 @@ list_zip(const char *name, struct archive *a) {
         }
 
         for (i = 0; i < a->nentry; i++) {
-            zip_stat_index(za, i, 0, &st);
+            libzip_stat_index(za, i, 0, &st);
             a->entry[i].name = strdup(st.name);
             a->entry[i].size = st.size;
             a->entry[i].crc = st.crc;
@@ -559,7 +559,7 @@ list_zip(const char *name, struct archive *a) {
             if (paranoid) {
                 a->entry[i].comp_method = st.comp_method;
                 ef_read(za, i, a->entry + i);
-                a->entry[i].comment = zip_file_get_comment(za, i, &a->entry[i].comment_length, 0);
+                a->entry[i].comment = libzip_file_get_comment(za, i, &a->entry[i].comment_length, 0);
             }
             else {
                 a->entry[i].comp_method = 0;
@@ -569,7 +569,7 @@ list_zip(const char *name, struct archive *a) {
 
         if (paranoid) {
             int length;
-            a->comment = zip_get_archive_comment(za, &length, 0);
+            a->comment = libzip_get_archive_comment(za, &length, 0);
             a->comment_length = (size_t)length;
         }
         else {
@@ -597,7 +597,7 @@ comment_compare(const char *c1, size_t l1, const char *c2, size_t l2) {
 }
 
 
-static int compare_list(char *const name[2], const void *list[2], const zip_uint64_t list_length[2], int element_size, int (*cmp)(const void *a, const void *b), int (*ignore)(const void *list, int last, const void *other), int (*check)(char *const name[2], const void *a, const void *b), void (*print)(char side, const void *element), void (*start_file)(const void *element)) {
+static int compare_list(char *const name[2], const void *list[2], const libzip_uint64_t list_length[2], int element_size, int (*cmp)(const void *a, const void *b), int (*ignore)(const void *list, int last, const void *other), int (*check)(char *const name[2], const void *a, const void *b), void (*print)(char side, const void *element), void (*start_file)(const void *element)) {
     unsigned int i[2];
     int j;
     int diff;
@@ -653,29 +653,29 @@ static int compare_list(char *const name[2], const void *list[2], const zip_uint
 
 
 static int
-ef_read(zip_t *za, zip_uint64_t idx, struct entry *e) {
-    zip_int16_t n_local, n_central;
-    zip_uint16_t i;
+ef_read(libzip_t *za, libzip_uint64_t idx, struct entry *e) {
+    libzip_int16_t n_local, n_central;
+    libzip_uint16_t i;
 
-    if ((n_local = zip_file_extra_fields_count(za, idx, ZIP_FL_LOCAL)) < 0 || (n_central = zip_file_extra_fields_count(za, idx, ZIP_FL_CENTRAL)) < 0) {
+    if ((n_local = libzip_file_extra_fields_count(za, idx, ZIP_FL_LOCAL)) < 0 || (n_central = libzip_file_extra_fields_count(za, idx, ZIP_FL_CENTRAL)) < 0) {
         return -1;
     }
 
-    e->n_extra_fields = (zip_uint16_t)(n_local + n_central);
+    e->n_extra_fields = (libzip_uint16_t)(n_local + n_central);
 
     if ((e->extra_fields = (struct ef *)malloc(sizeof(e->extra_fields[0]) * e->n_extra_fields)) == NULL)
         return -1;
 
     for (i = 0; i < n_local; i++) {
         e->extra_fields[i].name = e->name;
-        e->extra_fields[i].data = zip_file_extra_field_get(za, idx, i, &e->extra_fields[i].id, &e->extra_fields[i].size, ZIP_FL_LOCAL);
+        e->extra_fields[i].data = libzip_file_extra_field_get(za, idx, i, &e->extra_fields[i].id, &e->extra_fields[i].size, ZIP_FL_LOCAL);
         if (e->extra_fields[i].data == NULL)
             return -1;
         e->extra_fields[i].flags = ZIP_FL_LOCAL;
     }
     for (; i < e->n_extra_fields; i++) {
         e->extra_fields[i].name = e->name;
-        e->extra_fields[i].data = zip_file_extra_field_get(za, idx, (zip_uint16_t)(i - n_local), &e->extra_fields[i].id, &e->extra_fields[i].size, ZIP_FL_CENTRAL);
+        e->extra_fields[i].data = libzip_file_extra_field_get(za, idx, (libzip_uint16_t)(i - n_local), &e->extra_fields[i].id, &e->extra_fields[i].size, ZIP_FL_CENTRAL);
         if (e->extra_fields[i].data == NULL)
             return -1;
         e->extra_fields[i].flags = ZIP_FL_CENTRAL;
@@ -690,7 +690,7 @@ ef_read(zip_t *za, zip_uint64_t idx, struct entry *e) {
 static int
 ef_compare(char *const name[2], const struct entry *e1, const struct entry *e2) {
     struct ef *ef[2];
-    zip_uint64_t n[2];
+    libzip_uint64_t n[2];
 
     ef[0] = e1->extra_fields;
     ef[1] = e2->extra_fields;
@@ -797,8 +797,8 @@ entry_paranoia_checks(char *const name[2], const void *p1, const void *p2) {
     }
 
     if (comment_compare(e1->comment, e1->comment_length, e2->comment, e2->comment_length) != 0) {
-        diff_output_data(&output, '-', (const zip_uint8_t *)e1->comment, e1->comment_length, "  comment");
-        diff_output_data(&output, '+', (const zip_uint8_t *)e2->comment, e2->comment_length, "  comment");
+        diff_output_data(&output, '-', (const libzip_uint8_t *)e1->comment, e1->comment_length, "  comment");
+        diff_output_data(&output, '+', (const libzip_uint8_t *)e2->comment, e2->comment_length, "  comment");
         ret = 1;
     }
 
@@ -821,33 +821,33 @@ static void entry_start_file(const void *p) {
 
 
 static int
-test_file(zip_t *za, zip_uint64_t idx, const char *zipname, const char *filename, zip_uint64_t size, zip_uint32_t crc) {
-    zip_file_t *zf;
+test_file(libzip_t *za, libzip_uint64_t idx, const char *zipname, const char *filename, libzip_uint64_t size, libzip_uint32_t crc) {
+    libzip_file_t *zf;
     char buf[8192];
-    zip_uint64_t nsize;
-    zip_int64_t n;
-    zip_uint32_t ncrc;
+    libzip_uint64_t nsize;
+    libzip_int64_t n;
+    libzip_uint32_t ncrc;
 
-    if ((zf = zip_fopen_index(za, idx, 0)) == NULL) {
-        fprintf(stderr, "%s: %s: cannot open file %s (index %" PRIu64 "): %s\n", progname, zipname, filename, idx, zip_strerror(za));
+    if ((zf = libzip_fopen_index(za, idx, 0)) == NULL) {
+        fprintf(stderr, "%s: %s: cannot open file %s (index %" PRIu64 "): %s\n", progname, zipname, filename, idx, libzip_strerror(za));
         return -1;
     }
 
-    ncrc = (zip_uint32_t)crc32(0, NULL, 0);
+    ncrc = (libzip_uint32_t)crc32(0, NULL, 0);
     nsize = 0;
 
-    while ((n = zip_fread(zf, buf, sizeof(buf))) > 0) {
-        nsize += (zip_uint64_t)n;
-        ncrc = (zip_uint32_t)crc32(ncrc, (const Bytef *)buf, (unsigned int)n);
+    while ((n = libzip_fread(zf, buf, sizeof(buf))) > 0) {
+        nsize += (libzip_uint64_t)n;
+        ncrc = (libzip_uint32_t)crc32(ncrc, (const Bytef *)buf, (unsigned int)n);
     }
 
     if (n < 0) {
-        fprintf(stderr, "%s: %s: error reading file %s (index %" PRIu64 "): %s\n", progname, zipname, filename, idx, zip_file_strerror(zf));
-        zip_fclose(zf);
+        fprintf(stderr, "%s: %s: error reading file %s (index %" PRIu64 "): %s\n", progname, zipname, filename, idx, libzip_file_strerror(zf));
+        libzip_fclose(zf);
         return -1;
     }
 
-    zip_fclose(zf);
+    libzip_fclose(zf);
 
     if (nsize != size) {
         fprintf(stderr, "%s: %s: file %s (index %" PRIu64 "): unexpected length %" PRId64 " (should be %" PRId64 ")\n", progname, zipname, filename, idx, nsize, size);

@@ -40,52 +40,52 @@
 #include "getopt.h"
 #endif
 
-#include "zip.h"
+#include "libzip.h"
 
 /* public API */
 
-zip_source_t *source_hole_create(const char *, int flags, zip_error_t *);
+libzip_source_t *source_hole_create(const char *, int flags, libzip_error_t *);
 
 const char *progname;
 
 
 static int
-copy_source(zip_source_t *from, zip_source_t *to) {
-    zip_uint8_t buf[8192];
-    zip_int64_t n;
+copy_source(libzip_source_t *from, libzip_source_t *to) {
+    libzip_uint8_t buf[8192];
+    libzip_int64_t n;
 
-    if (zip_source_open(from) < 0) {
-        fprintf(stderr, "%s: can't open source for reading: %s\n", progname, zip_error_strerror(zip_source_error(from)));
+    if (libzip_source_open(from) < 0) {
+        fprintf(stderr, "%s: can't open source for reading: %s\n", progname, libzip_error_strerror(libzip_source_error(from)));
         return -1;
     }
 
-    if (zip_source_begin_write(to) < 0) {
-        fprintf(stderr, "%s: can't open source for writing: %s\n", progname, zip_error_strerror(zip_source_error(to)));
-        zip_source_close(from);
+    if (libzip_source_begin_write(to) < 0) {
+        fprintf(stderr, "%s: can't open source for writing: %s\n", progname, libzip_error_strerror(libzip_source_error(to)));
+        libzip_source_close(from);
         return -1;
     }
 
-    while ((n = zip_source_read(from, buf, sizeof(buf))) > 0) {
-        if (zip_source_write(to, buf, (zip_uint64_t)n) != n) {
-            fprintf(stderr, "%s: can't write to source: %s\n", progname, zip_error_strerror(zip_source_error(to)));
-            zip_source_close(from);
-            zip_source_rollback_write(to);
+    while ((n = libzip_source_read(from, buf, sizeof(buf))) > 0) {
+        if (libzip_source_write(to, buf, (libzip_uint64_t)n) != n) {
+            fprintf(stderr, "%s: can't write to source: %s\n", progname, libzip_error_strerror(libzip_source_error(to)));
+            libzip_source_close(from);
+            libzip_source_rollback_write(to);
             return -1;
         }
     }
 
     if (n < 0) {
-        fprintf(stderr, "%s: can't read from source: %s\n", progname, zip_error_strerror(zip_source_error(from)));
-        zip_source_close(from);
-        zip_source_rollback_write(to);
+        fprintf(stderr, "%s: can't read from source: %s\n", progname, libzip_error_strerror(libzip_source_error(from)));
+        libzip_source_close(from);
+        libzip_source_rollback_write(to);
         return -1;
     }
 
-    zip_source_close(from);
+    libzip_source_close(from);
 
-    if (zip_source_commit_write(to) < 0) {
-        fprintf(stderr, "%s: can't commit source: %s\n", progname, zip_error_strerror(zip_source_error(to)));
-        zip_source_rollback_write(to);
+    if (libzip_source_commit_write(to) < 0) {
+        fprintf(stderr, "%s: can't commit source: %s\n", progname, libzip_error_strerror(libzip_source_error(to)));
+        libzip_source_rollback_write(to);
         return -1;
     }
 
@@ -93,16 +93,16 @@ copy_source(zip_source_t *from, zip_source_t *to) {
 }
 
 
-static zip_source_t *
+static libzip_source_t *
 open_compressed(const char *fname, int flags) {
-    zip_error_t error;
-    zip_source_t *src;
+    libzip_error_t error;
+    libzip_source_t *src;
 
-    zip_error_init(&error);
+    libzip_error_init(&error);
 
     if ((src = source_hole_create(fname, flags, &error)) == NULL) {
-        fprintf(stderr, "%s: can't open compressed file %s: %s\n", progname, fname, zip_error_strerror(&error));
-        zip_error_fini(&error);
+        fprintf(stderr, "%s: can't open compressed file %s: %s\n", progname, fname, libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         exit(1);
     }
 
@@ -110,16 +110,16 @@ open_compressed(const char *fname, int flags) {
 }
 
 
-static zip_source_t *
+static libzip_source_t *
 open_file(const char *fname) {
-    zip_error_t error;
-    zip_source_t *src;
+    libzip_error_t error;
+    libzip_source_t *src;
 
-    zip_error_init(&error);
+    libzip_error_init(&error);
 
-    if ((src = zip_source_file_create(fname, 0, 0, &error)) == NULL) {
-        fprintf(stderr, "%s: can't open file %s: %s\n", progname, fname, zip_error_strerror(&error));
-        zip_error_fini(&error);
+    if ((src = libzip_source_file_create(fname, 0, 0, &error)) == NULL) {
+        fprintf(stderr, "%s: can't open file %s: %s\n", progname, fname, libzip_error_strerror(&error));
+        libzip_error_fini(&error);
         exit(1);
     }
 
@@ -137,8 +137,8 @@ usage(void) {
 
 int
 main(int argc, char **argv) {
-    zip_source_t *from;
-    zip_source_t *to;
+    libzip_source_t *from;
+    libzip_source_t *to;
     int c, err;
     int compress = 1;
     int decompress = 0;
@@ -183,8 +183,8 @@ main(int argc, char **argv) {
 
     err = copy_source(from, to);
 
-    zip_source_free(from);
-    zip_source_free(to);
+    libzip_source_free(from);
+    libzip_source_free(to);
 
     exit(err < 0 ? 1 : 0);
 }

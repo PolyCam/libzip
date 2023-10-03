@@ -1,5 +1,5 @@
 /*
-  zip_set_file_compression.c -- set compression for file in archive
+  libzip_set_file_compression.c -- set compression for file in archive
   Copyright (C) 2012-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,26 +36,26 @@
 
 
 ZIP_EXTERN int
-zip_set_file_compression(zip_t *za, zip_uint64_t idx, zip_int32_t method, zip_uint32_t flags) {
-    zip_entry_t *e;
-    zip_int32_t old_method;
+libzip_set_file_compression(libzip_t *za, libzip_uint64_t idx, libzip_int32_t method, libzip_uint32_t flags) {
+    libzip_entry_t *e;
+    libzip_int32_t old_method;
 
     if (idx >= za->nentry) {
-        zip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
         return -1;
     }
 
     if (ZIP_IS_RDONLY(za)) {
-        zip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
         return -1;
     }
     if (ZIP_WANT_TORRENTZIP(za)) {
-        zip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
-    if (!zip_compression_method_supported(method, true)) {
-        zip_error_set(&za->error, ZIP_ER_COMPNOTSUPP, 0);
+    if (!libzip_compression_method_supported(method, true)) {
+        libzip_error_set(&za->error, ZIP_ER_COMPNOTSUPP, 0);
         return -1;
     }
 
@@ -73,21 +73,21 @@ zip_set_file_compression(zip_t *za, zip_uint64_t idx, zip_int32_t method, zip_ui
             e->changes->changed &= ~ZIP_DIRENT_COMP_METHOD;
             e->changes->compression_level = 0;
             if (e->changes->changed == 0) {
-                _zip_dirent_free(e->changes);
+                _libzip_dirent_free(e->changes);
                 e->changes = NULL;
             }
         }
     }
     else {
         if (e->changes == NULL) {
-            if ((e->changes = _zip_dirent_clone(e->orig)) == NULL) {
-                zip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            if ((e->changes = _libzip_dirent_clone(e->orig)) == NULL) {
+                libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
                 return -1;
             }
         }
 
         e->changes->comp_method = method;
-        e->changes->compression_level = (zip_uint16_t)flags;
+        e->changes->compression_level = (libzip_uint16_t)flags;
         e->changes->changed |= ZIP_DIRENT_COMP_METHOD;
     }
 

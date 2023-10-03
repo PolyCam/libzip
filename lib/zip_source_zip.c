@@ -1,5 +1,5 @@
 /*
-  zip_source_zip.c -- create data source from zip file
+  libzip_source_zip.c -- create data source from zip file
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,9 +37,9 @@
 #define _ZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
-ZIP_EXTERN zip_source_t *zip_source_zip_create(zip_t *srcza, zip_uint64_t srcidx, zip_flags_t flags, zip_uint64_t start, zip_int64_t len, zip_error_t *error) {
+ZIP_EXTERN libzip_source_t *libzip_source_libzip_create(libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len, libzip_error_t *error) {
     if (len < -1) {
-        zip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, ZIP_ER_INVAL, 0);
         return NULL;
     }
     
@@ -54,10 +54,10 @@ ZIP_EXTERN zip_source_t *zip_source_zip_create(zip_t *srcza, zip_uint64_t srcidx
         flags &= ~ZIP_FL_COMPRESSED;
     }
 
-    return zip_source_zip_file_create(srcza, srcidx, flags, start, len, NULL, error);
+    return libzip_source_libzip_file_create(srcza, srcidx, flags, start, len, NULL, error);
 }
 
 
-ZIP_EXTERN zip_source_t *zip_source_zip(zip_t *za, zip_t *srcza, zip_uint64_t srcidx, zip_flags_t flags, zip_uint64_t start, zip_int64_t len) {
-    return zip_source_zip_create(srcza, srcidx, flags, start, len, &za->error);
+ZIP_EXTERN libzip_source_t *libzip_source_zip(libzip_t *za, libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len) {
+    return libzip_source_libzip_create(srcza, srcidx, flags, start, len, &za->error);
 }

@@ -39,7 +39,7 @@
 .SH "LIBRARY"
 libzip (-lzip)
 .SH "SYNOPSIS"
-\fB#include <zip.h>\fR
+\fB#include <libzip.h>\fR
 .SH "DESCRIPTION"
 \fBlibzip\fR
 is a library for reading, creating, and modifying zip archives.

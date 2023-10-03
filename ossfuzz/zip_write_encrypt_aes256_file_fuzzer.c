@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <zip.h>
+#include <libzip.h>
 
 void
 randomize(char *buf, int count) {
@@ -41,32 +41,32 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     randomize(password, 20);
     randomize(file, 20);
 
-    if ((archive = zip_open(path, ZIP_CREATE, &error)) == NULL) {
+    if ((archive = libzip_open(path, ZIP_CREATE, &error)) == NULL) {
         return -1;
     }
 
-    struct zip_source *source = zip_source_buffer(archive, data, size, 0);
+    struct libzip_source *source = libzip_source_buffer(archive, data, size, 0);
     if (source == NULL) {
-        fprintf(stderr, "failed to create source buffer. %s\n", zip_strerror(archive));
-        zip_discard(archive);
+        fprintf(stderr, "failed to create source buffer. %s\n", libzip_strerror(archive));
+        libzip_discard(archive);
         return -1;
     }
 
-    int index = (int)zip_file_add(archive, file, source, ZIP_FL_OVERWRITE);
+    int index = (int)libzip_file_add(archive, file, source, ZIP_FL_OVERWRITE);
     if (index < 0) {
-        fprintf(stderr, "failed to add file to archive: %s\n", zip_strerror(archive));
-        zip_source_free(source);
-        zip_discard(archive);
+        fprintf(stderr, "failed to add file to archive: %s\n", libzip_strerror(archive));
+        libzip_source_free(source);
+        libzip_discard(archive);
         return -1;
     }
-    if (zip_file_set_encryption(archive, index, ZIP_EM_AES_256, password) < 0) {
-        fprintf(stderr, "failed to set file encryption: %s\n", zip_strerror(archive));
-        zip_discard(archive);
+    if (libzip_file_set_encryption(archive, index, ZIP_EM_AES_256, password) < 0) {
+        fprintf(stderr, "failed to set file encryption: %s\n", libzip_strerror(archive));
+        libzip_discard(archive);
         return -1;
     }
-    if (zip_close(archive) < 0) {
-        fprintf(stderr, "error closing archive: %s\n", zip_strerror(archive));
-        zip_discard(archive);
+    if (libzip_close(archive) < 0) {
+        fprintf(stderr, "error closing archive: %s\n", libzip_strerror(archive));
+        libzip_discard(archive);
         return -1;
     }
     (void)remove(path);

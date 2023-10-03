@@ -1,5 +1,5 @@
 /*
-  zip_stat_init.c -- initialize struct zip_stat.
+  libzip_stat_init.c -- initialize struct libzip_stat.
   Copyright (C) 2006-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,7 +37,7 @@
 
 
 ZIP_EXTERN void
-zip_stat_init(zip_stat_t *st) {
+libzip_stat_init(libzip_stat_t *st) {
     st->valid = 0;
     st->name = NULL;
     st->index = ZIP_UINT64_MAX;
@@ -51,8 +51,8 @@ zip_stat_init(zip_stat_t *st) {
 
 
 int
-_zip_stat_merge(zip_stat_t *dst, const zip_stat_t *src, zip_error_t *error) {
-    /* name is not merged, since zip_stat_t doesn't own it, and src may not be valid as long as dst */
+_libzip_stat_merge(libzip_stat_t *dst, const libzip_stat_t *src, libzip_error_t *error) {
+    /* name is not merged, since libzip_stat_t doesn't own it, and src may not be valid as long as dst */
     if (src->valid & ZIP_STAT_INDEX) {
         dst->index = src->index;
     }

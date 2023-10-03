@@ -42,7 +42,7 @@
 .SH "LIBRARY"
 libzip (-lzip)
 .SH "SYNOPSIS"
-\fB#include <zip.h>\fR
+\fB#include <libzip.h>\fR
 .SH "DESCRIPTION"
 The following error codes are used by libzip:
 .TP 26n

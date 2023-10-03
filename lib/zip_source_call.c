@@ -1,5 +1,5 @@
 /*
- zip_source_call.c -- invoke callback command on zip_source
+ libzip_source_call.c -- invoke callback command on libzip_source
  Copyright (C) 2009-2021 Dieter Baron and Thomas Klausner
 
  This file is part of libzip, a library to manipulate ZIP archives.
@@ -35,12 +35,12 @@
 #include "zipint.h"
 
 
-zip_int64_t
-_zip_source_call(zip_source_t *src, void *data, zip_uint64_t length, zip_source_cmd_t command) {
-    zip_int64_t ret;
+libzip_int64_t
+_libzip_source_call(libzip_source_t *src, void *data, libzip_uint64_t length, libzip_source_cmd_t command) {
+    libzip_int64_t ret;
 
     if ((src->supports & ZIP_SOURCE_MAKE_COMMAND_BITMASK(command)) == 0) {
-        zip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 
@@ -55,11 +55,11 @@ _zip_source_call(zip_source_t *src, void *data, zip_uint64_t length, zip_source_
         if (command != ZIP_SOURCE_ERROR && command != ZIP_SOURCE_SUPPORTS) {
             int e[2];
 
-            if (_zip_source_call(src, e, sizeof(e), ZIP_SOURCE_ERROR) < 0) {
-                zip_error_set(&src->error, ZIP_ER_INTERNAL, 0);
+            if (_libzip_source_call(src, e, sizeof(e), ZIP_SOURCE_ERROR) < 0) {
+                libzip_error_set(&src->error, ZIP_ER_INTERNAL, 0);
             }
             else {
-                zip_error_set(&src->error, e[0], e[1]);
+                libzip_error_set(&src->error, e[0], e[1]);
             }
         }
     }

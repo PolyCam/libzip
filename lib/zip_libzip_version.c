@@ -1,5 +1,5 @@
 /*
-  zip_libzip_version.c -- return run-time version of library
+  libzip_liblibzip_version.c -- return run-time version of library
   Copyright (C) 2017-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,6 +36,6 @@
 
 
 ZIP_EXTERN const char *
-zip_libzip_version(void) {
+libzip_liblibzip_version(void) {
     return LIBZIP_VERSION;
 }

@@ -1,5 +1,5 @@
 /*
-  zip_add_dir.c -- add directory
+  libzip_add_dir.c -- add directory
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,9 +36,9 @@
 #include "zipint.h"
 
 
-/* NOTE: Signed due to -1 on error.  See zip_add.c for more details. */
+/* NOTE: Signed due to -1 on error.  See libzip_add.c for more details. */
 
-ZIP_EXTERN zip_int64_t
-zip_add_dir(zip_t *za, const char *name) {
-    return zip_dir_add(za, name, 0);
+ZIP_EXTERN libzip_int64_t
+libzip_add_dir(libzip_t *za, const char *name) {
+    return libzip_dir_add(za, name, 0);
 }

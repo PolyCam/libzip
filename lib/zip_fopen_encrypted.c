@@ -1,5 +1,5 @@
 /*
-  zip_fopen_encrypted.c -- open file for reading with password
+  libzip_fopen_encrypted.c -- open file for reading with password
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -35,12 +35,12 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN zip_file_t *
-zip_fopen_encrypted(zip_t *za, const char *fname, zip_flags_t flags, const char *password) {
-    zip_int64_t idx;
+ZIP_EXTERN libzip_file_t *
+libzip_fopen_encrypted(libzip_t *za, const char *fname, libzip_flags_t flags, const char *password) {
+    libzip_int64_t idx;
 
-    if ((idx = zip_name_locate(za, fname, flags)) < 0)
+    if ((idx = libzip_name_locate(za, fname, flags)) < 0)
         return NULL;
 
-    return zip_fopen_index_encrypted(za, (zip_uint64_t)idx, flags, password);
+    return libzip_fopen_index_encrypted(za, (libzip_uint64_t)idx, flags, password);
 }

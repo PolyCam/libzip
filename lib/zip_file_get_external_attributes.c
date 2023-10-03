@@ -1,5 +1,5 @@
 /*
-  zip_file_get_external_attributes.c -- get opsys/external attributes
+  libzip_file_get_external_attributes.c -- get opsys/external attributes
   Copyright (C) 2013-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -34,14 +34,14 @@
 #include "zipint.h"
 
 int
-zip_file_get_external_attributes(zip_t *za, zip_uint64_t idx, zip_flags_t flags, zip_uint8_t *opsys, zip_uint32_t *attributes) {
-    zip_dirent_t *de;
+libzip_file_get_external_attributes(libzip_t *za, libzip_uint64_t idx, libzip_flags_t flags, libzip_uint8_t *opsys, libzip_uint32_t *attributes) {
+    libzip_dirent_t *de;
 
-    if ((de = _zip_get_dirent(za, idx, flags, NULL)) == NULL)
+    if ((de = _libzip_get_dirent(za, idx, flags, NULL)) == NULL)
         return -1;
 
     if (opsys)
-        *opsys = (zip_uint8_t)((de->version_madeby >> 8) & 0xff);
+        *opsys = (libzip_uint8_t)((de->version_madeby >> 8) & 0xff);
 
     if (attributes)
         *attributes = de->ext_attrib;

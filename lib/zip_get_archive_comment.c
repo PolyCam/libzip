@@ -1,5 +1,5 @@
 /*
-  zip_get_archive_comment.c -- get archive comment
+  libzip_get_archive_comment.c -- get archive comment
   Copyright (C) 2006-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -38,17 +38,17 @@
 
 
 ZIP_EXTERN const char *
-zip_get_archive_comment(zip_t *za, int *lenp, zip_flags_t flags) {
-    zip_string_t *comment;
-    zip_uint32_t len;
-    const zip_uint8_t *str;
+libzip_get_archive_comment(libzip_t *za, int *lenp, libzip_flags_t flags) {
+    libzip_string_t *comment;
+    libzip_uint32_t len;
+    const libzip_uint8_t *str;
 
     if ((flags & ZIP_FL_UNCHANGED) || (za->comment_changes == NULL))
         comment = za->comment_orig;
     else
         comment = za->comment_changes;
 
-    if ((str = _zip_string_get(comment, &len, flags, &za->error)) == NULL)
+    if ((str = _libzip_string_get(comment, &len, flags, &za->error)) == NULL)
         return NULL;
 
     if (lenp)

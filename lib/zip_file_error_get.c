@@ -1,5 +1,5 @@
 /*
-  zip_file_error_get.c -- get zip file error
+  libzip_file_error_get.c -- get zip file error
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,6 +36,6 @@
 
 
 ZIP_EXTERN void
-zip_file_error_get(zip_file_t *zf, int *zep, int *sep) {
-    _zip_error_get(&zf->error, zep, sep);
+libzip_file_error_get(libzip_file_t *zf, int *zep, int *sep) {
+    _libzip_error_get(&zf->error, zep, sep);
 }

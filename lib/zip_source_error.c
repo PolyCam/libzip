@@ -1,5 +1,5 @@
 /*
-  zip_source_error.c -- get last error from zip_source
+  libzip_source_error.c -- get last error from libzip_source
   Copyright (C) 2009-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -35,12 +35,12 @@
 #include "zipint.h"
 
 
-zip_error_t *
-zip_source_error(zip_source_t *src) {
+libzip_error_t *
+libzip_source_error(libzip_source_t *src) {
     return &src->error;
 }
 
 bool
-_zip_source_had_error(zip_source_t *src) {
-    return zip_source_error(src)->zip_err != ZIP_ER_OK;
+_libzip_source_had_error(libzip_source_t *src) {
+    return libzip_source_error(src)->libzip_err != ZIP_ER_OK;
 }

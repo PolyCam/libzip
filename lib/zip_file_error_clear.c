@@ -1,5 +1,5 @@
 /*
-  zip_file_error_clear.c -- clear zip file error
+  libzip_file_error_clear.c -- clear zip file error
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,9 +36,9 @@
 
 
 ZIP_EXTERN void
-zip_file_error_clear(zip_file_t *zf) {
+libzip_file_error_clear(libzip_file_t *zf) {
     if (zf == NULL)
         return;
 
-    _zip_error_clear(&zf->error);
+    _libzip_error_clear(&zf->error);
 }

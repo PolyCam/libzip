@@ -1,5 +1,5 @@
 /*
-  zip_add_entry.c -- create and init struct zip_entry
+  libzip_add_entry.c -- create and init struct libzip_entry
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,17 +37,17 @@
 #include "zipint.h"
 
 
-/* NOTE: Signed due to -1 on error.  See zip_add.c for more details. */
+/* NOTE: Signed due to -1 on error.  See libzip_add.c for more details. */
 
-zip_int64_t
-_zip_add_entry(zip_t *za) {
-    zip_uint64_t idx;
+libzip_int64_t
+_libzip_add_entry(libzip_t *za) {
+    libzip_uint64_t idx;
 
     if (za->nentry + 1 >= za->nentry_alloc) {
-        zip_entry_t *rentries;
-        zip_uint64_t nalloc = za->nentry_alloc;
-        zip_uint64_t additional_entries = 2 * nalloc;
-        zip_uint64_t realloc_size;
+        libzip_entry_t *rentries;
+        libzip_uint64_t nalloc = za->nentry_alloc;
+        libzip_uint64_t additional_entries = 2 * nalloc;
+        libzip_uint64_t realloc_size;
 
         if (additional_entries < 16) {
             additional_entries = 16;
@@ -55,17 +55,17 @@ _zip_add_entry(zip_t *za) {
         else if (additional_entries > 1024) {
             additional_entries = 1024;
         }
-        /* neither + nor * overflows can happen: nentry_alloc * sizeof(struct zip_entry) < UINT64_MAX */
+        /* neither + nor * overflows can happen: nentry_alloc * sizeof(struct libzip_entry) < UINT64_MAX */
         nalloc += additional_entries;
-        realloc_size = sizeof(struct zip_entry) * (size_t)nalloc;
+        realloc_size = sizeof(struct libzip_entry) * (size_t)nalloc;
 
-        if (sizeof(struct zip_entry) * (size_t)za->nentry_alloc > realloc_size) {
-            zip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+        if (sizeof(struct libzip_entry) * (size_t)za->nentry_alloc > realloc_size) {
+            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
             return -1;
         }
-        rentries = (zip_entry_t *)realloc(za->entry, sizeof(struct zip_entry) * (size_t)nalloc);
+        rentries = (libzip_entry_t *)realloc(za->entry, sizeof(struct libzip_entry) * (size_t)nalloc);
         if (!rentries) {
-            zip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
             return -1;
         }
         za->entry = rentries;
@@ -74,7 +74,7 @@ _zip_add_entry(zip_t *za) {
 
     idx = za->nentry++;
 
-    _zip_entry_init(za->entry + idx);
+    _libzip_entry_init(za->entry + idx);
 
-    return (zip_int64_t)idx;
+    return (libzip_int64_t)idx;
 }

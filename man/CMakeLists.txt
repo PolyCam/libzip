@@ -163,6 +163,6 @@ foreach(LINKS_LINE ${MANPAGE_LINKS})
 endforeach()
 
 add_custom_target(update_zip_errors
-  COMMAND sh ${PROJECT_SOURCE_DIR}/man/make_zip_errors.sh ${CMAKE_SOURCE_DIR}/lib/zip.h ${PROJECT_SOURCE_DIR}/man/zip_errors.mdoc
-  DEPENDS ${CMAKE_SOURCE_DIR}/lib/zip.h ${PROJECT_SOURCE_DIR}/man/zip_errors.mdoc
+  COMMAND sh ${PROJECT_SOURCE_DIR}/man/make_zip_errors.sh ${CMAKE_SOURCE_DIR}/lib/libzip.h ${PROJECT_SOURCE_DIR}/man/zip_errors.mdoc
+  DEPENDS ${CMAKE_SOURCE_DIR}/lib/libzip.h ${PROJECT_SOURCE_DIR}/man/zip_errors.mdoc
 )

@@ -1,5 +1,5 @@
 /*
-  zip_stat.c -- get information about file by name
+  libzip_stat.c -- get information about file by name
   Copyright (C) 1999-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -36,11 +36,11 @@
 
 
 ZIP_EXTERN int
-zip_stat(zip_t *za, const char *fname, zip_flags_t flags, zip_stat_t *st) {
-    zip_int64_t idx;
+libzip_stat(libzip_t *za, const char *fname, libzip_flags_t flags, libzip_stat_t *st) {
+    libzip_int64_t idx;
 
-    if ((idx = zip_name_locate(za, fname, flags)) < 0)
+    if ((idx = libzip_name_locate(za, fname, flags)) < 0)
         return -1;
 
-    return zip_stat_index(za, (zip_uint64_t)idx, flags, st);
+    return libzip_stat_index(za, (libzip_uint64_t)idx, flags, st);
 }

@@ -1,5 +1,5 @@
 /*
-  zip_random_win32.c -- fill the user's buffer with random stuff (Windows version)
+  libzip_random_win32.c -- fill the user's buffer with random stuff (Windows version)
   Copyright (C) 2016-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -44,7 +44,7 @@
 #include <wincrypt.h>
 
 ZIP_EXTERN bool
-zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
+libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     HCRYPTPROV hprov;
     if (!CryptAcquireContext(&hprov, NULL, NULL, PROV_RSA_AES, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
         return false;
@@ -62,13 +62,13 @@ zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
 #ifndef HAVE_RANDOM_UINT32
 #include <stdlib.h>
 
-zip_uint32_t
-zip_random_uint32(void) {
+libzip_uint32_t
+libzip_random_uint32(void) {
     static bool seeded = false;
 
-    zip_uint32_t value;
+    libzip_uint32_t value;
 
-    if (zip_secure_random((zip_uint8_t *)&value, sizeof(value))) {
+    if (libzip_secure_random((libzip_uint8_t *)&value, sizeof(value))) {
         return value;
     }
 
@@ -77,6 +77,6 @@ zip_random_uint32(void) {
         seeded = true;
     }
 
-    return (zip_uint32_t)rand();
+    return (libzip_uint32_t)rand();
 }
 #endif

@@ -1,5 +1,5 @@
 /*
-  zip_utf-8.c -- UTF-8 support functions for libzip
+  libzip_utf-8.c -- UTF-8 support functions for libzip
   Copyright (C) 2011-2021 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -37,7 +37,7 @@
 #include <stdlib.h>
 
 
-static const zip_uint16_t _cp437_to_unicode[256] = {
+static const libzip_uint16_t _cp437_to_unicode[256] = {
     /* 0x00 - 0x0F */
     0x0000, 0x263A, 0x263B, 0x2665, 0x2666, 0x2663, 0x2660, 0x2022, 0x25D8, 0x25CB, 0x25D9, 0x2642, 0x2640, 0x266A, 0x266B, 0x263C,
 
@@ -96,11 +96,11 @@ static const zip_uint16_t _cp437_to_unicode[256] = {
 #define UTF_8_CONTINUE_MATCH 0x80
 
 
-zip_encoding_type_t
-_zip_guess_encoding(zip_string_t *str, zip_encoding_type_t expected_encoding) {
-    zip_encoding_type_t enc;
-    const zip_uint8_t *name;
-    zip_uint32_t i, j, ulen;
+libzip_encoding_type_t
+_libzip_guess_encoding(libzip_string_t *str, libzip_encoding_type_t expected_encoding) {
+    libzip_encoding_type_t enc;
+    const libzip_uint8_t *name;
+    libzip_uint32_t i, j, ulen;
 
     if (str == NULL)
         return ZIP_ENCODING_ASCII;
@@ -157,8 +157,8 @@ done:
 }
 
 
-static zip_uint32_t
-_zip_unicode_to_utf8_len(zip_uint32_t codepoint) {
+static libzip_uint32_t
+_libzip_unicode_to_utf8_len(libzip_uint32_t codepoint) {
     if (codepoint < 0x0080)
         return 1;
     if (codepoint < 0x0800)
@@ -169,36 +169,36 @@ _zip_unicode_to_utf8_len(zip_uint32_t codepoint) {
 }
 
 
-static zip_uint32_t
-_zip_unicode_to_utf8(zip_uint32_t codepoint, zip_uint8_t *buf) {
+static libzip_uint32_t
+_libzip_unicode_to_utf8(libzip_uint32_t codepoint, libzip_uint8_t *buf) {
     if (codepoint < 0x0080) {
         buf[0] = codepoint & 0xff;
         return 1;
     }
     if (codepoint < 0x0800) {
-        buf[0] = (zip_uint8_t)(UTF_8_LEN_2_MATCH | ((codepoint >> 6) & 0x1f));
-        buf[1] = (zip_uint8_t)(UTF_8_CONTINUE_MATCH | (codepoint & 0x3f));
+        buf[0] = (libzip_uint8_t)(UTF_8_LEN_2_MATCH | ((codepoint >> 6) & 0x1f));
+        buf[1] = (libzip_uint8_t)(UTF_8_CONTINUE_MATCH | (codepoint & 0x3f));
         return 2;
     }
     if (codepoint < 0x10000) {
-        buf[0] = (zip_uint8_t)(UTF_8_LEN_3_MATCH | ((codepoint >> 12) & 0x0f));
-        buf[1] = (zip_uint8_t)(UTF_8_CONTINUE_MATCH | ((codepoint >> 6) & 0x3f));
-        buf[2] = (zip_uint8_t)(UTF_8_CONTINUE_MATCH | (codepoint & 0x3f));
+        buf[0] = (libzip_uint8_t)(UTF_8_LEN_3_MATCH | ((codepoint >> 12) & 0x0f));
+        buf[1] = (libzip_uint8_t)(UTF_8_CONTINUE_MATCH | ((codepoint >> 6) & 0x3f));
+        buf[2] = (libzip_uint8_t)(UTF_8_CONTINUE_MATCH | (codepoint & 0x3f));
         return 3;
     }
-    buf[0] = (zip_uint8_t)(UTF_8_LEN_4_MATCH | ((codepoint >> 18) & 0x07));
-    buf[1] = (zip_uint8_t)(UTF_8_CONTINUE_MATCH | ((codepoint >> 12) & 0x3f));
-    buf[2] = (zip_uint8_t)(UTF_8_CONTINUE_MATCH | ((codepoint >> 6) & 0x3f));
-    buf[3] = (zip_uint8_t)(UTF_8_CONTINUE_MATCH | (codepoint & 0x3f));
+    buf[0] = (libzip_uint8_t)(UTF_8_LEN_4_MATCH | ((codepoint >> 18) & 0x07));
+    buf[1] = (libzip_uint8_t)(UTF_8_CONTINUE_MATCH | ((codepoint >> 12) & 0x3f));
+    buf[2] = (libzip_uint8_t)(UTF_8_CONTINUE_MATCH | ((codepoint >> 6) & 0x3f));
+    buf[3] = (libzip_uint8_t)(UTF_8_CONTINUE_MATCH | (codepoint & 0x3f));
     return 4;
 }
 
 
-zip_uint8_t *
-_zip_cp437_to_utf8(const zip_uint8_t *const _cp437buf, zip_uint32_t len, zip_uint32_t *utf8_lenp, zip_error_t *error) {
-    zip_uint8_t *cp437buf = (zip_uint8_t *)_cp437buf;
-    zip_uint8_t *utf8buf;
-    zip_uint32_t buflen, i, offset;
+libzip_uint8_t *
+_libzip_cp437_to_utf8(const libzip_uint8_t *const _cp437buf, libzip_uint32_t len, libzip_uint32_t *utf8_lenp, libzip_error_t *error) {
+    libzip_uint8_t *cp437buf = (libzip_uint8_t *)_cp437buf;
+    libzip_uint8_t *utf8buf;
+    libzip_uint32_t buflen, i, offset;
 
     if (len == 0) {
         if (utf8_lenp)
@@ -208,16 +208,16 @@ _zip_cp437_to_utf8(const zip_uint8_t *const _cp437buf, zip_uint32_t len, zip_uin
 
     buflen = 1;
     for (i = 0; i < len; i++)
-        buflen += _zip_unicode_to_utf8_len(_cp437_to_unicode[cp437buf[i]]);
+        buflen += _libzip_unicode_to_utf8_len(_cp437_to_unicode[cp437buf[i]]);
 
-    if ((utf8buf = (zip_uint8_t *)malloc(buflen)) == NULL) {
-        zip_error_set(error, ZIP_ER_MEMORY, 0);
+    if ((utf8buf = (libzip_uint8_t *)malloc(buflen)) == NULL) {
+        libzip_error_set(error, ZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     offset = 0;
     for (i = 0; i < len; i++)
-        offset += _zip_unicode_to_utf8(_cp437_to_unicode[cp437buf[i]], utf8buf + offset);
+        offset += _libzip_unicode_to_utf8(_cp437_to_unicode[cp437buf[i]], utf8buf + offset);
 
     utf8buf[buflen - 1] = 0;
     if (utf8_lenp)

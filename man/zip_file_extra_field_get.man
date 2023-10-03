@@ -40,7 +40,7 @@
 .SH "LIBRARY"
 libzip (-lzip)
 .SH "SYNOPSIS"
-\fB#include <zip.h>\fR
+\fB#include <libzip.h>\fR
 .sp
 \fIconst zip_uint8_t *\fR
 .br

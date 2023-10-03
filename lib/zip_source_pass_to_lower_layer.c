@@ -1,5 +1,5 @@
 /*
-  zip_source_pass_to_lower_layer.c -- pass command to lower layer
+  libzip_source_pass_to_lower_layer.c -- pass command to lower layer
   Copyright (C) 2022 Dieter Baron and Thomas Klausner
 
   This file is part of libzip, a library to manipulate ZIP archives.
@@ -33,7 +33,7 @@
 
 #include "zipint.h"
 
-zip_int64_t zip_source_pass_to_lower_layer(zip_source_t *src, void *data, zip_uint64_t length, zip_source_cmd_t command) {
+libzip_int64_t libzip_source_pass_to_lower_layer(libzip_source_t *src, void *data, libzip_uint64_t length, libzip_source_cmd_t command) {
     switch (command) {
     case ZIP_SOURCE_OPEN:
     case ZIP_SOURCE_CLOSE:
@@ -43,14 +43,14 @@ zip_int64_t zip_source_pass_to_lower_layer(zip_source_t *src, void *data, zip_ui
         return 0;
 
     case ZIP_SOURCE_STAT:
-        return sizeof(zip_stat_t);
+        return sizeof(libzip_stat_t);
 
     case ZIP_SOURCE_ACCEPT_EMPTY:
     case ZIP_SOURCE_ERROR:
     case ZIP_SOURCE_READ:
     case ZIP_SOURCE_SEEK:
     case ZIP_SOURCE_TELL:
-        return _zip_source_call(src, data, length, command);
+        return _libzip_source_call(src, data, length, command);
 
 
     case ZIP_SOURCE_BEGIN_WRITE:
@@ -61,18 +61,18 @@ zip_int64_t zip_source_pass_to_lower_layer(zip_source_t *src, void *data, zip_ui
     case ZIP_SOURCE_SEEK_WRITE:
     case ZIP_SOURCE_TELL_WRITE:
     case ZIP_SOURCE_WRITE:
-        zip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
         return -1;
 
     case ZIP_SOURCE_SUPPORTS:
-        if (length < sizeof(zip_int64_t)) {
-            zip_error_set(&src->error, ZIP_ER_INTERNAL, 0);
+        if (length < sizeof(libzip_int64_t)) {
+            libzip_error_set(&src->error, ZIP_ER_INTERNAL, 0);
             return -1;
         }
-        return *(zip_int64_t *)data;
+        return *(libzip_int64_t *)data;
 
     default:
-        zip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 }
