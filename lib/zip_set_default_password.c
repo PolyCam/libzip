@@ -38,7 +38,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_set_default_password(libzip_t *za, const char *passwd) {
     if (za == NULL)
         return -1;
@@ -47,7 +47,7 @@ libzip_set_default_password(libzip_t *za, const char *passwd) {
 
     if (passwd && passwd[0] != '\0') {
         if ((za->default_password = strdup(passwd)) == NULL) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             return -1;
         }
     }

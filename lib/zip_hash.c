@@ -102,7 +102,7 @@ hash_resize(libzip_hash_t *hash, libzip_uint32_t new_size, libzip_error_t *error
     }
 
     if ((new_table = (libzip_hash_entry_t **)calloc(new_size, sizeof(libzip_hash_entry_t *))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return false;
     }
 
@@ -137,8 +137,8 @@ size_for_capacity(libzip_uint64_t capacity) {
     double needed_size = capacity / HASH_MAX_FILL;
     libzip_uint32_t v;
 
-    if (needed_size > ZIP_UINT32_MAX) {
-        v = ZIP_UINT32_MAX;
+    if (needed_size > LIBZIP_UINT32_MAX) {
+        v = LIBZIP_UINT32_MAX;
     }
     else {
         v = (libzip_uint32_t)needed_size;
@@ -168,7 +168,7 @@ _libzip_hash_new(libzip_error_t *error) {
     libzip_hash_t *hash;
 
     if ((hash = (libzip_hash_t *)malloc(sizeof(libzip_hash_t))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -206,8 +206,8 @@ _libzip_hash_add(libzip_hash_t *hash, const libzip_uint8_t *name, libzip_uint64_
     libzip_uint32_t hash_value, table_index;
     libzip_hash_entry_t *entry;
 
-    if (hash == NULL || name == NULL || index > ZIP_INT64_MAX) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+    if (hash == NULL || name == NULL || index > LIBZIP_INT64_MAX) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return false;
     }
 
@@ -222,8 +222,8 @@ _libzip_hash_add(libzip_hash_t *hash, const libzip_uint8_t *name, libzip_uint64_
 
     for (entry = hash->table[table_index]; entry != NULL; entry = entry->next) {
         if (entry->hash_value == hash_value && strcmp((const char *)name, (const char *)entry->name) == 0) {
-            if (((flags & ZIP_FL_UNCHANGED) && entry->orig_index != -1) || entry->current_index != -1) {
-                libzip_error_set(error, ZIP_ER_EXISTS, 0);
+            if (((flags & LIBZIP_FL_UNCHANGED) && entry->orig_index != -1) || entry->current_index != -1) {
+                libzip_error_set(error, LIBZIP_ER_EXISTS, 0);
                 return false;
             }
             else {
@@ -234,7 +234,7 @@ _libzip_hash_add(libzip_hash_t *hash, const libzip_uint8_t *name, libzip_uint64_
 
     if (entry == NULL) {
         if ((entry = (libzip_hash_entry_t *)malloc(sizeof(libzip_hash_entry_t))) == NULL) {
-            libzip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
             return false;
         }
         entry->name = name;
@@ -250,7 +250,7 @@ _libzip_hash_add(libzip_hash_t *hash, const libzip_uint8_t *name, libzip_uint64_
         }
     }
 
-    if (flags & ZIP_FL_UNCHANGED) {
+    if (flags & LIBZIP_FL_UNCHANGED) {
         entry->orig_index = (libzip_int64_t)index;
     }
     entry->current_index = (libzip_int64_t)index;
@@ -266,7 +266,7 @@ _libzip_hash_delete(libzip_hash_t *hash, const libzip_uint8_t *name, libzip_erro
     libzip_hash_entry_t *entry, *previous;
 
     if (hash == NULL || name == NULL) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return false;
     }
 
@@ -302,7 +302,7 @@ _libzip_hash_delete(libzip_hash_t *hash, const libzip_uint8_t *name, libzip_erro
         }
     }
 
-    libzip_error_set(error, ZIP_ER_NOENT, 0);
+    libzip_error_set(error, LIBZIP_ER_NOENT, 0);
     return false;
 }
 
@@ -314,7 +314,7 @@ _libzip_hash_lookup(libzip_hash_t *hash, const libzip_uint8_t *name, libzip_flag
     libzip_hash_entry_t *entry;
 
     if (hash == NULL || name == NULL) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
@@ -323,7 +323,7 @@ _libzip_hash_lookup(libzip_hash_t *hash, const libzip_uint8_t *name, libzip_flag
         index = hash_value % hash->table_size;
         for (entry = hash->table[index]; entry != NULL; entry = entry->next) {
             if (strcmp((const char *)name, (const char *)entry->name) == 0) {
-                if (flags & ZIP_FL_UNCHANGED) {
+                if (flags & LIBZIP_FL_UNCHANGED) {
                     if (entry->orig_index != -1) {
                         return entry->orig_index;
                     }
@@ -338,7 +338,7 @@ _libzip_hash_lookup(libzip_hash_t *hash, const libzip_uint8_t *name, libzip_flag
         }
     }
 
-    libzip_error_set(error, ZIP_ER_NOENT, 0);
+    libzip_error_set(error, LIBZIP_ER_NOENT, 0);
     return -1;
 }
 

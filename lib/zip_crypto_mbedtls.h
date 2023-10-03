@@ -31,8 +31,8 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef HAD_ZIP_CRYPTO_MBEDTLS_H
-#define HAD_ZIP_CRYPTO_MBEDTLS_H
+#ifndef HAD_LIBZIP_CRYPTO_MBEDTLS_H
+#define HAD_LIBZIP_CRYPTO_MBEDTLS_H
 
 #define HAVE_SECURE_RANDOM
 
@@ -53,4 +53,4 @@ void _libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac);
 
 bool _libzip_crypto_pbkdf2(const libzip_uint8_t *key, libzip_uint64_t key_length, const libzip_uint8_t *salt, libzip_uint16_t salt_length, int iterations, libzip_uint8_t *output, libzip_uint64_t output_length);
 
-#endif /*  HAD_ZIP_CRYPTO_MBEDTLS_H */
+#endif /*  HAD_LIBZIP_CRYPTO_MBEDTLS_H */

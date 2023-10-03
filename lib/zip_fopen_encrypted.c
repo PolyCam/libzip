@@ -35,7 +35,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN libzip_file_t *
+LIBZIP_EXTERN libzip_file_t *
 libzip_fopen_encrypted(libzip_t *za, const char *fname, libzip_flags_t flags, const char *password) {
     libzip_int64_t idx;
 

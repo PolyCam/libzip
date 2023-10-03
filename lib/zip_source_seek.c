@@ -35,22 +35,22 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_source_seek(libzip_source_t *src, libzip_int64_t offset, int whence) {
     libzip_source_args_seek_t args;
 
     if (src->source_closed) {
         return -1;
     }
-    if (!ZIP_SOURCE_IS_OPEN_READING(src) || (whence != SEEK_SET && whence != SEEK_CUR && whence != SEEK_END)) {
-        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
+    if (!LIBZIP_SOURCE_IS_OPEN_READING(src) || (whence != SEEK_SET && whence != SEEK_CUR && whence != SEEK_END)) {
+        libzip_error_set(&src->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     args.offset = offset;
     args.whence = whence;
 
-    if (_libzip_source_call(src, &args, sizeof(args), ZIP_SOURCE_SEEK) < 0) {
+    if (_libzip_source_call(src, &args, sizeof(args), LIBZIP_SOURCE_SEEK) < 0) {
         return -1;
     }
 
@@ -62,7 +62,7 @@ libzip_source_seek(libzip_source_t *src, libzip_int64_t offset, int whence) {
 libzip_int64_t
 libzip_source_seek_compute_offset(libzip_uint64_t offset, libzip_uint64_t length, void *data, libzip_uint64_t data_length, libzip_error_t *error) {
     libzip_int64_t new_offset;
-    libzip_source_args_seek_t *args = ZIP_SOURCE_GET_ARGS(libzip_source_args_seek_t, data, data_length, error);
+    libzip_source_args_seek_t *args = LIBZIP_SOURCE_GET_ARGS(libzip_source_args_seek_t, data, data_length, error);
 
     if (args == NULL) {
         return -1;
@@ -82,12 +82,12 @@ libzip_source_seek_compute_offset(libzip_uint64_t offset, libzip_uint64_t length
         break;
 
     default:
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     if (new_offset < 0 || (libzip_uint64_t)new_offset > length) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 

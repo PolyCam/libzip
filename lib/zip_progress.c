@@ -35,7 +35,7 @@
 #include <stdlib.h>
 
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 struct libzip_progress {
@@ -88,7 +88,7 @@ _libzip_progress_new(libzip_t *za) {
     libzip_progress_t *progress = (libzip_progress_t *)malloc(sizeof(*progress));
 
     if (progress == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -189,7 +189,7 @@ _libzip_progress_update(libzip_progress_t *progress, double sub_current) {
     }
 
     if (progress->callback_progress != NULL) {
-        current = ZIP_MIN(ZIP_MAX(sub_current, 0.0), 1.0) * (progress->end - progress->start) + progress->start;
+        current = LIBZIP_MIN(LIBZIP_MAX(sub_current, 0.0), 1.0) * (progress->end - progress->start) + progress->start;
 
         if (current - progress->last_update > progress->precision) {
             progress->callback_progress(progress->za, current, progress->ud_progress);
@@ -207,7 +207,7 @@ _libzip_progress_update(libzip_progress_t *progress, double sub_current) {
 }
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_register_progress_callback_with_state(libzip_t *za, double precision, libzip_progress_callback callback, void (*ud_free)(void *), void *ud) {
     if (callback != NULL) {
         if (za->progress == NULL) {
@@ -234,7 +234,7 @@ libzip_register_progress_callback_with_state(libzip_t *za, double precision, lib
 }
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_register_cancel_callback_with_state(libzip_t *za, libzip_cancel_callback callback, void (*ud_free)(void *), void *ud) {
     if (callback != NULL) {
         if (za->progress == NULL) {
@@ -273,7 +273,7 @@ _libzip_legacy_progress_callback(libzip_t *za, double progress, void *vud) {
     ud->callback(progress);
 }
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_register_progress_callback(libzip_t *za, libzip_progress_callback_t progress_callback) {
     struct legacy_ud *ud;
 

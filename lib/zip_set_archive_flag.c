@@ -35,16 +35,16 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_set_archive_flag(libzip_t *za, libzip_flags_t flag, int value) {
     unsigned int new_flags;
 
-    if (flag == ZIP_AFL_IS_TORRENTZIP) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if (flag == LIBZIP_AFL_IS_TORRENTZIP) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    /* TODO: when setting ZIP_AFL_WANT_TORRENTZIP, we should error out if any changes have been made that are not allowed for torrentzip. */
+    /* TODO: when setting LIBZIP_AFL_WANT_TORRENTZIP, we should error out if any changes have been made that are not allowed for torrentzip. */
 
     if (value) {
         new_flags = za->ch_flags | flag;
@@ -57,15 +57,15 @@ libzip_set_archive_flag(libzip_t *za, libzip_flags_t flag, int value) {
         return 0;
     }
 
-    /* Allow removing ZIP_AFL_RDONLY if manually set, not if archive was opened read-only. */
-    if (za->flags & ZIP_AFL_RDONLY) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    /* Allow removing LIBZIP_AFL_RDONLY if manually set, not if archive was opened read-only. */
+    if (za->flags & LIBZIP_AFL_RDONLY) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
 
-    if ((flag & ZIP_AFL_RDONLY) && value && (za->ch_flags & ZIP_AFL_RDONLY) == 0) {
+    if ((flag & LIBZIP_AFL_RDONLY) && value && (za->ch_flags & LIBZIP_AFL_RDONLY) == 0) {
         if (_libzip_changed(za, NULL)) {
-            libzip_error_set(&za->error, ZIP_ER_CHANGED, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_CHANGED, 0);
             return -1;
         }
     }

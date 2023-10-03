@@ -31,8 +31,8 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef HAD_ZIP_CRYPTO_OPENSSL_H
-#define HAD_ZIP_CRYPTO_OPENSSL_H
+#ifndef HAD_LIBZIP_CRYPTO_OPENSSL_H
+#define HAD_LIBZIP_CRYPTO_OPENSSL_H
 
 #define HAVE_SECURE_RANDOM
 
@@ -70,4 +70,4 @@ bool _libzip_crypto_hmac_output(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *dat
 
 #define _libzip_crypto_pbkdf2(key, key_length, salt, salt_length, iterations, output, output_length) (PKCS5_PBKDF2_HMAC_SHA1((const char *)(key), (key_length), (salt), (salt_length), (iterations), (output_length), (output)))
 
-#endif /*  HAD_ZIP_CRYPTO_OPENSSL_H */
+#endif /*  HAD_LIBZIP_CRYPTO_OPENSSL_H */

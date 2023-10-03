@@ -33,7 +33,7 @@
 
 #include "zipint.h"
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_file_attributes_init(libzip_file_attributes_t *attributes) {
     attributes->valid = 0;
     attributes->version = 1;
@@ -45,19 +45,19 @@ libzip_source_get_file_attributes(libzip_source_t *src, libzip_file_attributes_t
         return -1;
     }
     if (attributes == NULL) {
-        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&src->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     libzip_file_attributes_init(attributes);
 
-    if (src->supports & ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_GET_FILE_ATTRIBUTES)) {
-        if (_libzip_source_call(src, attributes, sizeof(*attributes), ZIP_SOURCE_GET_FILE_ATTRIBUTES) < 0) {
+    if (src->supports & LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_GET_FILE_ATTRIBUTES)) {
+        if (_libzip_source_call(src, attributes, sizeof(*attributes), LIBZIP_SOURCE_GET_FILE_ATTRIBUTES) < 0) {
             return -1;
         }
     }
 
-    if (ZIP_SOURCE_IS_LAYERED(src)) {
+    if (LIBZIP_SOURCE_IS_LAYERED(src)) {
         libzip_file_attributes_t lower_attributes;
 
         libzip_file_attributes_init(&lower_attributes);
@@ -67,29 +67,29 @@ libzip_source_get_file_attributes(libzip_source_t *src, libzip_file_attributes_t
             return -1;
         }
 
-        if ((lower_attributes.valid & ZIP_FILE_ATTRIBUTES_HOST_SYSTEM) && (attributes->valid & ZIP_FILE_ATTRIBUTES_HOST_SYSTEM) == 0) {
+        if ((lower_attributes.valid & LIBZIP_FILE_ATTRIBUTES_HOST_SYSTEM) && (attributes->valid & LIBZIP_FILE_ATTRIBUTES_HOST_SYSTEM) == 0) {
             attributes->host_system = lower_attributes.host_system;
-            attributes->valid |= ZIP_FILE_ATTRIBUTES_HOST_SYSTEM;
+            attributes->valid |= LIBZIP_FILE_ATTRIBUTES_HOST_SYSTEM;
         }
-        if ((lower_attributes.valid & ZIP_FILE_ATTRIBUTES_ASCII) && (attributes->valid & ZIP_FILE_ATTRIBUTES_ASCII) == 0) {
+        if ((lower_attributes.valid & LIBZIP_FILE_ATTRIBUTES_ASCII) && (attributes->valid & LIBZIP_FILE_ATTRIBUTES_ASCII) == 0) {
             attributes->ascii = lower_attributes.ascii;
-            attributes->valid |= ZIP_FILE_ATTRIBUTES_ASCII;
+            attributes->valid |= LIBZIP_FILE_ATTRIBUTES_ASCII;
         }
-        if ((lower_attributes.valid & ZIP_FILE_ATTRIBUTES_VERSION_NEEDED)) {
-            if (attributes->valid & ZIP_FILE_ATTRIBUTES_VERSION_NEEDED) {
-                attributes->version_needed = ZIP_MAX(lower_attributes.version_needed, attributes->version_needed);
+        if ((lower_attributes.valid & LIBZIP_FILE_ATTRIBUTES_VERSION_NEEDED)) {
+            if (attributes->valid & LIBZIP_FILE_ATTRIBUTES_VERSION_NEEDED) {
+                attributes->version_needed = LIBZIP_MAX(lower_attributes.version_needed, attributes->version_needed);
             }
             else {
                 attributes->version_needed = lower_attributes.version_needed;
-                attributes->valid |= ZIP_FILE_ATTRIBUTES_VERSION_NEEDED;
+                attributes->valid |= LIBZIP_FILE_ATTRIBUTES_VERSION_NEEDED;
             }
         }
-        if ((lower_attributes.valid & ZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES) && (attributes->valid & ZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES) == 0) {
+        if ((lower_attributes.valid & LIBZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES) && (attributes->valid & LIBZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES) == 0) {
             attributes->external_file_attributes = lower_attributes.external_file_attributes;
-            attributes->valid |= ZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES;
+            attributes->valid |= LIBZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES;
         }
-        if ((lower_attributes.valid & ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS)) {
-            if (attributes->valid & ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS) {
+        if ((lower_attributes.valid & LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS)) {
+            if (attributes->valid & LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS) {
 		/* only take from lower level what is not defined at current level */
 		lower_attributes.general_purpose_bit_mask &= ~attributes->general_purpose_bit_mask;
 
@@ -97,7 +97,7 @@ libzip_source_get_file_attributes(libzip_source_t *src, libzip_file_attributes_t
                 attributes->general_purpose_bit_mask |= lower_attributes.general_purpose_bit_mask;
             }
             else {
-                attributes->valid |= ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS;
+                attributes->valid |= LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS;
                 attributes->general_purpose_bit_flags = lower_attributes.general_purpose_bit_flags;
                 attributes->general_purpose_bit_mask = lower_attributes.general_purpose_bit_mask;
             }

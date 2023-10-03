@@ -31,8 +31,8 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef HAD_ZIP_CRYPTO_COMMONCRYPTO_H
-#define HAD_ZIP_CRYPTO_COMMONCRYPTO_H
+#ifndef HAD_LIBZIP_CRYPTO_COMMONCRYPTO_H
+#define HAD_LIBZIP_CRYPTO_COMMONCRYPTO_H
 
 #include <CommonCrypto/CommonCrypto.h>
 
@@ -50,4 +50,4 @@ _libzip_crypto_hmac_t *_libzip_crypto_hmac_new(const libzip_uint8_t *secret, lib
 
 #define _libzip_crypto_pbkdf2(key, key_length, salt, salt_length, iterations, output, output_length) (CCKeyDerivationPBKDF(kCCPBKDF2, (const char *)(key), (key_length), (salt), (salt_length), kCCPRFHmacAlgSHA1, (iterations), (output), (output_length)) == kCCSuccess)
 
-#endif /* HAD_ZIP_CRYPTO_COMMONCRYPTO_H */
+#endif /* HAD_LIBZIP_CRYPTO_COMMONCRYPTO_H */

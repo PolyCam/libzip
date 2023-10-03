@@ -1,5 +1,5 @@
-#ifndef _HAD_ZIP_SOURCE_FILE_WIN32_H
-#define _HAD_ZIP_SOURCE_FILE_WIN32_H
+#ifndef _HAD_LIBZIP_SOURCE_FILE_WIN32_H
+#define _HAD_LIBZIP_SOURCE_FILE_WIN32_H
 
 /*
   libzip_source_file_win32.h -- common header for Windows file implementation
@@ -81,4 +81,4 @@ int _libzip_win32_error_to_errno(DWORD win32err);
 #define DONT_WARN_INCOMPATIBLE_FN_PTR_END
 #endif
 
-#endif /* _HAD_ZIP_SOURCE_FILE_WIN32_H */
+#endif /* _HAD_LIBZIP_SOURCE_FILE_WIN32_H */

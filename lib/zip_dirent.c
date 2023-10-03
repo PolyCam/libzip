@@ -66,7 +66,7 @@ _libzip_cdir_new(libzip_uint64_t nentry, libzip_error_t *error) {
     libzip_cdir_t *cd;
 
     if ((cd = (libzip_cdir_t *)malloc(sizeof(*cd))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -97,12 +97,12 @@ _libzip_cdir_grow(libzip_cdir_t *cd, libzip_uint64_t additional_entries, libzip_
     new_alloc = cd->nentry_alloc + additional_entries;
 
     if (new_alloc < additional_entries || new_alloc > SIZE_MAX / sizeof(*(cd->entry))) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return false;
     }
 
     if ((new_entry = (libzip_entry_t *)realloc(cd->entry, sizeof(*(cd->entry)) * (size_t)new_alloc)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return false;
     }
 
@@ -138,7 +138,7 @@ _libzip_cdir_write(libzip_t *za, const libzip_filelist_t *filelist, libzip_uint6
 
     is_zip64 = false;
 
-    if (ZIP_WANT_TORRENTZIP(za)) {
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
         cdir_crc = (libzip_uint32_t)crc32(0, NULL, 0);
         za->write_crc = &cdir_crc;
     }
@@ -146,7 +146,7 @@ _libzip_cdir_write(libzip_t *za, const libzip_filelist_t *filelist, libzip_uint6
     for (i = 0; i < survivors; i++) {
         libzip_entry_t *entry = za->entry + filelist[i].idx;
 
-        if ((ret = _libzip_dirent_write(za, entry->changes ? entry->changes : entry->orig, ZIP_FL_CENTRAL)) < 0)
+        if ((ret = _libzip_dirent_write(za, entry->changes ? entry->changes : entry->orig, LIBZIP_FL_CENTRAL)) < 0)
             return -1;
         if (ret)
             is_zip64 = true;
@@ -160,12 +160,12 @@ _libzip_cdir_write(libzip_t *za, const libzip_filelist_t *filelist, libzip_uint6
     }
     size = (libzip_uint64_t)off - offset;
 
-    if (offset > ZIP_UINT32_MAX || survivors > ZIP_UINT16_MAX) {
+    if (offset > LIBZIP_UINT32_MAX || survivors > LIBZIP_UINT16_MAX) {
         is_zip64 = true;
     }
 
     if ((buffer = _libzip_buffer_new(buf, sizeof(buf))) == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
         return -1;
     }
 
@@ -188,15 +188,15 @@ _libzip_cdir_write(libzip_t *za, const libzip_filelist_t *filelist, libzip_uint6
 
     _libzip_buffer_put(buffer, EOCD_MAGIC, 4);
     _libzip_buffer_put_32(buffer, 0);
-    _libzip_buffer_put_16(buffer, (libzip_uint16_t)(survivors >= ZIP_UINT16_MAX ? ZIP_UINT16_MAX : survivors));
-    _libzip_buffer_put_16(buffer, (libzip_uint16_t)(survivors >= ZIP_UINT16_MAX ? ZIP_UINT16_MAX : survivors));
-    _libzip_buffer_put_32(buffer, size >= ZIP_UINT32_MAX ? ZIP_UINT32_MAX : (libzip_uint32_t)size);
-    _libzip_buffer_put_32(buffer, offset >= ZIP_UINT32_MAX ? ZIP_UINT32_MAX : (libzip_uint32_t)offset);
+    _libzip_buffer_put_16(buffer, (libzip_uint16_t)(survivors >= LIBZIP_UINT16_MAX ? LIBZIP_UINT16_MAX : survivors));
+    _libzip_buffer_put_16(buffer, (libzip_uint16_t)(survivors >= LIBZIP_UINT16_MAX ? LIBZIP_UINT16_MAX : survivors));
+    _libzip_buffer_put_32(buffer, size >= LIBZIP_UINT32_MAX ? LIBZIP_UINT32_MAX : (libzip_uint32_t)size);
+    _libzip_buffer_put_32(buffer, offset >= LIBZIP_UINT32_MAX ? LIBZIP_UINT32_MAX : (libzip_uint32_t)offset);
 
     comment = za->comment_changed ? za->comment_changes : za->comment_orig;
 
-    if (ZIP_WANT_TORRENTZIP(za)) {
-        _libzip_buffer_put_16(buffer, TORRENTZIP_SIGNATURE_LENGTH + TORRENTZIP_CRC_LENGTH);
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
+        _libzip_buffer_put_16(buffer, TORRENTLIBZIP_SIGNATURE_LENGTH + TORRENTLIBZIP_CRC_LENGTH);
     }
     else {
         _libzip_buffer_put_16(buffer, (libzip_uint16_t)(comment ? comment->length : 0));
@@ -204,7 +204,7 @@ _libzip_cdir_write(libzip_t *za, const libzip_filelist_t *filelist, libzip_uint6
 
 
     if (!_libzip_buffer_ok(buffer)) {
-        libzip_error_set(&za->error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INTERNAL, 0);
         _libzip_buffer_free(buffer);
         return -1;
     }
@@ -216,9 +216,9 @@ _libzip_cdir_write(libzip_t *za, const libzip_filelist_t *filelist, libzip_uint6
 
     _libzip_buffer_free(buffer);
 
-    if (ZIP_WANT_TORRENTZIP(za)) {
-        char torrentlibzip_comment[TORRENTZIP_SIGNATURE_LENGTH + TORRENTZIP_CRC_LENGTH + 1];
-        snprintf(torrentlibzip_comment, sizeof(torrentlibzip_comment), TORRENTZIP_SIGNATURE "%08X", cdir_crc);
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
+        char torrentlibzip_comment[TORRENTLIBZIP_SIGNATURE_LENGTH + TORRENTLIBZIP_CRC_LENGTH + 1];
+        snprintf(torrentlibzip_comment, sizeof(torrentlibzip_comment), TORRENTLIBZIP_SIGNATURE "%08X", cdir_crc);
 
         if (_libzip_write(za, torrentlibzip_comment, strlen(torrentlibzip_comment)) < 0) {
             return -1;
@@ -255,19 +255,19 @@ _libzip_dirent_clone(const libzip_dirent_t *sde) {
 
 void
 _libzip_dirent_finalize(libzip_dirent_t *zde) {
-    if (!zde->cloned || zde->changed & ZIP_DIRENT_FILENAME) {
+    if (!zde->cloned || zde->changed & LIBZIP_DIRENT_FILENAME) {
         _libzip_string_free(zde->filename);
         zde->filename = NULL;
     }
-    if (!zde->cloned || zde->changed & ZIP_DIRENT_EXTRA_FIELD) {
+    if (!zde->cloned || zde->changed & LIBZIP_DIRENT_EXTRA_FIELD) {
         _libzip_ef_free(zde->extra_fields);
         zde->extra_fields = NULL;
     }
-    if (!zde->cloned || zde->changed & ZIP_DIRENT_COMMENT) {
+    if (!zde->cloned || zde->changed & LIBZIP_DIRENT_COMMENT) {
         _libzip_string_free(zde->comment);
         zde->comment = NULL;
     }
-    if (!zde->cloned || zde->changed & ZIP_DIRENT_PASSWORD) {
+    if (!zde->cloned || zde->changed & LIBZIP_DIRENT_PASSWORD) {
         if (zde->password) {
             _libzip_crypto_clear(zde->password, strlen(zde->password));
         }
@@ -294,10 +294,10 @@ _libzip_dirent_init(libzip_dirent_t *de) {
     de->cloned = 0;
 
     de->crc_valid = true;
-    de->version_madeby = 63 | (ZIP_OPSYS_DEFAULT << 8);
+    de->version_madeby = 63 | (LIBZIP_OPSYS_DEFAULT << 8);
     de->version_needed = 10; /* 1.0 */
     de->bitflags = 0;
-    de->comp_method = ZIP_CM_DEFAULT;
+    de->comp_method = LIBZIP_CM_DEFAULT;
     de->last_mod = 0;
     de->crc = 0;
     de->comp_size = 0;
@@ -307,17 +307,17 @@ _libzip_dirent_init(libzip_dirent_t *de) {
     de->comment = NULL;
     de->disk_number = 0;
     de->int_attrib = 0;
-    de->ext_attrib = ZIP_EXT_ATTRIB_DEFAULT;
+    de->ext_attrib = LIBZIP_EXT_ATTRIB_DEFAULT;
     de->offset = 0;
     de->compression_level = 0;
-    de->encryption_method = ZIP_EM_NONE;
+    de->encryption_method = LIBZIP_EM_NONE;
     de->password = NULL;
 }
 
 
 bool
 _libzip_dirent_needs_zip64(const libzip_dirent_t *de, libzip_flags_t flags) {
-    if (de->uncomp_size >= ZIP_UINT32_MAX || de->comp_size >= ZIP_UINT32_MAX || ((flags & ZIP_FL_CENTRAL) && de->offset >= ZIP_UINT32_MAX))
+    if (de->uncomp_size >= LIBZIP_UINT32_MAX || de->comp_size >= LIBZIP_UINT32_MAX || ((flags & LIBZIP_FL_CENTRAL) && de->offset >= LIBZIP_UINT32_MAX))
         return true;
 
     return false;
@@ -359,7 +359,7 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
 
     if (buffer) {
         if (_libzip_buffer_left(buffer) < size) {
-            libzip_error_set(error, ZIP_ER_NOZIP, 0);
+            libzip_error_set(error, LIBZIP_ER_NOZIP, 0);
             return -1;
         }
     }
@@ -370,7 +370,7 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
     }
 
     if (memcmp(_libzip_buffer_get(buffer, 4), (local ? LOCAL_MAGIC : CENTRAL_MAGIC), 4) != 0) {
-        libzip_error_set(error, ZIP_ER_NOZIP, 0);
+        libzip_error_set(error, LIBZIP_ER_NOZIP, 0);
         if (!from_buffer) {
             _libzip_buffer_free(buffer);
         }
@@ -416,24 +416,24 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
     }
 
     if (!_libzip_buffer_ok(buffer)) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         if (!from_buffer) {
             _libzip_buffer_free(buffer);
         }
         return -1;
     }
 
-    if (zde->bitflags & ZIP_GPBF_ENCRYPTED) {
-        if (zde->bitflags & ZIP_GPBF_STRONG_ENCRYPTION) {
+    if (zde->bitflags & LIBZIP_GPBF_ENCRYPTED) {
+        if (zde->bitflags & LIBZIP_GPBF_STRONG_ENCRYPTION) {
             /* TODO */
-            zde->encryption_method = ZIP_EM_UNKNOWN;
+            zde->encryption_method = LIBZIP_EM_UNKNOWN;
         }
         else {
-            zde->encryption_method = ZIP_EM_TRAD_PKWARE;
+            zde->encryption_method = LIBZIP_EM_TRAD_PKWARE;
         }
     }
     else {
-        zde->encryption_method = ZIP_EM_NONE;
+        zde->encryption_method = LIBZIP_EM_NONE;
     }
 
     zde->filename = NULL;
@@ -444,7 +444,7 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
 
     if (from_buffer) {
         if (_libzip_buffer_left(buffer) < variable_size) {
-            libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_VARIABLE_SIZE_OVERFLOW);
+            libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_VARIABLE_SIZE_OVERFLOW);
             return -1;
         }
     }
@@ -459,8 +459,8 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
     if (filename_len) {
         zde->filename = _libzip_read_string(buffer, src, filename_len, 1, error);
         if (!zde->filename) {
-            if (libzip_error_code_zip(error) == ZIP_ER_EOF) {
-                libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_VARIABLE_SIZE_OVERFLOW);
+            if (libzip_error_code_zip(error) == LIBZIP_ER_EOF) {
+                libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_VARIABLE_SIZE_OVERFLOW);
             }
             if (!from_buffer) {
                 _libzip_buffer_free(buffer);
@@ -468,9 +468,9 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
             return -1;
         }
 
-        if (zde->bitflags & ZIP_GPBF_ENCODING_UTF_8) {
-            if (_libzip_guess_encoding(zde->filename, ZIP_ENCODING_UTF8_KNOWN) == ZIP_ENCODING_ERROR) {
-                libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_INVALID_UTF8_IN_FILENAME);
+        if (zde->bitflags & LIBZIP_GPBF_ENCODING_UTF_8) {
+            if (_libzip_guess_encoding(zde->filename, LIBZIP_ENCODING_UTF8_KNOWN) == LIBZIP_ENCODING_ERROR) {
+                libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_INVALID_UTF8_IN_FILENAME);
                 if (!from_buffer) {
                     _libzip_buffer_free(buffer);
                 }
@@ -488,7 +488,7 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
             }
             return -1;
         }
-        if (!_libzip_ef_parse(ef, ef_len, local ? ZIP_EF_LOCAL : ZIP_EF_CENTRAL, &zde->extra_fields, error)) {
+        if (!_libzip_ef_parse(ef, ef_len, local ? LIBZIP_EF_LOCAL : LIBZIP_EF_CENTRAL, &zde->extra_fields, error)) {
             free(ef);
             if (!from_buffer) {
                 _libzip_buffer_free(buffer);
@@ -508,9 +508,9 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
             }
             return -1;
         }
-        if (zde->bitflags & ZIP_GPBF_ENCODING_UTF_8) {
-            if (_libzip_guess_encoding(zde->comment, ZIP_ENCODING_UTF8_KNOWN) == ZIP_ENCODING_ERROR) {
-                libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_INVALID_UTF8_IN_COMMENT);
+        if (zde->bitflags & LIBZIP_GPBF_ENCODING_UTF_8) {
+            if (_libzip_guess_encoding(zde->comment, LIBZIP_ENCODING_UTF8_KNOWN) == LIBZIP_ENCODING_ERROR) {
+                libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_INVALID_UTF8_IN_COMMENT);
                 if (!from_buffer) {
                     _libzip_buffer_free(buffer);
                 }
@@ -519,14 +519,14 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
         }
     }
 
-    zde->filename = _libzip_dirent_process_ef_utf_8(zde, ZIP_EF_UTF_8_NAME, zde->filename);
-    zde->comment = _libzip_dirent_process_ef_utf_8(zde, ZIP_EF_UTF_8_COMMENT, zde->comment);
+    zde->filename = _libzip_dirent_process_ef_utf_8(zde, LIBZIP_EF_UTF_8_NAME, zde->filename);
+    zde->comment = _libzip_dirent_process_ef_utf_8(zde, LIBZIP_EF_UTF_8_COMMENT, zde->comment);
 
     /* Zip64 */
 
-    if (zde->uncomp_size == ZIP_UINT32_MAX || zde->comp_size == ZIP_UINT32_MAX || zde->offset == ZIP_UINT32_MAX) {
+    if (zde->uncomp_size == LIBZIP_UINT32_MAX || zde->comp_size == LIBZIP_UINT32_MAX || zde->offset == LIBZIP_UINT32_MAX) {
         libzip_uint16_t got_len;
-        const libzip_uint8_t *ef = _libzip_ef_get_by_id(zde->extra_fields, &got_len, ZIP_EF_ZIP64, 0, local ? ZIP_EF_LOCAL : ZIP_EF_CENTRAL, error);
+        const libzip_uint8_t *ef = _libzip_ef_get_by_id(zde->extra_fields, &got_len, LIBZIP_EF_ZIP64, 0, local ? LIBZIP_EF_LOCAL : LIBZIP_EF_CENTRAL, error);
         if (ef != NULL) {
             if (!libzip_dirent_process_ef_zip64(zde, ef, got_len, local, error)) {
                 if (!from_buffer) {
@@ -539,7 +539,7 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
 
 
     if (!_libzip_buffer_ok(buffer)) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         if (!from_buffer) {
             _libzip_buffer_free(buffer);
         }
@@ -549,9 +549,9 @@ _libzip_dirent_read(libzip_dirent_t *zde, libzip_source_t *src, libzip_buffer_t 
         _libzip_buffer_free(buffer);
     }
 
-    /* libzip_source_seek / libzip_source_tell don't support values > ZIP_INT64_MAX */
-    if (zde->offset > ZIP_INT64_MAX) {
-        libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
+    /* libzip_source_seek / libzip_source_tell don't support values > LIBZIP_INT64_MAX */
+    if (zde->offset > LIBZIP_INT64_MAX) {
+        libzip_error_set(error, LIBZIP_ER_SEEK, EFBIG);
         return -1;
     }
 
@@ -568,11 +568,11 @@ bool libzip_dirent_process_ef_zip64(libzip_dirent_t* zde, const libzip_uint8_t* 
     libzip_buffer_t *ef_buffer;
 
     if ((ef_buffer = _libzip_buffer_new((libzip_uint8_t *)ef, got_len)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return false;
     }
 
-    if (zde->uncomp_size == ZIP_UINT32_MAX) {
+    if (zde->uncomp_size == LIBZIP_UINT32_MAX) {
         zde->uncomp_size = _libzip_buffer_get_64(ef_buffer);
     }
     else if (local) {
@@ -580,14 +580,14 @@ bool libzip_dirent_process_ef_zip64(libzip_dirent_t* zde, const libzip_uint8_t* 
            include BOTH original and compressed file size fields. */
         (void)_libzip_buffer_skip(ef_buffer, 8); /* error is caught by _libzip_buffer_eof() call */
     }
-    if (zde->comp_size == ZIP_UINT32_MAX) {
+    if (zde->comp_size == LIBZIP_UINT32_MAX) {
         zde->comp_size = _libzip_buffer_get_64(ef_buffer);
     }
     if (!local) {
-        if (zde->offset == ZIP_UINT32_MAX) {
+        if (zde->offset == LIBZIP_UINT32_MAX) {
             zde->offset = _libzip_buffer_get_64(ef_buffer);
         }
-        if (zde->disk_number == ZIP_UINT16_MAX) {
+        if (zde->disk_number == LIBZIP_UINT16_MAX) {
             zde->disk_number = _libzip_buffer_get_32(ef_buffer);
         }
     }
@@ -613,7 +613,7 @@ bool libzip_dirent_process_ef_zip64(libzip_dirent_t* zde, const libzip_uint8_t* 
             ok = false;
         }
         if (!ok) {
-            libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_INVALID_ZIP64_EF);
+            libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_INVALID_ZIP64_EF);
             _libzip_buffer_free(ef_buffer);
             return false;
         }
@@ -630,7 +630,7 @@ _libzip_dirent_process_ef_utf_8(const libzip_dirent_t *de, libzip_uint16_t id, l
     libzip_uint32_t ef_crc;
     libzip_buffer_t *buffer;
 
-    const libzip_uint8_t *ef = _libzip_ef_get_by_id(de->extra_fields, &ef_len, id, 0, ZIP_EF_BOTH, NULL);
+    const libzip_uint8_t *ef = _libzip_ef_get_by_id(de->extra_fields, &ef_len, id, 0, LIBZIP_EF_BOTH, NULL);
 
     if (ef == NULL || ef_len < 5 || ef[0] != 1) {
         return str;
@@ -645,7 +645,7 @@ _libzip_dirent_process_ef_utf_8(const libzip_dirent_t *de, libzip_uint16_t id, l
 
     if (_libzip_string_crc32(str) == ef_crc) {
         libzip_uint16_t len = (libzip_uint16_t)_libzip_buffer_left(buffer);
-        libzip_string_t *ef_str = _libzip_string_new(_libzip_buffer_get(buffer, len), len, ZIP_FL_ENC_UTF_8, NULL);
+        libzip_string_t *ef_str = _libzip_string_new(_libzip_buffer_get(buffer, len), len, LIBZIP_FL_ENC_UTF_8, NULL);
 
         if (ef_str != NULL) {
             _libzip_string_free(str);
@@ -668,19 +668,19 @@ _libzip_dirent_process_winlibzip_aes(libzip_dirent_t *de, libzip_error_t *error)
     libzip_uint16_t enc_method;
 
 
-    if (de->comp_method != ZIP_CM_WINZIP_AES) {
+    if (de->comp_method != LIBZIP_CM_WINLIBZIP_AES) {
         return true;
     }
 
-    ef = _libzip_ef_get_by_id(de->extra_fields, &ef_len, ZIP_EF_WINZIP_AES, 0, ZIP_EF_BOTH, NULL);
+    ef = _libzip_ef_get_by_id(de->extra_fields, &ef_len, LIBZIP_EF_WINLIBZIP_AES, 0, LIBZIP_EF_BOTH, NULL);
 
     if (ef == NULL || ef_len < 7) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_INVALID_WINZIPAES_EF);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_INVALID_WINZIPAES_EF);
         return false;
     }
 
     if ((buffer = _libzip_buffer_new((libzip_uint8_t *)ef, ef_len)) == NULL) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         return false;
     }
 
@@ -697,14 +697,14 @@ _libzip_dirent_process_winlibzip_aes(libzip_dirent_t *de, libzip_error_t *error)
             break;
             
         default:
-            libzip_error_set(error, ZIP_ER_ENCRNOTSUPP, 0);
+            libzip_error_set(error, LIBZIP_ER_ENCRNOTSUPP, 0);
             _libzip_buffer_free(buffer);
             return false;
     }
 
     /* vendor */
     if (memcmp(_libzip_buffer_get(buffer, 2), "AE", 2) != 0) {
-        libzip_error_set(error, ZIP_ER_ENCRNOTSUPP, 0);
+        libzip_error_set(error, LIBZIP_ER_ENCRNOTSUPP, 0);
         _libzip_buffer_free(buffer);
         return false;
     }
@@ -712,22 +712,22 @@ _libzip_dirent_process_winlibzip_aes(libzip_dirent_t *de, libzip_error_t *error)
     /* mode */
     switch (_libzip_buffer_get_8(buffer)) {
     case 1:
-        enc_method = ZIP_EM_AES_128;
+        enc_method = LIBZIP_EM_AES_128;
         break;
     case 2:
-        enc_method = ZIP_EM_AES_192;
+        enc_method = LIBZIP_EM_AES_192;
         break;
     case 3:
-        enc_method = ZIP_EM_AES_256;
+        enc_method = LIBZIP_EM_AES_256;
         break;
     default:
-        libzip_error_set(error, ZIP_ER_ENCRNOTSUPP, 0);
+        libzip_error_set(error, LIBZIP_ER_ENCRNOTSUPP, 0);
         _libzip_buffer_free(buffer);
         return false;
     }
 
     if (ef_len != 7) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_INVALID_WINZIPAES_EF);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_INVALID_WINZIPAES_EF);
         _libzip_buffer_free(buffer);
         return false;
     }
@@ -744,7 +744,7 @@ _libzip_dirent_process_winlibzip_aes(libzip_dirent_t *de, libzip_error_t *error)
 libzip_int32_t
 _libzip_dirent_size(libzip_source_t *src, libzip_uint16_t flags, libzip_error_t *error) {
     libzip_int32_t size;
-    bool local = (flags & ZIP_EF_LOCAL) != 0;
+    bool local = (flags & LIBZIP_EF_LOCAL) != 0;
     int i;
     libzip_uint8_t b[6];
     libzip_buffer_t *buffer;
@@ -765,7 +765,7 @@ _libzip_dirent_size(libzip_source_t *src, libzip_uint16_t flags, libzip_error_t 
     }
 
     if (!_libzip_buffer_eof(buffer)) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         _libzip_buffer_free(buffer);
         return -1;
     }
@@ -778,8 +778,8 @@ _libzip_dirent_size(libzip_source_t *src, libzip_uint16_t flags, libzip_error_t 
 /* _libzip_dirent_write
    Writes zip directory entry.
 
-   If flags & ZIP_EF_LOCAL, it writes a local header instead of a central
-   directory entry.  If flags & ZIP_EF_FORCE_ZIP64, a ZIP64 extra field is written, even if not needed.
+   If flags & LIBZIP_EF_LOCAL, it writes a local header instead of a central
+   directory entry.  If flags & LIBZIP_EF_FORCE_ZIP64, a ZIP64 extra field is written, even if not needed.
 
    Returns 0 if successful, 1 if successful and wrote ZIP64 extra field. On error, error is filled in and -1 is
    returned.
@@ -800,20 +800,20 @@ _libzip_dirent_write(libzip_t *za, libzip_dirent_t *de, libzip_flags_t flags) {
 
     ef = NULL;
 
-    name_enc = _libzip_guess_encoding(de->filename, ZIP_ENCODING_UNKNOWN);
-    com_enc = _libzip_guess_encoding(de->comment, ZIP_ENCODING_UNKNOWN);
+    name_enc = _libzip_guess_encoding(de->filename, LIBZIP_ENCODING_UNKNOWN);
+    com_enc = _libzip_guess_encoding(de->comment, LIBZIP_ENCODING_UNKNOWN);
 
-    if ((name_enc == ZIP_ENCODING_UTF8_KNOWN && com_enc == ZIP_ENCODING_ASCII) || (name_enc == ZIP_ENCODING_ASCII && com_enc == ZIP_ENCODING_UTF8_KNOWN) || (name_enc == ZIP_ENCODING_UTF8_KNOWN && com_enc == ZIP_ENCODING_UTF8_KNOWN))
-        de->bitflags |= ZIP_GPBF_ENCODING_UTF_8;
+    if ((name_enc == LIBZIP_ENCODING_UTF8_KNOWN && com_enc == LIBZIP_ENCODING_ASCII) || (name_enc == LIBZIP_ENCODING_ASCII && com_enc == LIBZIP_ENCODING_UTF8_KNOWN) || (name_enc == LIBZIP_ENCODING_UTF8_KNOWN && com_enc == LIBZIP_ENCODING_UTF8_KNOWN))
+        de->bitflags |= LIBZIP_GPBF_ENCODING_UTF_8;
     else {
-        de->bitflags &= (libzip_uint16_t)~ZIP_GPBF_ENCODING_UTF_8;
-        if (name_enc == ZIP_ENCODING_UTF8_KNOWN) {
-            ef = _libzip_ef_utf8(ZIP_EF_UTF_8_NAME, de->filename, &za->error);
+        de->bitflags &= (libzip_uint16_t)~LIBZIP_GPBF_ENCODING_UTF_8;
+        if (name_enc == LIBZIP_ENCODING_UTF8_KNOWN) {
+            ef = _libzip_ef_utf8(LIBZIP_EF_UTF_8_NAME, de->filename, &za->error);
             if (ef == NULL)
                 return -1;
         }
-        if ((flags & ZIP_FL_LOCAL) == 0 && com_enc == ZIP_ENCODING_UTF8_KNOWN) {
-            libzip_extra_field_t *ef2 = _libzip_ef_utf8(ZIP_EF_UTF_8_COMMENT, de->comment, &za->error);
+        if ((flags & LIBZIP_FL_LOCAL) == 0 && com_enc == LIBZIP_ENCODING_UTF8_KNOWN) {
+            libzip_extra_field_t *ef2 = _libzip_ef_utf8(LIBZIP_EF_UTF_8_COMMENT, de->comment, &za->error);
             if (ef2 == NULL) {
                 _libzip_ef_free(ef);
                 return -1;
@@ -823,66 +823,66 @@ _libzip_dirent_write(libzip_t *za, libzip_dirent_t *de, libzip_flags_t flags) {
         }
     }
 
-    if (de->encryption_method == ZIP_EM_NONE) {
-        de->bitflags &= (libzip_uint16_t)~ZIP_GPBF_ENCRYPTED;
+    if (de->encryption_method == LIBZIP_EM_NONE) {
+        de->bitflags &= (libzip_uint16_t)~LIBZIP_GPBF_ENCRYPTED;
     }
     else {
-        de->bitflags |= (libzip_uint16_t)ZIP_GPBF_ENCRYPTED;
+        de->bitflags |= (libzip_uint16_t)LIBZIP_GPBF_ENCRYPTED;
     }
 
     is_really_zip64 = _libzip_dirent_needs_zip64(de, flags);
-    is_zip64 = (flags & (ZIP_FL_LOCAL | ZIP_FL_FORCE_ZIP64)) == (ZIP_FL_LOCAL | ZIP_FL_FORCE_ZIP64) || is_really_zip64;
-    is_winlibzip_aes = de->encryption_method == ZIP_EM_AES_128 || de->encryption_method == ZIP_EM_AES_192 || de->encryption_method == ZIP_EM_AES_256;
+    is_zip64 = (flags & (LIBZIP_FL_LOCAL | LIBZIP_FL_FORCE_ZIP64)) == (LIBZIP_FL_LOCAL | LIBZIP_FL_FORCE_ZIP64) || is_really_zip64;
+    is_winlibzip_aes = de->encryption_method == LIBZIP_EM_AES_128 || de->encryption_method == LIBZIP_EM_AES_192 || de->encryption_method == LIBZIP_EM_AES_256;
 
     if (is_zip64) {
         libzip_uint8_t ef_zip64[EFZIP64SIZE];
         libzip_buffer_t *ef_buffer = _libzip_buffer_new(ef_zip64, sizeof(ef_zip64));
         if (ef_buffer == NULL) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             _libzip_ef_free(ef);
             return -1;
         }
 
-        if (flags & ZIP_FL_LOCAL) {
-            if ((flags & ZIP_FL_FORCE_ZIP64) || de->comp_size > ZIP_UINT32_MAX || de->uncomp_size > ZIP_UINT32_MAX) {
+        if (flags & LIBZIP_FL_LOCAL) {
+            if ((flags & LIBZIP_FL_FORCE_ZIP64) || de->comp_size > LIBZIP_UINT32_MAX || de->uncomp_size > LIBZIP_UINT32_MAX) {
                 _libzip_buffer_put_64(ef_buffer, de->uncomp_size);
                 _libzip_buffer_put_64(ef_buffer, de->comp_size);
             }
         }
         else {
-            if ((flags & ZIP_FL_FORCE_ZIP64) || de->comp_size > ZIP_UINT32_MAX || de->uncomp_size > ZIP_UINT32_MAX || de->offset > ZIP_UINT32_MAX) {
-                if (de->uncomp_size >= ZIP_UINT32_MAX) {
+            if ((flags & LIBZIP_FL_FORCE_ZIP64) || de->comp_size > LIBZIP_UINT32_MAX || de->uncomp_size > LIBZIP_UINT32_MAX || de->offset > LIBZIP_UINT32_MAX) {
+                if (de->uncomp_size >= LIBZIP_UINT32_MAX) {
                     _libzip_buffer_put_64(ef_buffer, de->uncomp_size);
                 }
-                if (de->comp_size >= ZIP_UINT32_MAX) {
+                if (de->comp_size >= LIBZIP_UINT32_MAX) {
                     _libzip_buffer_put_64(ef_buffer, de->comp_size);
                 }
-                if (de->offset >= ZIP_UINT32_MAX) {
+                if (de->offset >= LIBZIP_UINT32_MAX) {
                     _libzip_buffer_put_64(ef_buffer, de->offset);
                 }
             }
         }
 
         if (!_libzip_buffer_ok(ef_buffer)) {
-            libzip_error_set(&za->error, ZIP_ER_INTERNAL, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_INTERNAL, 0);
             _libzip_buffer_free(ef_buffer);
             _libzip_ef_free(ef);
             return -1;
         }
 
-        ef64 = _libzip_ef_new(ZIP_EF_ZIP64, (libzip_uint16_t)(_libzip_buffer_offset(ef_buffer)), ef_zip64, ZIP_EF_BOTH);
+        ef64 = _libzip_ef_new(LIBZIP_EF_ZIP64, (libzip_uint16_t)(_libzip_buffer_offset(ef_buffer)), ef_zip64, LIBZIP_EF_BOTH);
         _libzip_buffer_free(ef_buffer);
         ef64->next = ef;
         ef = ef64;
     }
 
     if (is_winlibzip_aes) {
-        libzip_uint8_t data[EF_WINZIP_AES_SIZE];
+        libzip_uint8_t data[EF_WINLIBZIP_AES_SIZE];
         libzip_buffer_t *ef_buffer = _libzip_buffer_new(data, sizeof(data));
         libzip_extra_field_t *ef_winzip;
 
         if (ef_buffer == NULL) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             _libzip_ef_free(ef);
             return -1;
         }
@@ -893,39 +893,39 @@ _libzip_dirent_write(libzip_t *za, libzip_dirent_t *de, libzip_flags_t flags) {
         _libzip_buffer_put_16(ef_buffer, (libzip_uint16_t)de->comp_method);
 
         if (!_libzip_buffer_ok(ef_buffer)) {
-            libzip_error_set(&za->error, ZIP_ER_INTERNAL, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_INTERNAL, 0);
             _libzip_buffer_free(ef_buffer);
             _libzip_ef_free(ef);
             return -1;
         }
 
-        ef_winzip = _libzip_ef_new(ZIP_EF_WINZIP_AES, EF_WINZIP_AES_SIZE, data, ZIP_EF_BOTH);
+        ef_winzip = _libzip_ef_new(LIBZIP_EF_WINLIBZIP_AES, EF_WINLIBZIP_AES_SIZE, data, LIBZIP_EF_BOTH);
         _libzip_buffer_free(ef_buffer);
         ef_winzip->next = ef;
         ef = ef_winzip;
     }
 
     if ((buffer = _libzip_buffer_new(buf, sizeof(buf))) == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
         _libzip_ef_free(ef);
         return -1;
     }
 
-    _libzip_buffer_put(buffer, (flags & ZIP_FL_LOCAL) ? LOCAL_MAGIC : CENTRAL_MAGIC, 4);
+    _libzip_buffer_put(buffer, (flags & LIBZIP_FL_LOCAL) ? LOCAL_MAGIC : CENTRAL_MAGIC, 4);
 
-    if ((flags & ZIP_FL_LOCAL) == 0) {
+    if ((flags & LIBZIP_FL_LOCAL) == 0) {
         _libzip_buffer_put_16(buffer, de->version_madeby);
     }
-    _libzip_buffer_put_16(buffer, ZIP_MAX(is_really_zip64 ? 45 : 0, de->version_needed));
+    _libzip_buffer_put_16(buffer, LIBZIP_MAX(is_really_zip64 ? 45 : 0, de->version_needed));
     _libzip_buffer_put_16(buffer, de->bitflags);
     if (is_winlibzip_aes) {
-        _libzip_buffer_put_16(buffer, ZIP_CM_WINZIP_AES);
+        _libzip_buffer_put_16(buffer, LIBZIP_CM_WINLIBZIP_AES);
     }
     else {
         _libzip_buffer_put_16(buffer, (libzip_uint16_t)de->comp_method);
     }
 
-    if (ZIP_WANT_TORRENTZIP(za)) {
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
         dostime = 0xbc00;
         dosdate = 0x2198;
     }
@@ -942,51 +942,51 @@ _libzip_dirent_write(libzip_t *za, libzip_dirent_t *de, libzip_flags_t flags) {
         _libzip_buffer_put_32(buffer, de->crc);
     }
 
-    if (((flags & ZIP_FL_LOCAL) == ZIP_FL_LOCAL) && ((de->comp_size >= ZIP_UINT32_MAX) || (de->uncomp_size >= ZIP_UINT32_MAX))) {
+    if (((flags & LIBZIP_FL_LOCAL) == LIBZIP_FL_LOCAL) && ((de->comp_size >= LIBZIP_UINT32_MAX) || (de->uncomp_size >= LIBZIP_UINT32_MAX))) {
         /* In local headers, if a ZIP64 EF is written, it MUST contain
          * both compressed and uncompressed sizes (even if one of the
          * two is smaller than 0xFFFFFFFF); on the other hand, those
          * may only appear when the corresponding standard entry is
          * 0xFFFFFFFF.  (appnote.txt 4.5.3) */
-        _libzip_buffer_put_32(buffer, ZIP_UINT32_MAX);
-        _libzip_buffer_put_32(buffer, ZIP_UINT32_MAX);
+        _libzip_buffer_put_32(buffer, LIBZIP_UINT32_MAX);
+        _libzip_buffer_put_32(buffer, LIBZIP_UINT32_MAX);
     }
     else {
-        if (de->comp_size < ZIP_UINT32_MAX) {
+        if (de->comp_size < LIBZIP_UINT32_MAX) {
             _libzip_buffer_put_32(buffer, (libzip_uint32_t)de->comp_size);
         }
         else {
-            _libzip_buffer_put_32(buffer, ZIP_UINT32_MAX);
+            _libzip_buffer_put_32(buffer, LIBZIP_UINT32_MAX);
         }
-        if (de->uncomp_size < ZIP_UINT32_MAX) {
+        if (de->uncomp_size < LIBZIP_UINT32_MAX) {
             _libzip_buffer_put_32(buffer, (libzip_uint32_t)de->uncomp_size);
         }
         else {
-            _libzip_buffer_put_32(buffer, ZIP_UINT32_MAX);
+            _libzip_buffer_put_32(buffer, LIBZIP_UINT32_MAX);
         }
     }
 
     _libzip_buffer_put_16(buffer, _libzip_string_length(de->filename));
-    ef_total_size = (libzip_uint32_t)_libzip_ef_size(ef, ZIP_EF_BOTH);
-    if (!ZIP_WANT_TORRENTZIP(za)) {
+    ef_total_size = (libzip_uint32_t)_libzip_ef_size(ef, LIBZIP_EF_BOTH);
+    if (!LIBZIP_WANT_TORRENTZIP(za)) {
         /* TODO: check for overflow */
         ef_total_size += (libzip_uint32_t)_libzip_ef_size(de->extra_fields, flags);
     }
     _libzip_buffer_put_16(buffer, (libzip_uint16_t)ef_total_size);
 
-    if ((flags & ZIP_FL_LOCAL) == 0) {
-        _libzip_buffer_put_16(buffer, ZIP_WANT_TORRENTZIP(za) ? 0 : _libzip_string_length(de->comment));
+    if ((flags & LIBZIP_FL_LOCAL) == 0) {
+        _libzip_buffer_put_16(buffer, LIBZIP_WANT_TORRENTZIP(za) ? 0 : _libzip_string_length(de->comment));
         _libzip_buffer_put_16(buffer, (libzip_uint16_t)de->disk_number);
         _libzip_buffer_put_16(buffer, de->int_attrib);
         _libzip_buffer_put_32(buffer, de->ext_attrib);
-        if (de->offset < ZIP_UINT32_MAX)
+        if (de->offset < LIBZIP_UINT32_MAX)
             _libzip_buffer_put_32(buffer, (libzip_uint32_t)de->offset);
         else
-            _libzip_buffer_put_32(buffer, ZIP_UINT32_MAX);
+            _libzip_buffer_put_32(buffer, LIBZIP_UINT32_MAX);
     }
 
     if (!_libzip_buffer_ok(buffer)) {
-        libzip_error_set(&za->error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INTERNAL, 0);
         _libzip_buffer_free(buffer);
         _libzip_ef_free(ef);
         return -1;
@@ -1008,19 +1008,19 @@ _libzip_dirent_write(libzip_t *za, libzip_dirent_t *de, libzip_flags_t flags) {
     }
 
     if (ef) {
-        if (_libzip_ef_write(za, ef, ZIP_EF_BOTH) < 0) {
+        if (_libzip_ef_write(za, ef, LIBZIP_EF_BOTH) < 0) {
             _libzip_ef_free(ef);
             return -1;
         }
     }
     _libzip_ef_free(ef);
-    if (de->extra_fields && !ZIP_WANT_TORRENTZIP(za)) {
+    if (de->extra_fields && !LIBZIP_WANT_TORRENTZIP(za)) {
         if (_libzip_ef_write(za, de->extra_fields, flags) < 0) {
             return -1;
         }
     }
 
-    if ((flags & ZIP_FL_LOCAL) == 0 && !ZIP_WANT_TORRENTZIP(za)) {
+    if ((flags & LIBZIP_FL_LOCAL) == 0 && !LIBZIP_WANT_TORRENTZIP(za)) {
         if (de->comment) {
             if (_libzip_string_write(za, de->comment) < 0) {
                 return -1;
@@ -1061,18 +1061,18 @@ _libzip_ef_utf8(libzip_uint16_t id, libzip_string_t *str, libzip_error_t *error)
     libzip_buffer_t *buffer;
     libzip_extra_field_t *ef;
 
-    if ((raw = _libzip_string_get(str, &len, ZIP_FL_ENC_RAW, NULL)) == NULL) {
+    if ((raw = _libzip_string_get(str, &len, LIBZIP_FL_ENC_RAW, NULL)) == NULL) {
         /* error already set */
         return NULL;
     }
 
-    if (len + 5 > ZIP_UINT16_MAX) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0); /* TODO: better error code? */
+    if (len + 5 > LIBZIP_UINT16_MAX) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0); /* TODO: better error code? */
         return NULL;
     }
 
     if ((buffer = _libzip_buffer_new(NULL, len + 5)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -1081,12 +1081,12 @@ _libzip_ef_utf8(libzip_uint16_t id, libzip_string_t *str, libzip_error_t *error)
     _libzip_buffer_put(buffer, raw, len);
 
     if (!_libzip_buffer_ok(buffer)) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         _libzip_buffer_free(buffer);
         return NULL;
     }
 
-    ef = _libzip_ef_new(id, (libzip_uint16_t)(_libzip_buffer_offset(buffer)), _libzip_buffer_data(buffer), ZIP_EF_BOTH);
+    ef = _libzip_ef_new(id, (libzip_uint16_t)(_libzip_buffer_offset(buffer)), _libzip_buffer_data(buffer), LIBZIP_EF_BOTH);
     _libzip_buffer_free(buffer);
 
     return ef;
@@ -1099,17 +1099,17 @@ _libzip_get_dirent(libzip_t *za, libzip_uint64_t idx, libzip_flags_t flags, libz
         error = &za->error;
 
     if (idx >= za->nentry) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
-    if ((flags & ZIP_FL_UNCHANGED) || za->entry[idx].changes == NULL) {
+    if ((flags & LIBZIP_FL_UNCHANGED) || za->entry[idx].changes == NULL) {
         if (za->entry[idx].orig == NULL) {
-            libzip_error_set(error, ZIP_ER_INVAL, 0);
+            libzip_error_set(error, LIBZIP_ER_INVAL, 0);
             return NULL;
         }
-        if (za->entry[idx].deleted && (flags & ZIP_FL_UNCHANGED) == 0) {
-            libzip_error_set(error, ZIP_ER_DELETED, 0);
+        if (za->entry[idx].deleted && (flags & LIBZIP_FL_UNCHANGED) == 0) {
+            libzip_error_set(error, LIBZIP_ER_DELETED, 0);
             return NULL;
         }
         return za->entry[idx].orig;
@@ -1143,31 +1143,31 @@ void
 _libzip_dirent_apply_attributes(libzip_dirent_t *de, libzip_file_attributes_t *attributes, bool force_zip64, libzip_uint32_t changed) {
     libzip_uint16_t length;
 
-    if (attributes->valid & ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS) {
-        libzip_uint16_t mask = attributes->general_purpose_bit_mask & ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS_ALLOWED_MASK;
+    if (attributes->valid & LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS) {
+        libzip_uint16_t mask = attributes->general_purpose_bit_mask & LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS_ALLOWED_MASK;
         de->bitflags = (de->bitflags & ~mask) | (attributes->general_purpose_bit_flags & mask);
     }
-    if (attributes->valid & ZIP_FILE_ATTRIBUTES_ASCII) {
+    if (attributes->valid & LIBZIP_FILE_ATTRIBUTES_ASCII) {
         de->int_attrib = (de->int_attrib & ~0x1) | (attributes->ascii ? 1 : 0);
     }
     /* manually set attributes are preferred over attributes provided by source */
-    if ((changed & ZIP_DIRENT_ATTRIBUTES) == 0 && (attributes->valid & ZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES)) {
+    if ((changed & LIBZIP_DIRENT_ATTRIBUTES) == 0 && (attributes->valid & LIBZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES)) {
         de->ext_attrib = attributes->external_file_attributes;
     }
 
-    if (de->comp_method == ZIP_CM_LZMA) {
+    if (de->comp_method == LIBZIP_CM_LZMA) {
         de->version_needed = 63;
     }
-    else if (de->encryption_method == ZIP_EM_AES_128 || de->encryption_method == ZIP_EM_AES_192 || de->encryption_method == ZIP_EM_AES_256) {
+    else if (de->encryption_method == LIBZIP_EM_AES_128 || de->encryption_method == LIBZIP_EM_AES_192 || de->encryption_method == LIBZIP_EM_AES_256) {
         de->version_needed = 51;
     }
-    else if (de->comp_method == ZIP_CM_BZIP2) {
+    else if (de->comp_method == LIBZIP_CM_BZIP2) {
         de->version_needed = 46;
     }
     else if (force_zip64 || _libzip_dirent_needs_zip64(de, 0)) {
         de->version_needed = 45;
     }
-    else if (de->comp_method == ZIP_CM_DEFLATE || de->encryption_method == ZIP_EM_TRAD_PKWARE) {
+    else if (de->comp_method == LIBZIP_CM_DEFLATE || de->encryption_method == LIBZIP_EM_TRAD_PKWARE) {
         de->version_needed = 20;
     }
     else if ((length = _libzip_string_length(de->filename)) > 0 && de->filename->raw[length - 1] == '/') {
@@ -1177,12 +1177,12 @@ _libzip_dirent_apply_attributes(libzip_dirent_t *de, libzip_file_attributes_t *a
         de->version_needed = 10;
     }
 
-    if (attributes->valid & ZIP_FILE_ATTRIBUTES_VERSION_NEEDED) {
-        de->version_needed = ZIP_MAX(de->version_needed, attributes->version_needed);
+    if (attributes->valid & LIBZIP_FILE_ATTRIBUTES_VERSION_NEEDED) {
+        de->version_needed = LIBZIP_MAX(de->version_needed, attributes->version_needed);
     }
 
     de->version_madeby = 63 | (de->version_madeby & 0xff00);
-    if ((changed & ZIP_DIRENT_ATTRIBUTES) == 0 && (attributes->valid & ZIP_FILE_ATTRIBUTES_HOST_SYSTEM)) {
+    if ((changed & LIBZIP_DIRENT_ATTRIBUTES) == 0 && (attributes->valid & LIBZIP_FILE_ATTRIBUTES_HOST_SYSTEM)) {
         de->version_madeby = (de->version_madeby & 0xff) | (libzip_uint16_t)(attributes->host_system << 8);
     }
 }
@@ -1196,8 +1196,8 @@ void libzip_dirent_torrentlibzip_normalize(libzip_dirent_t *de) {
     de->version_madeby = 0;
     de->version_needed = 20; /* 2.0 */
     de->bitflags = 2; /* maximum compression */
-    de->comp_method = ZIP_CM_DEFLATE;
-    de->compression_level = TORRENTZIP_COMPRESSION_FLAGS;
+    de->comp_method = LIBZIP_CM_DEFLATE;
+    de->compression_level = TORRENTLIBZIP_COMPRESSION_FLAGS;
     de->disk_number = 0;
     de->int_attrib = 0;
     de->ext_attrib = 0;

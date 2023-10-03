@@ -32,11 +32,11 @@
 */
 
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 
-ZIP_EXTERN const char *
+LIBZIP_EXTERN const char *
 libzip_get_file_comment(libzip_t *za, libzip_uint64_t idx, int *lenp, int flags) {
     libzip_uint32_t len;
     const char *s;

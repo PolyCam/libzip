@@ -35,10 +35,10 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_file_replace(libzip_t *za, libzip_uint64_t idx, libzip_source_t *source, libzip_flags_t flags) {
     if (idx >= za->nentry || source == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
@@ -55,16 +55,16 @@ libzip_int64_t
 _libzip_file_replace(libzip_t *za, libzip_uint64_t idx, const char *name, libzip_source_t *source, libzip_flags_t flags) {
     libzip_uint64_t za_nentry_prev;
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
 
     za_nentry_prev = za->nentry;
-    if (idx == ZIP_UINT64_MAX) {
+    if (idx == LIBZIP_UINT64_MAX) {
         libzip_int64_t i = -1;
 
-        if (flags & ZIP_FL_OVERWRITE)
+        if (flags & LIBZIP_FL_OVERWRITE)
             i = _libzip_name_locate(za, name, flags, NULL);
 
         if (i == -1) {
@@ -87,16 +87,16 @@ _libzip_file_replace(libzip_t *za, libzip_uint64_t idx, const char *name, libzip
      * needed for a double add of the same file name */
     _libzip_unchange_data(za->entry + idx);
 
-    if (za->entry[idx].orig != NULL && (za->entry[idx].changes == NULL || (za->entry[idx].changes->changed & ZIP_DIRENT_COMP_METHOD) == 0)) {
+    if (za->entry[idx].orig != NULL && (za->entry[idx].changes == NULL || (za->entry[idx].changes->changed & LIBZIP_DIRENT_COMP_METHOD) == 0)) {
         if (za->entry[idx].changes == NULL) {
             if ((za->entry[idx].changes = _libzip_dirent_clone(za->entry[idx].orig)) == NULL) {
-                libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
                 return -1;
             }
         }
 
-        za->entry[idx].changes->comp_method = ZIP_CM_REPLACED_DEFAULT;
-        za->entry[idx].changes->changed |= ZIP_DIRENT_COMP_METHOD;
+        za->entry[idx].changes->comp_method = LIBZIP_CM_REPLACED_DEFAULT;
+        za->entry[idx].changes->changed |= LIBZIP_DIRENT_COMP_METHOD;
     }
 
     za->entry[idx].source = source;

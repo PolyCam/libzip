@@ -38,14 +38,14 @@
 libzip_encryption_implementation
 _libzip_get_encryption_implementation(libzip_uint16_t em, int operation) {
     switch (em) {
-    case ZIP_EM_TRAD_PKWARE:
-        return operation == ZIP_CODEC_DECODE ? libzip_source_pkware_decode : libzip_source_pkware_encode;
+    case LIBZIP_EM_TRAD_PKWARE:
+        return operation == LIBZIP_CODEC_DECODE ? libzip_source_pkware_decode : libzip_source_pkware_encode;
 
 #if defined(HAVE_CRYPTO)
-    case ZIP_EM_AES_128:
-    case ZIP_EM_AES_192:
-    case ZIP_EM_AES_256:
-        return operation == ZIP_CODEC_DECODE ? libzip_source_winlibzip_aes_decode : libzip_source_winlibzip_aes_encode;
+    case LIBZIP_EM_AES_128:
+    case LIBZIP_EM_AES_192:
+    case LIBZIP_EM_AES_256:
+        return operation == LIBZIP_CODEC_DECODE ? libzip_source_winlibzip_aes_decode : libzip_source_winlibzip_aes_encode;
 #endif
 
     default:
@@ -53,10 +53,10 @@ _libzip_get_encryption_implementation(libzip_uint16_t em, int operation) {
     }
 }
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_encryption_method_supported(libzip_uint16_t method, int encode) {
-    if (method == ZIP_EM_NONE) {
+    if (method == LIBZIP_EM_NONE) {
         return 1;
     }
-    return _libzip_get_encryption_implementation(method, encode ? ZIP_CODEC_ENCODE : ZIP_CODEC_DECODE) != NULL;
+    return _libzip_get_encryption_implementation(method, encode ? LIBZIP_CODEC_ENCODE : LIBZIP_CODEC_DECODE) != NULL;
 }

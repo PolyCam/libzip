@@ -32,11 +32,11 @@
 */
 
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_replace(libzip_t *za, libzip_uint64_t idx, libzip_source_t *source) {
     return libzip_file_replace(za, idx, source, 0);
 }

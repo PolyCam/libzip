@@ -57,7 +57,7 @@ static libzip_source_file_operations_t ops_win32_read = {
 
 /* clang-format on */
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_win32handle(libzip_t *za, HANDLE h, libzip_uint64_t start, libzip_int64_t len) {
     if (za == NULL) {
         return NULL;
@@ -67,10 +67,10 @@ libzip_source_win32handle(libzip_t *za, HANDLE h, libzip_uint64_t start, libzip_
 }
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_win32handle_create(HANDLE h, libzip_uint64_t start, libzip_int64_t length, libzip_error_t *error) {
-    if (h == INVALID_HANDLE_VALUE || length < ZIP_LENGTH_UNCHECKED) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+    if (h == INVALID_HANDLE_VALUE || length < LIBZIP_LENGTH_UNCHECKED) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
@@ -90,7 +90,7 @@ _libzip_win32_op_read(libzip_source_file_context_t *ctx, void *buf, libzip_uint6
 
     /* TODO: cap len to "DWORD_MAX" */
     if (!ReadFile((HANDLE)ctx->f, buf, (DWORD)len, &i, NULL)) {
-        libzip_error_set(&ctx->error, ZIP_ER_READ, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_READ, _libzip_win32_error_to_errno(GetLastError()));
         return -1;
     }
 
@@ -114,13 +114,13 @@ _libzip_win32_op_seek(libzip_source_file_context_t *ctx, void *f, libzip_int64_t
         method = FILE_CURRENT;
         break;
     default:
-        libzip_error_set(&ctx->error, ZIP_ER_SEEK, EINVAL);
+        libzip_error_set(&ctx->error, LIBZIP_ER_SEEK, EINVAL);
         return false;
     }
 
     li.QuadPart = (LONGLONG)offset;
     if (!SetFilePointerEx((HANDLE)f, li, NULL, method)) {
-        libzip_error_set(&ctx->error, ZIP_ER_SEEK, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_SEEK, _libzip_win32_error_to_errno(GetLastError()));
         return false;
     }
 
@@ -141,7 +141,7 @@ _libzip_win32_op_tell(libzip_source_file_context_t *ctx, void *f) {
 
     zero.QuadPart = 0;
     if (!SetFilePointerEx((HANDLE)f, zero, &new_offset, FILE_CURRENT)) {
-        libzip_error_set(&ctx->error, ZIP_ER_SEEK, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_SEEK, _libzip_win32_error_to_errno(GetLastError()));
         return -1;
     }
 
@@ -181,11 +181,11 @@ _libzip_stat_win32(libzip_source_file_context_t *ctx, libzip_source_file_stat_t 
     LARGE_INTEGER size;
 
     if (!GetFileTime(h, NULL, NULL, &mtimeft)) {
-        libzip_error_set(&ctx->error, ZIP_ER_READ, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_READ, _libzip_win32_error_to_errno(GetLastError()));
         return false;
     }
     if (!_libzip_filetime_to_time_t(mtimeft, &mtime)) {
-        libzip_error_set(&ctx->error, ZIP_ER_READ, ERANGE);
+        libzip_error_set(&ctx->error, LIBZIP_ER_READ, ERANGE);
         return false;
     }
 
@@ -196,7 +196,7 @@ _libzip_stat_win32(libzip_source_file_context_t *ctx, libzip_source_file_stat_t 
         st->regular_file = 1;
 
         if (!GetFileSizeEx(h, &size)) {
-            libzip_error_set(&ctx->error, ZIP_ER_READ, _libzip_win32_error_to_errno(GetLastError()));
+            libzip_error_set(&ctx->error, LIBZIP_ER_READ, _libzip_win32_error_to_errno(GetLastError()));
             return false;
         }
 

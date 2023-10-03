@@ -530,7 +530,7 @@ list_zip(const char *name, struct archive *a) {
     struct libzip_stat st;
     unsigned int i;
 
-    if ((za = libzip_open(name, check_consistency ? ZIP_CHECKCONS : 0, &err)) == NULL) {
+    if ((za = libzip_open(name, check_consistency ? LIBZIP_CHECKCONS : 0, &err)) == NULL) {
         libzip_error_t error;
         libzip_error_init_with_code(&error, err);
         fprintf(stderr, "%s: cannot open zip archive '%s': %s\n", progname, name, libzip_error_strerror(&error));
@@ -657,7 +657,7 @@ ef_read(libzip_t *za, libzip_uint64_t idx, struct entry *e) {
     libzip_int16_t n_local, n_central;
     libzip_uint16_t i;
 
-    if ((n_local = libzip_file_extra_fields_count(za, idx, ZIP_FL_LOCAL)) < 0 || (n_central = libzip_file_extra_fields_count(za, idx, ZIP_FL_CENTRAL)) < 0) {
+    if ((n_local = libzip_file_extra_fields_count(za, idx, LIBZIP_FL_LOCAL)) < 0 || (n_central = libzip_file_extra_fields_count(za, idx, LIBZIP_FL_CENTRAL)) < 0) {
         return -1;
     }
 
@@ -668,17 +668,17 @@ ef_read(libzip_t *za, libzip_uint64_t idx, struct entry *e) {
 
     for (i = 0; i < n_local; i++) {
         e->extra_fields[i].name = e->name;
-        e->extra_fields[i].data = libzip_file_extra_field_get(za, idx, i, &e->extra_fields[i].id, &e->extra_fields[i].size, ZIP_FL_LOCAL);
+        e->extra_fields[i].data = libzip_file_extra_field_get(za, idx, i, &e->extra_fields[i].id, &e->extra_fields[i].size, LIBZIP_FL_LOCAL);
         if (e->extra_fields[i].data == NULL)
             return -1;
-        e->extra_fields[i].flags = ZIP_FL_LOCAL;
+        e->extra_fields[i].flags = LIBZIP_FL_LOCAL;
     }
     for (; i < e->n_extra_fields; i++) {
         e->extra_fields[i].name = e->name;
-        e->extra_fields[i].data = libzip_file_extra_field_get(za, idx, (libzip_uint16_t)(i - n_local), &e->extra_fields[i].id, &e->extra_fields[i].size, ZIP_FL_CENTRAL);
+        e->extra_fields[i].data = libzip_file_extra_field_get(za, idx, (libzip_uint16_t)(i - n_local), &e->extra_fields[i].id, &e->extra_fields[i].size, LIBZIP_FL_CENTRAL);
         if (e->extra_fields[i].data == NULL)
             return -1;
-        e->extra_fields[i].flags = ZIP_FL_CENTRAL;
+        e->extra_fields[i].flags = LIBZIP_FL_CENTRAL;
     }
 
     qsort(e->extra_fields, e->n_extra_fields, sizeof(e->extra_fields[0]), ef_order);
@@ -722,7 +722,7 @@ static void
 ef_print(char side, const void *p) {
     const struct ef *ef = (struct ef *)p;
 
-    diff_output_data(&output, side, ef->data, ef->size, "  %s extra field %s", ef->flags == ZIP_FL_LOCAL ? "local" : "central", map_enum(extra_fields, ef->id));
+    diff_output_data(&output, side, ef->data, ef->size, "  %s extra field %s", ef->flags == LIBZIP_FL_LOCAL ? "local" : "central", map_enum(extra_fields, ef->id));
 }
 
 

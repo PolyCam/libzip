@@ -56,12 +56,12 @@ libzip_source_crc_create(libzip_source_t *src, int validate, libzip_error_t *err
     struct crc_context *ctx;
 
     if (src == NULL) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if ((ctx = (struct crc_context *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -84,11 +84,11 @@ crc_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, libz
     ctx = (struct crc_context *)_ctx;
 
     switch (cmd) {
-    case ZIP_SOURCE_OPEN:
+    case LIBZIP_SOURCE_OPEN:
         ctx->position = 0;
         return 0;
 
-    case ZIP_SOURCE_READ:
+    case LIBZIP_SOURCE_READ:
         if ((n = libzip_source_read(src, data, len)) < 0) {
             libzip_error_set_from_source(&ctx->error, src);
             return -1;
@@ -107,13 +107,13 @@ crc_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, libz
                         return -1;
                     }
 
-                    if ((st.valid & ZIP_STAT_CRC) && st.crc != ctx->crc) {
-                        libzip_error_set(&ctx->error, ZIP_ER_CRC, 0);
+                    if ((st.valid & LIBZIP_STAT_CRC) && st.crc != ctx->crc) {
+                        libzip_error_set(&ctx->error, LIBZIP_ER_CRC, 0);
                         return -1;
                     }
-                    if ((st.valid & ZIP_STAT_SIZE) && st.size != ctx->size) {
+                    if ((st.valid & LIBZIP_STAT_SIZE) && st.size != ctx->size) {
                         /* We don't have the index here, but the caller should know which file they are reading from. */
-                        libzip_error_set(&ctx->error, ZIP_ER_INCONS, MAKE_DETAIL_WITH_INDEX(ZIP_ER_DETAIL_INVALID_FILE_LENGTH, MAX_DETAIL_INDEX));
+                        libzip_error_set(&ctx->error, LIBZIP_ER_INCONS, MAKE_DETAIL_WITH_INDEX(LIBZIP_ER_DETAIL_INVALID_FILE_LENGTH, MAX_DETAIL_INDEX));
                         return -1;
                     }
                 }
@@ -123,7 +123,7 @@ crc_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, libz
             libzip_uint64_t i, nn;
 
             for (i = ctx->crc_position - ctx->position; i < (libzip_uint64_t)n; i += nn) {
-                nn = ZIP_MIN(UINT_MAX, (libzip_uint64_t)n - i);
+                nn = LIBZIP_MIN(UINT_MAX, (libzip_uint64_t)n - i);
 
                 ctx->crc = (libzip_uint32_t)crc32(ctx->crc, (const Bytef *)data + i, (uInt)nn);
                 ctx->crc_position += nn;
@@ -132,17 +132,17 @@ crc_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, libz
         ctx->position += (libzip_uint64_t)n;
         return n;
 
-    case ZIP_SOURCE_CLOSE:
+    case LIBZIP_SOURCE_CLOSE:
         return 0;
 
-    case ZIP_SOURCE_STAT: {
+    case LIBZIP_SOURCE_STAT: {
         libzip_stat_t *st;
 
         st = (libzip_stat_t *)data;
 
         if (ctx->crc_complete) {
-            if ((st->valid & ZIP_STAT_SIZE) && st->size != ctx->size) {
-                libzip_error_set(&ctx->error, ZIP_ER_DATA_LENGTH, 0);
+            if ((st->valid & LIBZIP_STAT_SIZE) && st->size != ctx->size) {
+                libzip_error_set(&ctx->error, LIBZIP_ER_DATA_LENGTH, 0);
                 return -1;
             }
             /* TODO: Set comp_size, comp_method, encryption_method?
@@ -150,21 +150,21 @@ crc_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, libz
             st->size = ctx->size;
             st->crc = ctx->crc;
             st->comp_size = ctx->size;
-            st->comp_method = ZIP_CM_STORE;
-            st->encryption_method = ZIP_EM_NONE;
-            st->valid |= ZIP_STAT_SIZE | ZIP_STAT_CRC | ZIP_STAT_COMP_SIZE | ZIP_STAT_COMP_METHOD | ZIP_STAT_ENCRYPTION_METHOD;
+            st->comp_method = LIBZIP_CM_STORE;
+            st->encryption_method = LIBZIP_EM_NONE;
+            st->valid |= LIBZIP_STAT_SIZE | LIBZIP_STAT_CRC | LIBZIP_STAT_COMP_SIZE | LIBZIP_STAT_COMP_METHOD | LIBZIP_STAT_ENCRYPTION_METHOD;
         }
         return 0;
     }
 
-    case ZIP_SOURCE_ERROR:
+    case LIBZIP_SOURCE_ERROR:
         return libzip_error_to_data(&ctx->error, data, len);
 
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         free(ctx);
         return 0;
 
-    case ZIP_SOURCE_SUPPORTS: {
+    case LIBZIP_SOURCE_SUPPORTS: {
         libzip_int64_t mask = libzip_source_supports(src);
 
         if (mask < 0) {
@@ -172,14 +172,14 @@ crc_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, libz
             return -1;
         }
 
-        mask &= ~libzip_source_make_command_bitmap(ZIP_SOURCE_BEGIN_WRITE, ZIP_SOURCE_COMMIT_WRITE, ZIP_SOURCE_ROLLBACK_WRITE, ZIP_SOURCE_SEEK_WRITE, ZIP_SOURCE_TELL_WRITE, ZIP_SOURCE_REMOVE, ZIP_SOURCE_GET_FILE_ATTRIBUTES, -1);
-        mask |= libzip_source_make_command_bitmap(ZIP_SOURCE_FREE, -1);
+        mask &= ~libzip_source_make_command_bitmap(LIBZIP_SOURCE_BEGIN_WRITE, LIBZIP_SOURCE_COMMIT_WRITE, LIBZIP_SOURCE_ROLLBACK_WRITE, LIBZIP_SOURCE_SEEK_WRITE, LIBZIP_SOURCE_TELL_WRITE, LIBZIP_SOURCE_REMOVE, LIBZIP_SOURCE_GET_FILE_ATTRIBUTES, -1);
+        mask |= libzip_source_make_command_bitmap(LIBZIP_SOURCE_FREE, -1);
         return mask;
     }
 
-    case ZIP_SOURCE_SEEK: {
+    case LIBZIP_SOURCE_SEEK: {
         libzip_int64_t new_position;
-        libzip_source_args_seek_t *args = ZIP_SOURCE_GET_ARGS(libzip_source_args_seek_t, data, len, &ctx->error);
+        libzip_source_args_seek_t *args = LIBZIP_SOURCE_GET_ARGS(libzip_source_args_seek_t, data, len, &ctx->error);
 
         if (args == NULL) {
             return -1;
@@ -194,7 +194,7 @@ crc_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, libz
         return 0;
     }
 
-    case ZIP_SOURCE_TELL:
+    case LIBZIP_SOURCE_TELL:
         return (libzip_int64_t)ctx->position;
 
     default:

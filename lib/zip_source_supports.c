@@ -44,15 +44,15 @@ libzip_source_supports(libzip_source_t *src) {
 
 bool
 libzip_source_supports_reopen(libzip_source_t *src) {
-    return (libzip_source_supports(src) & ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_SUPPORTS_REOPEN)) != 0;
+    return (libzip_source_supports(src) & LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_SUPPORTS_REOPEN)) != 0;
 }
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_source_make_command_bitmap(libzip_source_cmd_t cmd0, ...) {
     libzip_int64_t bitmap;
     va_list ap;
 
-    bitmap = ZIP_SOURCE_MAKE_COMMAND_BITMASK(cmd0);
+    bitmap = LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(cmd0);
 
 
     va_start(ap, cmd0);
@@ -61,7 +61,7 @@ libzip_source_make_command_bitmap(libzip_source_cmd_t cmd0, ...) {
         if (cmd < 0) {
             break;
         }
-        bitmap |= ZIP_SOURCE_MAKE_COMMAND_BITMASK(cmd);
+        bitmap |= LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(cmd);
     }
     va_end(ap);
 
@@ -69,6 +69,6 @@ libzip_source_make_command_bitmap(libzip_source_cmd_t cmd0, ...) {
 }
 
 
-ZIP_EXTERN int libzip_source_is_seekable(libzip_source_t *src) {
-    return ZIP_SOURCE_CHECK_SUPPORTED(libzip_source_supports(src->src), ZIP_SOURCE_SEEK);
+LIBZIP_EXTERN int libzip_source_is_seekable(libzip_source_t *src) {
+    return LIBZIP_SOURCE_CHECK_SUPPORTED(libzip_source_supports(src->src), LIBZIP_SOURCE_SEEK);
 }

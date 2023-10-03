@@ -40,20 +40,20 @@
 
 /* NOTE: Signed due to -1 on error.  See libzip_add.c for more details. */
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_dir_add(libzip_t *za, const char *name, libzip_flags_t flags) {
     size_t len;
     libzip_int64_t idx;
     char *s;
     libzip_source_t *source;
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
 
     if (name == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
@@ -62,7 +62,7 @@ libzip_dir_add(libzip_t *za, const char *name, libzip_flags_t flags) {
 
     if (name[len - 1] != '/') {
         if (len > SIZE_MAX - 2 || (s = (char *)malloc(len + 2)) == NULL) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             return -1;
         }
         (void)strncpy_s(s, len + 2, name, len);
@@ -75,14 +75,14 @@ libzip_dir_add(libzip_t *za, const char *name, libzip_flags_t flags) {
         return -1;
     }
 
-    idx = _libzip_file_replace(za, ZIP_UINT64_MAX, s ? s : name, source, flags);
+    idx = _libzip_file_replace(za, LIBZIP_UINT64_MAX, s ? s : name, source, flags);
 
     free(s);
 
     if (idx < 0)
         libzip_source_free(source);
     else {
-        if (libzip_file_set_external_attributes(za, (libzip_uint64_t)idx, 0, ZIP_OPSYS_DEFAULT, ZIP_EXT_ATTRIB_DEFAULT_DIR) < 0) {
+        if (libzip_file_set_external_attributes(za, (libzip_uint64_t)idx, 0, LIBZIP_OPSYS_DEFAULT, LIBZIP_EXT_ATTRIB_DEFAULT_DIR) < 0) {
             libzip_delete(za, (libzip_uint64_t)idx);
             return -1;
         }

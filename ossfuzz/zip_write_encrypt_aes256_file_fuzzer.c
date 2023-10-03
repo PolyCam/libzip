@@ -41,7 +41,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     randomize(password, 20);
     randomize(file, 20);
 
-    if ((archive = libzip_open(path, ZIP_CREATE, &error)) == NULL) {
+    if ((archive = libzip_open(path, LIBZIP_CREATE, &error)) == NULL) {
         return -1;
     }
 
@@ -52,14 +52,14 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         return -1;
     }
 
-    int index = (int)libzip_file_add(archive, file, source, ZIP_FL_OVERWRITE);
+    int index = (int)libzip_file_add(archive, file, source, LIBZIP_FL_OVERWRITE);
     if (index < 0) {
         fprintf(stderr, "failed to add file to archive: %s\n", libzip_strerror(archive));
         libzip_source_free(source);
         libzip_discard(archive);
         return -1;
     }
-    if (libzip_file_set_encryption(archive, index, ZIP_EM_AES_256, password) < 0) {
+    if (libzip_file_set_encryption(archive, index, LIBZIP_EM_AES_256, password) < 0) {
         fprintf(stderr, "failed to set file encryption: %s\n", libzip_strerror(archive));
         libzip_discard(archive);
         return -1;

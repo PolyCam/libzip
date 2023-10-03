@@ -42,8 +42,8 @@ int
 _libzip_read(libzip_source_t *src, libzip_uint8_t *b, libzip_uint64_t length, libzip_error_t *error) {
     libzip_int64_t n;
 
-    if (length > ZIP_INT64_MAX) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+    if (length > LIBZIP_INT64_MAX) {
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         return -1;
     }
 
@@ -53,7 +53,7 @@ _libzip_read(libzip_source_t *src, libzip_uint8_t *b, libzip_uint64_t length, li
     }
 
     if (n < (libzip_int64_t)length) {
-        libzip_error_set(error, ZIP_ER_EOF, 0);
+        libzip_error_set(error, LIBZIP_ER_EOF, 0);
         return -1;
     }
 
@@ -71,7 +71,7 @@ _libzip_read_data(libzip_buffer_t *buffer, libzip_source_t *src, size_t length, 
 
     r = (libzip_uint8_t *)malloc(length + (nulp ? 1 : 0));
     if (!r) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -79,7 +79,7 @@ _libzip_read_data(libzip_buffer_t *buffer, libzip_source_t *src, size_t length, 
         libzip_uint8_t *data = _libzip_buffer_get(buffer, length);
 
         if (data == NULL) {
-            libzip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
             free(r);
             return NULL;
         }
@@ -113,7 +113,7 @@ _libzip_read_string(libzip_buffer_t *buffer, libzip_source_t *src, libzip_uint16
     if ((raw = _libzip_read_data(buffer, src, len, nulp, error)) == NULL)
         return NULL;
 
-    s = _libzip_string_new(raw, len, ZIP_FL_ENC_GUESS, error);
+    s = _libzip_string_new(raw, len, LIBZIP_FL_ENC_GUESS, error);
     free(raw);
     return s;
 }
@@ -128,14 +128,14 @@ _libzip_write(libzip_t *za, const void *data, libzip_uint64_t length) {
         return -1;
     }
     if ((libzip_uint64_t)n != length) {
-        libzip_error_set(&za->error, ZIP_ER_WRITE, EINTR);
+        libzip_error_set(&za->error, LIBZIP_ER_WRITE, EINTR);
         return -1;
     }
 
     if (za->write_crc != NULL) {
         libzip_uint64_t position = 0;
         while (position < length) {
-            libzip_uint64_t nn = ZIP_MIN(UINT_MAX, length - position);
+            libzip_uint64_t nn = LIBZIP_MIN(UINT_MAX, length - position);
 
             *za->write_crc = (libzip_uint32_t)crc32(*za->write_crc, (const Bytef *)data + position, (uInt)nn);
             position += nn;

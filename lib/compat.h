@@ -1,5 +1,5 @@
-#ifndef _HAD_LIBZIP_COMPAT_H
-#define _HAD_LIBZIP_COMPAT_H
+#ifndef _HAD_LIBLIBZIP_COMPAT_H
+#define _HAD_LIBLIBZIP_COMPAT_H
 
 /*
   compat.h -- compatibility defines.
@@ -34,7 +34,7 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "zipconf.h"
+#include "libzipconf.h"
 
 #include "config.h"
 
@@ -45,9 +45,9 @@
 #define __STDC_WANT_LIB_EXT1__ 1
 
 #ifdef _WIN32
-#ifndef ZIP_EXTERN
-#ifndef ZIP_STATIC
-#define ZIP_EXTERN __declspec(dllexport)
+#ifndef LIBZIP_EXTERN
+#ifndef LIBZIP_STATIC
+#define LIBZIP_EXTERN __declspec(dllexport)
 #endif
 #endif
 /* for dup(), close(), etc. */
@@ -180,34 +180,34 @@ typedef char bool;
 #endif
 
 #if SIZEOF_OFF_T == 8
-#define ZIP_OFF_MAX ZIP_INT64_MAX
-#define ZIP_OFF_MIN ZIP_INT64_MIN
+#define LIBZIP_OFF_MAX LIBZIP_INT64_MAX
+#define LIBZIP_OFF_MIN LIBZIP_INT64_MIN
 #elif SIZEOF_OFF_T == 4
-#define ZIP_OFF_MAX ZIP_INT32_MAX
-#define ZIP_OFF_MIN ZIP_INT32_MIN
+#define LIBZIP_OFF_MAX LIBZIP_INT32_MAX
+#define LIBZIP_OFF_MIN LIBZIP_INT32_MIN
 #elif SIZEOF_OFF_T == 2
-#define ZIP_OFF_MAX ZIP_INT16_MAX
-#define ZIP_OFF_MIN ZIP_INT16_MIN
+#define LIBZIP_OFF_MAX LIBZIP_INT16_MAX
+#define LIBZIP_OFF_MIN LIBZIP_INT16_MIN
 #else
 #error unsupported size of off_t
 #endif
 
 #if defined(HAVE_FTELLO) && defined(HAVE_FSEEKO)
-#define ZIP_FSEEK_MAX ZIP_OFF_MAX
-#define ZIP_FSEEK_MIN ZIP_OFF_MIN
+#define LIBZIP_FSEEK_MAX LIBZIP_OFF_MAX
+#define LIBZIP_FSEEK_MIN LIBZIP_OFF_MIN
 #else
 #include <limits.h>
-#define ZIP_FSEEK_MAX LONG_MAX
-#define ZIP_FSEEK_MIN LONG_MIN
+#define LIBZIP_FSEEK_MAX LONG_MAX
+#define LIBZIP_FSEEK_MIN LONG_MIN
 #endif
 
 #ifndef SIZE_MAX
 #if SIZEOF_SIZE_T == 8
-#define SIZE_MAX ZIP_INT64_MAX
+#define SIZE_MAX LIBZIP_INT64_MAX
 #elif SIZEOF_SIZE_T == 4
-#define SIZE_MAX ZIP_INT32_MAX
+#define SIZE_MAX LIBZIP_INT32_MAX
 #elif SIZEOF_SIZE_T == 2
-#define SIZE_MAX ZIP_INT16_MAX
+#define SIZE_MAX LIBZIP_INT16_MAX
 #else
 #error unsupported size of size_t
 #endif

@@ -37,7 +37,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_source_free(libzip_source_t *src) {
     if (src == NULL)
         return;
@@ -49,11 +49,11 @@ libzip_source_free(libzip_source_t *src) {
         return;
     }
 
-    if (ZIP_SOURCE_IS_OPEN_READING(src)) {
+    if (LIBZIP_SOURCE_IS_OPEN_READING(src)) {
         src->open_count = 1; /* force close */
         libzip_source_close(src);
     }
-    if (ZIP_SOURCE_IS_OPEN_WRITING(src)) {
+    if (LIBZIP_SOURCE_IS_OPEN_WRITING(src)) {
         libzip_source_rollback_write(src);
     }
 
@@ -61,7 +61,7 @@ libzip_source_free(libzip_source_t *src) {
         _libzip_deregister_source(src->source_archive, src);
     }
 
-    (void)_libzip_source_call(src, NULL, 0, ZIP_SOURCE_FREE);
+    (void)_libzip_source_call(src, NULL, 0, LIBZIP_SOURCE_FREE);
 
     if (src->src) {
         libzip_source_free(src->src);

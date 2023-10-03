@@ -37,18 +37,18 @@
 
 int
 libzip_source_close(libzip_source_t *src) {
-    if (!ZIP_SOURCE_IS_OPEN_READING(src)) {
-        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
+    if (!LIBZIP_SOURCE_IS_OPEN_READING(src)) {
+        libzip_error_set(&src->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     src->open_count--;
     if (src->open_count == 0) {
-        _libzip_source_call(src, NULL, 0, ZIP_SOURCE_CLOSE);
+        _libzip_source_call(src, NULL, 0, LIBZIP_SOURCE_CLOSE);
 
-        if (ZIP_SOURCE_IS_LAYERED(src)) {
+        if (LIBZIP_SOURCE_IS_LAYERED(src)) {
             if (libzip_source_close(src->src) < 0) {
-                libzip_error_set(&src->error, ZIP_ER_INTERNAL, 0);
+                libzip_error_set(&src->error, LIBZIP_ER_INTERNAL, 0);
             }
         }
     }

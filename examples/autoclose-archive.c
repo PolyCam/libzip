@@ -51,7 +51,7 @@ libzip_int64_t callback(libzip_source_t* src, void *ud, void* data, libzip_uint6
     struct ctx* ctx = (struct ctx*)ud;
 
     switch (command) {
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         /* Close zip archive we took ownership of */
         libzip_discard(ctx->archive);
         /* Free our own context */
@@ -70,7 +70,7 @@ libzip_source_t* create_layered_autoclose(libzip_source_t* source, libzip_t *arc
 
     /* Allocate context. */
     if (ctx == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -134,7 +134,7 @@ main(int argc, char *argv[]) {
         exit(1);
     }
 
-    if ((z_destination = libzip_open(destination_archive, ZIP_CREATE, &err)) == NULL) {
+    if ((z_destination = libzip_open(destination_archive, LIBZIP_CREATE, &err)) == NULL) {
         libzip_error_init_with_code(&error, err);
         fprintf(stderr, "%s: cannot open zip archive '%s': %s\n", argv[0], destination_archive, libzip_error_strerror(&error));
         libzip_error_fini(&error);

@@ -84,7 +84,7 @@ libzip_source_t *libzip_source_buffer_with_attributes_create(const void *data, l
 libzip_source_t *libzip_source_buffer_fragment_with_attributes_create(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments, int freep, libzip_file_attributes_t *attributes, libzip_error_t *error);
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_buffer(libzip_t *za, const void *data, libzip_uint64_t len, int freep) {
     if (za == NULL)
         return NULL;
@@ -93,7 +93,7 @@ libzip_source_buffer(libzip_t *za, const void *data, libzip_uint64_t len, int fr
 }
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_buffer_create(const void *data, libzip_uint64_t len, int freep, libzip_error_t *error) {
     return libzip_source_buffer_with_attributes_create(data, len, freep, NULL, error);
 }
@@ -105,7 +105,7 @@ libzip_source_buffer_with_attributes_create(const void *data, libzip_uint64_t le
 
     if (data == NULL) {
         if (len > 0) {
-            libzip_error_set(error, ZIP_ER_INVAL, 0);
+            libzip_error_set(error, LIBZIP_ER_INVAL, 0);
             return NULL;
         }
 
@@ -119,7 +119,7 @@ libzip_source_buffer_with_attributes_create(const void *data, libzip_uint64_t le
 }
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_buffer_fragment(libzip_t *za, const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments, int freep) {
     if (za == NULL) {
         return NULL;
@@ -129,7 +129,7 @@ libzip_source_buffer_fragment(libzip_t *za, const libzip_buffer_fragment_t *frag
 }
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_buffer_fragment_create(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments, int freep, libzip_error_t *error) {
     return libzip_source_buffer_fragment_with_attributes_create(fragments, nfragments, freep, NULL, error);
 }
@@ -141,7 +141,7 @@ libzip_source_buffer_fragment_with_attributes_create(const libzip_buffer_fragmen
     buffer_t *buffer;
 
     if (fragments == NULL && nfragments > 0) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
@@ -150,7 +150,7 @@ libzip_source_buffer_fragment_with_attributes_create(const libzip_buffer_fragmen
     }
 
     if ((ctx = (struct read_data *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         buffer_free(buffer);
         return NULL;
     }
@@ -186,7 +186,7 @@ read_data(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
     struct read_data *ctx = (struct read_data *)state;
 
     switch (cmd) {
-    case ZIP_SOURCE_BEGIN_WRITE:
+    case LIBZIP_SOURCE_BEGIN_WRITE:
         if ((ctx->out = buffer_new(NULL, 0, 0, &ctx->error)) == NULL) {
             return -1;
         }
@@ -194,7 +194,7 @@ read_data(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         ctx->out->current_fragment = 0;
         return 0;
 
-    case ZIP_SOURCE_BEGIN_WRITE_CLONING:
+    case LIBZIP_SOURCE_BEGIN_WRITE_CLONING:
         if ((ctx->out = buffer_clone(ctx->in, len, &ctx->error)) == NULL) {
             return -1;
         }
@@ -202,27 +202,27 @@ read_data(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         ctx->out->current_fragment = ctx->out->nfragments;
         return 0;
 
-    case ZIP_SOURCE_CLOSE:
+    case LIBZIP_SOURCE_CLOSE:
         return 0;
 
-    case ZIP_SOURCE_COMMIT_WRITE:
+    case LIBZIP_SOURCE_COMMIT_WRITE:
         buffer_free(ctx->in);
         ctx->in = ctx->out;
         ctx->out = NULL;
         return 0;
 
-    case ZIP_SOURCE_ERROR:
+    case LIBZIP_SOURCE_ERROR:
         return libzip_error_to_data(&ctx->error, data, len);
 
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         buffer_free(ctx->in);
         buffer_free(ctx->out);
         free(ctx);
         return 0;
 
-    case ZIP_SOURCE_GET_FILE_ATTRIBUTES: {
+    case LIBZIP_SOURCE_GET_FILE_ATTRIBUTES: {
         if (len < sizeof(ctx->attributes)) {
-            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
             return -1;
         }
 
@@ -231,19 +231,19 @@ read_data(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         return sizeof(ctx->attributes);
     }
 
-    case ZIP_SOURCE_OPEN:
+    case LIBZIP_SOURCE_OPEN:
         ctx->in->offset = 0;
         ctx->in->current_fragment = 0;
         return 0;
 
-    case ZIP_SOURCE_READ:
-        if (len > ZIP_INT64_MAX) {
-            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+    case LIBZIP_SOURCE_READ:
+        if (len > LIBZIP_INT64_MAX) {
+            libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
             return -1;
         }
         return buffer_read(ctx->in, data, len);
 
-    case ZIP_SOURCE_REMOVE: {
+    case LIBZIP_SOURCE_REMOVE: {
         buffer_t *empty = buffer_new(NULL, 0, 0, &ctx->error);
         if (empty == NULL) {
             return -1;
@@ -254,22 +254,22 @@ read_data(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         return 0;
     }
 
-    case ZIP_SOURCE_ROLLBACK_WRITE:
+    case LIBZIP_SOURCE_ROLLBACK_WRITE:
         buffer_free(ctx->out);
         ctx->out = NULL;
         return 0;
 
-    case ZIP_SOURCE_SEEK:
+    case LIBZIP_SOURCE_SEEK:
         return buffer_seek(ctx->in, data, len, &ctx->error);
 
-    case ZIP_SOURCE_SEEK_WRITE:
+    case LIBZIP_SOURCE_SEEK_WRITE:
         return buffer_seek(ctx->out, data, len, &ctx->error);
 
-    case ZIP_SOURCE_STAT: {
+    case LIBZIP_SOURCE_STAT: {
         libzip_stat_t *st;
 
         if (len < sizeof(*st)) {
-            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
             return -1;
         }
 
@@ -279,40 +279,40 @@ read_data(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         st->mtime = ctx->mtime;
         st->size = ctx->in->size;
         st->comp_size = st->size;
-        st->comp_method = ZIP_CM_STORE;
-        st->encryption_method = ZIP_EM_NONE;
-        st->valid = ZIP_STAT_MTIME | ZIP_STAT_SIZE | ZIP_STAT_COMP_SIZE | ZIP_STAT_COMP_METHOD | ZIP_STAT_ENCRYPTION_METHOD;
+        st->comp_method = LIBZIP_CM_STORE;
+        st->encryption_method = LIBZIP_EM_NONE;
+        st->valid = LIBZIP_STAT_MTIME | LIBZIP_STAT_SIZE | LIBZIP_STAT_COMP_SIZE | LIBZIP_STAT_COMP_METHOD | LIBZIP_STAT_ENCRYPTION_METHOD;
 
         return sizeof(*st);
     }
 
-    case ZIP_SOURCE_SUPPORTS:
-        return libzip_source_make_command_bitmap(ZIP_SOURCE_GET_FILE_ATTRIBUTES, ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_CLOSE, ZIP_SOURCE_STAT, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE, ZIP_SOURCE_SEEK, ZIP_SOURCE_TELL, ZIP_SOURCE_BEGIN_WRITE, ZIP_SOURCE_BEGIN_WRITE_CLONING, ZIP_SOURCE_COMMIT_WRITE, ZIP_SOURCE_REMOVE, ZIP_SOURCE_ROLLBACK_WRITE, ZIP_SOURCE_SEEK_WRITE, ZIP_SOURCE_TELL_WRITE, ZIP_SOURCE_WRITE, ZIP_SOURCE_SUPPORTS_REOPEN, -1);
+    case LIBZIP_SOURCE_SUPPORTS:
+        return libzip_source_make_command_bitmap(LIBZIP_SOURCE_GET_FILE_ATTRIBUTES, LIBZIP_SOURCE_OPEN, LIBZIP_SOURCE_READ, LIBZIP_SOURCE_CLOSE, LIBZIP_SOURCE_STAT, LIBZIP_SOURCE_ERROR, LIBZIP_SOURCE_FREE, LIBZIP_SOURCE_SEEK, LIBZIP_SOURCE_TELL, LIBZIP_SOURCE_BEGIN_WRITE, LIBZIP_SOURCE_BEGIN_WRITE_CLONING, LIBZIP_SOURCE_COMMIT_WRITE, LIBZIP_SOURCE_REMOVE, LIBZIP_SOURCE_ROLLBACK_WRITE, LIBZIP_SOURCE_SEEK_WRITE, LIBZIP_SOURCE_TELL_WRITE, LIBZIP_SOURCE_WRITE, LIBZIP_SOURCE_SUPPORTS_REOPEN, -1);
 
-    case ZIP_SOURCE_TELL:
-        if (ctx->in->offset > ZIP_INT64_MAX) {
-            libzip_error_set(&ctx->error, ZIP_ER_TELL, EOVERFLOW);
+    case LIBZIP_SOURCE_TELL:
+        if (ctx->in->offset > LIBZIP_INT64_MAX) {
+            libzip_error_set(&ctx->error, LIBZIP_ER_TELL, EOVERFLOW);
             return -1;
         }
         return (libzip_int64_t)ctx->in->offset;
 
 
-    case ZIP_SOURCE_TELL_WRITE:
-        if (ctx->out->offset > ZIP_INT64_MAX) {
-            libzip_error_set(&ctx->error, ZIP_ER_TELL, EOVERFLOW);
+    case LIBZIP_SOURCE_TELL_WRITE:
+        if (ctx->out->offset > LIBZIP_INT64_MAX) {
+            libzip_error_set(&ctx->error, LIBZIP_ER_TELL, EOVERFLOW);
             return -1;
         }
         return (libzip_int64_t)ctx->out->offset;
 
-    case ZIP_SOURCE_WRITE:
-        if (len > ZIP_INT64_MAX) {
-            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+    case LIBZIP_SOURCE_WRITE:
+        if (len > LIBZIP_INT64_MAX) {
+            libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
             return -1;
         }
         return buffer_write(ctx->out, data, len, &ctx->error);
 
     default:
-        libzip_error_set(&ctx->error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(&ctx->error, LIBZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 }
@@ -328,11 +328,11 @@ buffer_clone(buffer_t *buffer, libzip_uint64_t offset, libzip_error_t *error) {
     }
 
     if (offset > buffer->size) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
     if (buffer->shared_buffer != NULL) {
-        libzip_error_set(error, ZIP_ER_INUSE, 0);
+        libzip_error_set(error, LIBZIP_ER_INUSE, 0);
         return NULL;
     }
 
@@ -347,7 +347,7 @@ buffer_clone(buffer_t *buffer, libzip_uint64_t offset, libzip_error_t *error) {
     /* TODO: This should also consider the length of the fully shared fragments */
     waste = buffer->fragments[fragment].length - fragment_offset;
     if (waste > offset) {
-        libzip_error_set(error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(error, LIBZIP_ER_OPNOTSUPP, 0);
         return NULL;
     }
 
@@ -362,7 +362,7 @@ buffer_clone(buffer_t *buffer, libzip_uint64_t offset, libzip_error_t *error) {
     clone->fragment_offsets[clone->nfragments] = offset;
     clone->size = offset;
 
-    clone->first_owned_fragment = ZIP_MIN(buffer->first_owned_fragment, clone->nfragments);
+    clone->first_owned_fragment = LIBZIP_MIN(buffer->first_owned_fragment, clone->nfragments);
 
     buffer->shared_buffer = clone;
     clone->shared_buffer = buffer;
@@ -413,7 +413,7 @@ buffer_free(buffer_t *buffer) {
         buffer->shared_buffer->shared_buffer = NULL;
         buffer->shared_buffer->shared_fragments = 0;
 
-        buffer->first_owned_fragment = ZIP_MAX(buffer->first_owned_fragment, buffer->shared_fragments);
+        buffer->first_owned_fragment = LIBZIP_MAX(buffer->first_owned_fragment, buffer->shared_fragments);
     }
 
     for (i = buffer->first_owned_fragment; i < buffer->nfragments; i++) {
@@ -437,18 +437,18 @@ buffer_grow_fragments(buffer_t *buffer, libzip_uint64_t capacity, libzip_error_t
     libzip_uint64_t fragments_size = sizeof(buffer->fragments[0]) * capacity;
     libzip_uint64_t offsets_size = sizeof(buffer->fragment_offsets[0]) * (capacity + 1);
 
-    if (capacity == ZIP_UINT64_MAX || fragments_size < capacity || fragments_size > SIZE_MAX|| offsets_size < capacity || offsets_size > SIZE_MAX) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+    if (capacity == LIBZIP_UINT64_MAX || fragments_size < capacity || fragments_size > SIZE_MAX|| offsets_size < capacity || offsets_size > SIZE_MAX) {
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return false;
     }
 
     if ((fragments = realloc(buffer->fragments, (size_t)fragments_size)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return false;
     }
     buffer->fragments = fragments;
     if ((offsets = realloc(buffer->fragment_offsets, (size_t)offsets_size)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return false;
     }
     buffer->fragment_offsets = offsets;
@@ -479,7 +479,7 @@ buffer_new(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments
     if (nfragments == 0) {
         if ((buffer->fragment_offsets = malloc(sizeof(buffer->fragment_offsets[0]))) == NULL) {
             free(buffer);
-            libzip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
             return NULL;
         }
         buffer->fragment_offsets[0] = 0;
@@ -488,7 +488,7 @@ buffer_new(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments
         libzip_uint64_t i, j, offset;
 
         if (!buffer_grow_fragments(buffer, nfragments, NULL)) {
-            libzip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
             buffer_free(buffer);
             return NULL;
         }
@@ -499,7 +499,7 @@ buffer_new(const libzip_buffer_fragment_t *fragments, libzip_uint64_t nfragments
                 continue;
             }
             if (fragments[i].data == NULL) {
-                libzip_error_set(error, ZIP_ER_INVAL, 0);
+                libzip_error_set(error, LIBZIP_ER_INVAL, 0);
                 buffer_free(buffer);
                 return NULL;
             }
@@ -523,12 +523,12 @@ static libzip_int64_t
 buffer_read(buffer_t *buffer, libzip_uint8_t *data, libzip_uint64_t length) {
     libzip_uint64_t n, i, fragment_offset;
 
-    length = ZIP_MIN(length, buffer->size - buffer->offset);
+    length = LIBZIP_MIN(length, buffer->size - buffer->offset);
 
     if (length == 0) {
         return 0;
     }
-    if (length > ZIP_INT64_MAX) {
+    if (length > LIBZIP_INT64_MAX) {
         return -1;
     }
 
@@ -536,9 +536,9 @@ buffer_read(buffer_t *buffer, libzip_uint8_t *data, libzip_uint64_t length) {
     fragment_offset = buffer->offset - buffer->fragment_offsets[i];
     n = 0;
     while (n < length) {
-        libzip_uint64_t left = ZIP_MIN(length - n, buffer->fragments[i].length - fragment_offset);
-#if ZIP_UINT64_MAX > SIZE_MAX
-        left = ZIP_MIN(left, SIZE_MAX);
+        libzip_uint64_t left = LIBZIP_MIN(length - n, buffer->fragments[i].length - fragment_offset);
+#if LIBZIP_UINT64_MAX > SIZE_MAX
+        left = LIBZIP_MIN(left, SIZE_MAX);
 #endif
 
         (void)memcpy_s(data + n, (size_t)left, buffer->fragments[i].data + fragment_offset, (size_t)left);
@@ -575,7 +575,7 @@ buffer_write(buffer_t *buffer, const libzip_uint8_t *data, libzip_uint64_t lengt
     libzip_uint64_t copied, i, fragment_offset, capacity;
 
     if (buffer->offset + length + WRITE_FRAGMENT_SIZE - 1 < length) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
@@ -595,14 +595,14 @@ buffer_write(buffer_t *buffer, const libzip_uint8_t *data, libzip_uint64_t lengt
             }
 
             if (!buffer_grow_fragments(buffer, new_capacity, error)) {
-                libzip_error_set(error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
                 return -1;
             }
         }
 
         while (buffer->nfragments < needed_fragments) {
             if ((buffer->fragments[buffer->nfragments].data = malloc(WRITE_FRAGMENT_SIZE)) == NULL) {
-                libzip_error_set(error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
                 return -1;
             }
             buffer->fragments[buffer->nfragments].length = WRITE_FRAGMENT_SIZE;
@@ -616,9 +616,9 @@ buffer_write(buffer_t *buffer, const libzip_uint8_t *data, libzip_uint64_t lengt
     fragment_offset = buffer->offset - buffer->fragment_offsets[i];
     copied = 0;
     while (copied < length) {
-        libzip_uint64_t n = ZIP_MIN(ZIP_MIN(length - copied, buffer->fragments[i].length - fragment_offset), SIZE_MAX);
-#if ZIP_UINT64_MAX > SIZE_MAX
-        n = ZIP_MIN(n, SIZE_MAX);
+        libzip_uint64_t n = LIBZIP_MIN(LIBZIP_MIN(length - copied, buffer->fragments[i].length - fragment_offset), SIZE_MAX);
+#if LIBZIP_UINT64_MAX > SIZE_MAX
+        n = LIBZIP_MIN(n, SIZE_MAX);
 #endif
 
         (void)memcpy_s(buffer->fragments[i].data + fragment_offset, (size_t)n, data + copied, (size_t)n);

@@ -31,11 +31,11 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_file_error_get(libzip_file_t *zf, int *zep, int *sep) {
     _libzip_error_get(&zf->error, zep, sep);
 }

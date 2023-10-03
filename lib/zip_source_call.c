@@ -39,8 +39,8 @@ libzip_int64_t
 _libzip_source_call(libzip_source_t *src, void *data, libzip_uint64_t length, libzip_source_cmd_t command) {
     libzip_int64_t ret;
 
-    if ((src->supports & ZIP_SOURCE_MAKE_COMMAND_BITMASK(command)) == 0) {
-        libzip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
+    if ((src->supports & LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(command)) == 0) {
+        libzip_error_set(&src->error, LIBZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 
@@ -52,11 +52,11 @@ _libzip_source_call(libzip_source_t *src, void *data, libzip_uint64_t length, li
     }
 
     if (ret < 0) {
-        if (command != ZIP_SOURCE_ERROR && command != ZIP_SOURCE_SUPPORTS) {
+        if (command != LIBZIP_SOURCE_ERROR && command != LIBZIP_SOURCE_SUPPORTS) {
             int e[2];
 
-            if (_libzip_source_call(src, e, sizeof(e), ZIP_SOURCE_ERROR) < 0) {
-                libzip_error_set(&src->error, ZIP_ER_INTERNAL, 0);
+            if (_libzip_source_call(src, e, sizeof(e), LIBZIP_SOURCE_ERROR) < 0) {
+                libzip_error_set(&src->error, LIBZIP_ER_INTERNAL, 0);
             }
             else {
                 libzip_error_set(&src->error, e[0], e[1]);

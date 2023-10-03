@@ -35,14 +35,14 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_get_num_entries(libzip_t *za, libzip_flags_t flags) {
     libzip_uint64_t n;
 
     if (za == NULL)
         return -1;
 
-    if (flags & ZIP_FL_UNCHANGED) {
+    if (flags & LIBZIP_FL_UNCHANGED) {
         n = za->nentry;
         while (n > 0 && za->entry[n - 1].orig == NULL)
             --n;

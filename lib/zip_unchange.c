@@ -37,7 +37,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_unchange(libzip_t *za, libzip_uint64_t idx) {
     return _libzip_unchange(za, idx, 0);
 }
@@ -49,23 +49,23 @@ _libzip_unchange(libzip_t *za, libzip_uint64_t idx, int allow_duplicates) {
     bool renamed;
 
     if (idx >= za->nentry) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    renamed = za->entry[idx].changes && (za->entry[idx].changes->changed & ZIP_DIRENT_FILENAME);
+    renamed = za->entry[idx].changes && (za->entry[idx].changes->changed & LIBZIP_DIRENT_FILENAME);
     if (!allow_duplicates && (renamed || za->entry[idx].deleted)) {
         const char *orig_name = NULL;
         const char *changed_name = NULL;
 
         if (za->entry[idx].orig != NULL) {
-            if ((orig_name = _libzip_get_name(za, idx, ZIP_FL_UNCHANGED, &za->error)) == NULL) {
+            if ((orig_name = _libzip_get_name(za, idx, LIBZIP_FL_UNCHANGED, &za->error)) == NULL) {
                 return -1;
             }
 
             i = _libzip_name_locate(za, orig_name, 0, NULL);
             if (i >= 0 && (libzip_uint64_t)i != idx) {
-                libzip_error_set(&za->error, ZIP_ER_EXISTS, 0);
+                libzip_error_set(&za->error, LIBZIP_ER_EXISTS, 0);
                 return -1;
             }
         }

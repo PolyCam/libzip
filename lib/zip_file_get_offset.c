@@ -50,7 +50,7 @@ _libzip_file_get_offset(const libzip_t *za, libzip_uint64_t idx, libzip_error_t 
     libzip_int32_t size;
 
     if (za->entry[idx].orig == NULL) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         return 0;
     }
 
@@ -62,11 +62,11 @@ _libzip_file_get_offset(const libzip_t *za, libzip_uint64_t idx, libzip_error_t 
     }
 
     /* TODO: cache? */
-    if ((size = _libzip_dirent_size(za->src, ZIP_EF_LOCAL, error)) < 0)
+    if ((size = _libzip_dirent_size(za->src, LIBZIP_EF_LOCAL, error)) < 0)
         return 0;
 
-    if (offset + (libzip_uint32_t)size > ZIP_INT64_MAX) {
-        libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
+    if (offset + (libzip_uint32_t)size > LIBZIP_INT64_MAX) {
+        libzip_error_set(error, LIBZIP_ER_SEEK, EFBIG);
         return 0;
     }
 
@@ -84,13 +84,13 @@ _libzip_file_get_end(const libzip_t *za, libzip_uint64_t index, libzip_error_t *
 
     entry = za->entry[index].orig;
 
-    if (offset + entry->comp_size < offset || offset + entry->comp_size > ZIP_INT64_MAX) {
-        libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
+    if (offset + entry->comp_size < offset || offset + entry->comp_size > LIBZIP_INT64_MAX) {
+        libzip_error_set(error, LIBZIP_ER_SEEK, EFBIG);
         return 0;
     }
     offset += entry->comp_size;
 
-    if (entry->bitflags & ZIP_GPBF_DATA_DESCRIPTOR) {
+    if (entry->bitflags & LIBZIP_GPBF_DATA_DESCRIPTOR) {
         libzip_uint8_t buf[4];
         if (libzip_source_seek(za->src, (libzip_int64_t)offset, SEEK_SET) < 0) {
             libzip_error_set_from_source(error, za->src);
@@ -107,8 +107,8 @@ _libzip_file_get_end(const libzip_t *za, libzip_uint64_t index, libzip_error_t *
         if (_libzip_dirent_needs_zip64(entry, 0)) {
             offset += 8;
         }
-        if (offset > ZIP_INT64_MAX) {
-            libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
+        if (offset > LIBZIP_INT64_MAX) {
+            libzip_error_set(error, LIBZIP_ER_SEEK, EFBIG);
             return 0;
         }
     }

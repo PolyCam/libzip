@@ -43,7 +43,7 @@
 
 #include <wincrypt.h>
 
-ZIP_EXTERN bool
+LIBZIP_EXTERN bool
 libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     HCRYPTPROV hprov;
     if (!CryptAcquireContext(&hprov, NULL, NULL, PROV_RSA_AES, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {

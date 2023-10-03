@@ -52,7 +52,7 @@ static libzip_cdir_t *_libzip_read_eocd(libzip_buffer_t *buffer, libzip_uint64_t
 static libzip_cdir_t *_libzip_read_eocd64(libzip_source_t *src, libzip_buffer_t *buffer, libzip_uint64_t buf_offset, unsigned int flags, libzip_error_t *error);
 
 
-ZIP_EXTERN libzip_t *
+LIBZIP_EXTERN libzip_t *
 libzip_open(const char *fn, int _flags, int *zep) {
     libzip_t *za;
     libzip_source_t *src;
@@ -77,29 +77,29 @@ libzip_open(const char *fn, int _flags, int *zep) {
 }
 
 
-ZIP_EXTERN libzip_t *
+LIBZIP_EXTERN libzip_t *
 libzip_open_from_source(libzip_source_t *src, int _flags, libzip_error_t *error) {
     unsigned int flags;
     libzip_int64_t supported;
     exists_t exists;
 
     if (_flags < 0 || src == NULL) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
     flags = (unsigned int)_flags;
 
     supported = libzip_source_supports(src);
-    if ((supported & ZIP_SOURCE_SUPPORTS_SEEKABLE) != ZIP_SOURCE_SUPPORTS_SEEKABLE) {
-        libzip_error_set(error, ZIP_ER_OPNOTSUPP, 0);
+    if ((supported & LIBZIP_SOURCE_SUPPORTS_SEEKABLE) != LIBZIP_SOURCE_SUPPORTS_SEEKABLE) {
+        libzip_error_set(error, LIBZIP_ER_OPNOTSUPP, 0);
         return NULL;
     }
-    if ((supported & ZIP_SOURCE_SUPPORTS_WRITABLE) != ZIP_SOURCE_SUPPORTS_WRITABLE) {
-        flags |= ZIP_RDONLY;
+    if ((supported & LIBZIP_SOURCE_SUPPORTS_WRITABLE) != LIBZIP_SOURCE_SUPPORTS_WRITABLE) {
+        flags |= LIBZIP_RDONLY;
     }
 
-    if ((flags & (ZIP_RDONLY | ZIP_TRUNCATE)) == (ZIP_RDONLY | ZIP_TRUNCATE)) {
-        libzip_error_set(error, ZIP_ER_RDONLY, 0);
+    if ((flags & (LIBZIP_RDONLY | LIBZIP_TRUNCATE)) == (LIBZIP_RDONLY | LIBZIP_TRUNCATE)) {
+        libzip_error_set(error, LIBZIP_ER_RDONLY, 0);
         return NULL;
     }
 
@@ -109,16 +109,16 @@ libzip_open_from_source(libzip_source_t *src, int _flags, libzip_error_t *error)
         return NULL;
 
     case EXISTS_NOT:
-        if ((flags & ZIP_CREATE) == 0) {
-            libzip_error_set(error, ZIP_ER_NOENT, 0);
+        if ((flags & LIBZIP_CREATE) == 0) {
+            libzip_error_set(error, LIBZIP_ER_NOENT, 0);
             return NULL;
         }
         return _libzip_allocate_new(src, flags, error);
 
     default: {
         libzip_t *za;
-        if (flags & ZIP_EXCL) {
-            libzip_error_set(error, ZIP_ER_EXISTS, 0);
+        if (flags & LIBZIP_EXCL) {
+            libzip_error_set(error, LIBZIP_ER_EXISTS, 0);
             return NULL;
         }
         if (libzip_source_open(src) < 0) {
@@ -126,11 +126,11 @@ libzip_open_from_source(libzip_source_t *src, int _flags, libzip_error_t *error)
             return NULL;
         }
 
-        if (flags & ZIP_TRUNCATE) {
+        if (flags & LIBZIP_TRUNCATE) {
             za = _libzip_allocate_new(src, flags, error);
         }
         else {
-            /* ZIP_CREATE gets ignored if file exists and not ZIP_EXCL, just like open() */
+            /* LIBZIP_CREATE gets ignored if file exists and not LIBZIP_EXCL, just like open() */
             za = _libzip_open(src, flags, error);
         }
 
@@ -156,8 +156,8 @@ _libzip_open(libzip_source_t *src, unsigned int flags, libzip_error_t *error) {
         libzip_error_set_from_source(error, src);
         return NULL;
     }
-    if ((st.valid & ZIP_STAT_SIZE) == 0) {
-        libzip_error_set(error, ZIP_ER_SEEK, EOPNOTSUPP);
+    if ((st.valid & LIBZIP_STAT_SIZE) == 0) {
+        libzip_error_set(error, LIBZIP_ER_SEEK, EOPNOTSUPP);
         return NULL;
     }
     len = st.size;
@@ -186,7 +186,7 @@ _libzip_open(libzip_source_t *src, unsigned int flags, libzip_error_t *error) {
 
     libzip_check_torrentzip(za, cdir);
 
-    if (ZIP_IS_TORRENTZIP(za)) {
+    if (LIBZIP_IS_TORRENTZIP(za)) {
         /* Torrentzip uses the archive comment to detect changes by tools that are not torrentzip aware. */
         _libzip_string_free(cdir->comment);
     }
@@ -207,8 +207,8 @@ _libzip_open(libzip_source_t *src, unsigned int flags, libzip_error_t *error) {
             return NULL;
         }
 
-        if (_libzip_hash_add(za->names, name, idx, ZIP_FL_UNCHANGED, &za->error) == false) {
-            if (za->error.libzip_err != ZIP_ER_EXISTS || (flags & ZIP_CHECKCONS)) {
+        if (_libzip_hash_add(za->names, name, idx, LIBZIP_FL_UNCHANGED, &za->error) == false) {
+            if (za->error.libzip_err != LIBZIP_ER_EXISTS || (flags & LIBZIP_CHECKCONS)) {
                 _libzip_error_copy(error, &za->error);
                 /* keep src so discard does not get rid of it */
                 libzip_source_keep(src);
@@ -229,8 +229,8 @@ _libzip_set_open_error(int *zep, const libzip_error_t *err, int ze) {
     if (err) {
         ze = libzip_error_code_zip(err);
 	switch (libzip_error_system_type(err)) {
-	    case ZIP_ET_SYS:
-	    case ZIP_ET_LIBZIP:
+	    case LIBZIP_ET_SYS:
+	    case LIBZIP_ET_LIBZIP:
 		errno = libzip_error_code_system(err);
 		break;
 		
@@ -260,13 +260,13 @@ _libzip_read_cdir(libzip_t *za, libzip_buffer_t *buffer, libzip_uint64_t buf_off
 
     if (_libzip_buffer_left(buffer) < EOCDLEN) {
         /* not enough bytes left for comment */
-        libzip_error_set(error, ZIP_ER_NOZIP, 0);
+        libzip_error_set(error, LIBZIP_ER_NOZIP, 0);
         return NULL;
     }
 
     /* check for end-of-central-dir magic */
     if (memcmp(_libzip_buffer_get(buffer, 4), EOCD_MAGIC, 4) != 0) {
-        libzip_error_set(error, ZIP_ER_NOZIP, 0);
+        libzip_error_set(error, LIBZIP_ER_NOZIP, 0);
         return NULL;
     }
 
@@ -287,25 +287,25 @@ _libzip_read_cdir(libzip_t *za, libzip_buffer_t *buffer, libzip_uint64_t buf_off
 
     if (cd->offset + cd->size > buf_offset + eocd_offset) {
         /* cdir spans past EOCD record */
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD);
         _libzip_cdir_free(cd);
         return NULL;
     }
 
-    if (comment_len || (za->open_flags & ZIP_CHECKCONS)) {
+    if (comment_len || (za->open_flags & LIBZIP_CHECKCONS)) {
         libzip_uint64_t tail_len;
 
         _libzip_buffer_set_offset(buffer, eocd_offset + EOCDLEN);
         tail_len = _libzip_buffer_left(buffer);
 
-        if (tail_len < comment_len || ((za->open_flags & ZIP_CHECKCONS) && tail_len != comment_len)) {
-            libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_COMMENT_LENGTH_INVALID);
+        if (tail_len < comment_len || ((za->open_flags & LIBZIP_CHECKCONS) && tail_len != comment_len)) {
+            libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_COMMENT_LENGTH_INVALID);
             _libzip_cdir_free(cd);
             return NULL;
         }
 
         if (comment_len) {
-            if ((cd->comment = _libzip_string_new(_libzip_buffer_get(buffer, comment_len), comment_len, ZIP_FL_ENC_GUESS, error)) == NULL) {
+            if ((cd->comment = _libzip_string_new(_libzip_buffer_get(buffer, comment_len), comment_len, LIBZIP_FL_ENC_GUESS, error)) == NULL) {
                 _libzip_cdir_free(cd);
                 return NULL;
             }
@@ -318,12 +318,12 @@ _libzip_read_cdir(libzip_t *za, libzip_buffer_t *buffer, libzip_uint64_t buf_off
         _libzip_buffer_set_offset(buffer, cd->offset - buf_offset);
 
         if ((data = _libzip_buffer_get(buffer, cd->size)) == NULL) {
-            libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_CDIR_LENGTH_INVALID);
+            libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_CDIR_LENGTH_INVALID);
             _libzip_cdir_free(cd);
             return NULL;
         }
         if ((cd_buffer = _libzip_buffer_new(data, cd->size)) == NULL) {
-            libzip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
             _libzip_cdir_free(cd);
             return NULL;
         }
@@ -339,7 +339,7 @@ _libzip_read_cdir(libzip_t *za, libzip_buffer_t *buffer, libzip_uint64_t buf_off
 
         /* possible consistency check: cd->offset = len-(cd->size+cd->comment_len+EOCDLEN) ? */
         if (libzip_source_tell(za->src) != (libzip_int64_t)cd->offset) {
-            libzip_error_set(error, ZIP_ER_NOZIP, 0);
+            libzip_error_set(error, LIBZIP_ER_NOZIP, 0);
             _libzip_cdir_free(cd);
             return NULL;
         }
@@ -368,11 +368,11 @@ _libzip_read_cdir(libzip_t *za, libzip_buffer_t *buffer, libzip_uint64_t buf_off
         }
 
         if ((cd->entry[i].orig = _libzip_dirent_new()) == NULL || (entry_size = _libzip_dirent_read(cd->entry[i].orig, za->src, cd_buffer, false, error)) < 0) {
-	    if (libzip_error_code_zip(error) == ZIP_ER_INCONS) {
-		libzip_error_set(error, ZIP_ER_INCONS, ADD_INDEX_TO_DETAIL(libzip_error_code_system(error), i));
+	    if (libzip_error_code_zip(error) == LIBZIP_ER_INCONS) {
+		libzip_error_set(error, LIBZIP_ER_INCONS, ADD_INDEX_TO_DETAIL(libzip_error_code_system(error), i));
 	    }
-	    else if (grown && libzip_error_code_zip(error) == ZIP_ER_NOZIP) {
-                libzip_error_set(error, ZIP_ER_INCONS, MAKE_DETAIL_WITH_INDEX(ZIP_ER_DETAIL_CDIR_ENTRY_INVALID, i));
+	    else if (grown && libzip_error_code_zip(error) == LIBZIP_ER_NOZIP) {
+                libzip_error_set(error, LIBZIP_ER_INCONS, MAKE_DETAIL_WITH_INDEX(LIBZIP_ER_DETAIL_CDIR_ENTRY_INVALID, i));
             }
             _libzip_cdir_free(cd);
             _libzip_buffer_free(cd_buffer);
@@ -383,13 +383,13 @@ _libzip_read_cdir(libzip_t *za, libzip_buffer_t *buffer, libzip_uint64_t buf_off
     }
 
     if (i != cd->nentry || left > 0) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_CDIR_WRONG_ENTRIES_COUNT);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_CDIR_WRONG_ENTRIES_COUNT);
         _libzip_buffer_free(cd_buffer);
         _libzip_cdir_free(cd);
         return NULL;
     }
 
-    if (za->open_flags & ZIP_CHECKCONS) {
+    if (za->open_flags & LIBZIP_CHECKCONS) {
         bool ok;
 
         if (cd_buffer) {
@@ -407,7 +407,7 @@ _libzip_read_cdir(libzip_t *za, libzip_buffer_t *buffer, libzip_uint64_t buf_off
         }
 
         if (!ok) {
-            libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_CDIR_LENGTH_INVALID);
+            libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_CDIR_LENGTH_INVALID);
             _libzip_buffer_free(cd_buffer);
             _libzip_cdir_free(cd);
             return NULL;
@@ -443,7 +443,7 @@ _libzip_checkcons(libzip_t *za, libzip_cdir_t *cd, libzip_error_t *error) {
         if (cd->entry[i].orig->offset < min)
             min = cd->entry[i].orig->offset;
         if (min > (libzip_uint64_t)cd->offset) {
-            libzip_error_set(error, ZIP_ER_NOZIP, 0);
+            libzip_error_set(error, LIBZIP_ER_NOZIP, 0);
             return -1;
         }
 
@@ -451,7 +451,7 @@ _libzip_checkcons(libzip_t *za, libzip_cdir_t *cd, libzip_error_t *error) {
         if (j > max)
             max = j;
         if (max > (libzip_uint64_t)cd->offset) {
-            libzip_error_set(error, ZIP_ER_NOZIP, 0);
+            libzip_error_set(error, LIBZIP_ER_NOZIP, 0);
             return -1;
         }
 
@@ -461,15 +461,15 @@ _libzip_checkcons(libzip_t *za, libzip_cdir_t *cd, libzip_error_t *error) {
         }
 
         if (_libzip_dirent_read(&temp, za->src, NULL, true, error) == -1) {
-	    if (libzip_error_code_zip(error) == ZIP_ER_INCONS) {
-		libzip_error_set(error, ZIP_ER_INCONS, ADD_INDEX_TO_DETAIL(libzip_error_code_system(error), i));
+	    if (libzip_error_code_zip(error) == LIBZIP_ER_INCONS) {
+		libzip_error_set(error, LIBZIP_ER_INCONS, ADD_INDEX_TO_DETAIL(libzip_error_code_system(error), i));
 	    }
             _libzip_dirent_finalize(&temp);
             return -1;
         }
 
         if (_libzip_headercomp(cd->entry[i].orig, &temp) != 0) {
-            libzip_error_set(error, ZIP_ER_INCONS, MAKE_DETAIL_WITH_INDEX(ZIP_ER_DETAIL_ENTRY_HEADER_MISMATCH, i));
+            libzip_error_set(error, LIBZIP_ER_INCONS, MAKE_DETAIL_WITH_INDEX(LIBZIP_ER_DETAIL_ENTRY_HEADER_MISMATCH, i));
             _libzip_dirent_finalize(&temp);
             return -1;
         }
@@ -481,7 +481,7 @@ _libzip_checkcons(libzip_t *za, libzip_cdir_t *cd, libzip_error_t *error) {
         _libzip_dirent_finalize(&temp);
     }
 
-    return (max - min) < ZIP_INT64_MAX ? (libzip_int64_t)(max - min) : ZIP_INT64_MAX;
+    return (max - min) < LIBZIP_INT64_MAX ? (libzip_int64_t)(max - min) : LIBZIP_INT64_MAX;
 }
 
 
@@ -507,7 +507,7 @@ _libzip_headercomp(const libzip_dirent_t *central, const libzip_dirent_t *local)
 	   also in violation of the appnote.
 	*/
 	/* if data descriptor is not used, the values must match */
-        if ((local->bitflags & ZIP_GPBF_DATA_DESCRIPTOR) == 0) {
+        if ((local->bitflags & LIBZIP_GPBF_DATA_DESCRIPTOR) == 0) {
             return -1;
 	}
 	/* when using a data descriptor, the local header value must be zero or match */
@@ -536,9 +536,9 @@ _libzip_allocate_new(libzip_source_t *src, unsigned int flags, libzip_error_t *e
     za->ch_flags = 0;
     za->write_crc = NULL;
 
-    if (flags & ZIP_RDONLY) {
-        za->flags |= ZIP_AFL_RDONLY;
-        za->ch_flags |= ZIP_AFL_RDONLY;
+    if (flags & LIBZIP_RDONLY) {
+        za->flags |= LIBZIP_AFL_RDONLY;
+        za->ch_flags |= LIBZIP_AFL_RDONLY;
     }
 
     return za;
@@ -555,7 +555,7 @@ _libzip_file_exists(libzip_source_t *src, libzip_error_t *error) {
     libzip_stat_init(&st);
     if (libzip_source_stat(src, &st) != 0) {
         libzip_error_t *src_error = libzip_source_error(src);
-        if (libzip_error_code_zip(src_error) == ZIP_ER_READ && libzip_error_code_system(src_error) == ENOENT) {
+        if (libzip_error_code_zip(src_error) == LIBZIP_ER_READ && libzip_error_code_system(src_error) == ENOENT) {
             return EXISTS_NOT;
         }
         _libzip_error_copy(error, src_error);
@@ -578,14 +578,14 @@ _libzip_find_central_dir(libzip_t *za, libzip_uint64_t len) {
     libzip_buffer_t *buffer;
 
     if (len < EOCDLEN) {
-        libzip_error_set(&za->error, ZIP_ER_NOZIP, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_NOZIP, 0);
         return NULL;
     }
 
     buflen = (len < CDBUFSIZE ? len : CDBUFSIZE);
     if (libzip_source_seek(za->src, -(libzip_int64_t)buflen, SEEK_END) < 0) {
         libzip_error_t *src_error = libzip_source_error(za->src);
-        if (libzip_error_code_zip(src_error) != ZIP_ER_SEEK || libzip_error_code_system(src_error) != EFBIG) {
+        if (libzip_error_code_zip(src_error) != LIBZIP_ER_SEEK || libzip_error_code_system(src_error) != EFBIG) {
             /* seek before start of file on my machine */
             _libzip_error_copy(&za->error, src_error);
             return NULL;
@@ -606,7 +606,7 @@ _libzip_find_central_dir(libzip_t *za, libzip_uint64_t len) {
         /* EOCD64 locator is before EOCD, so leave place for it */
         _libzip_buffer_set_offset(buffer, EOCD64LOCLEN);
     }
-    libzip_error_set(&error, ZIP_ER_NOZIP, 0);
+    libzip_error_set(&error, LIBZIP_ER_NOZIP, 0);
 
     match = _libzip_buffer_get(buffer, 0);
     /* The size of buffer never greater than CDBUFSIZE. */
@@ -630,7 +630,7 @@ _libzip_find_central_dir(libzip_t *za, libzip_uint64_t len) {
             }
             else {
                 cdir = cdirnew;
-                if (za->open_flags & ZIP_CHECKCONS)
+                if (za->open_flags & LIBZIP_CHECKCONS)
                     best = _libzip_checkcons(za, cdir, &error);
                 else {
                     best = 0;
@@ -686,7 +686,7 @@ _libzip_read_eocd(libzip_buffer_t *buffer, libzip_uint64_t buf_offset, unsigned 
     libzip_uint64_t i, nentry, size, offset, eocd_offset;
 
     if (_libzip_buffer_left(buffer) < EOCDLEN) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_EOCD_LENGTH_INVALID);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_EOCD_LENGTH_INVALID);
         return NULL;
     }
 
@@ -695,7 +695,7 @@ _libzip_read_eocd(libzip_buffer_t *buffer, libzip_uint64_t buf_offset, unsigned 
     _libzip_buffer_get(buffer, 4); /* magic already verified */
 
     if (_libzip_buffer_get_32(buffer) != 0) {
-        libzip_error_set(error, ZIP_ER_MULTIDISK, 0);
+        libzip_error_set(error, LIBZIP_ER_MULTIDISK, 0);
         return NULL;
     }
 
@@ -705,7 +705,7 @@ _libzip_read_eocd(libzip_buffer_t *buffer, libzip_uint64_t buf_offset, unsigned 
     nentry = _libzip_buffer_get_16(buffer);
 
     if (nentry != i) {
-        libzip_error_set(error, ZIP_ER_NOZIP, 0);
+        libzip_error_set(error, LIBZIP_ER_NOZIP, 0);
         return NULL;
     }
 
@@ -713,18 +713,18 @@ _libzip_read_eocd(libzip_buffer_t *buffer, libzip_uint64_t buf_offset, unsigned 
     offset = _libzip_buffer_get_32(buffer);
 
     if (offset + size < offset) {
-        libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
+        libzip_error_set(error, LIBZIP_ER_SEEK, EFBIG);
         return NULL;
     }
 
     if (offset + size > buf_offset + eocd_offset) {
         /* cdir spans past EOCD record */
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD);
         return NULL;
     }
 
-    if ((flags & ZIP_CHECKCONS) && offset + size != buf_offset + eocd_offset) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_CDIR_LENGTH_INVALID);
+    if ((flags & LIBZIP_CHECKCONS) && offset + size != buf_offset + eocd_offset) {
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_CDIR_LENGTH_INVALID);
         return NULL;
     }
 
@@ -758,14 +758,14 @@ _libzip_read_eocd64(libzip_source_t *src, libzip_buffer_t *buffer, libzip_uint64
     eocd_offset = _libzip_buffer_get_64(buffer);
 
     /* valid seek value for start of EOCD */
-    if (eocd_offset > ZIP_INT64_MAX) {
-        libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
+    if (eocd_offset > LIBZIP_INT64_MAX) {
+        libzip_error_set(error, LIBZIP_ER_SEEK, EFBIG);
         return NULL;
     }
 
     /* does EOCD fit before EOCD locator? */
     if (eocd_offset + EOCD64LEN > eocdloc_offset + buf_offset) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_EOCD64_OVERLAPS_EOCD);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_EOCD64_OVERLAPS_EOCD);
         return NULL;
     }
 
@@ -786,7 +786,7 @@ _libzip_read_eocd64(libzip_source_t *src, libzip_buffer_t *buffer, libzip_uint64
     }
 
     if (memcmp(_libzip_buffer_get(buffer, 4), EOCD64_MAGIC, 4) != 0) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_EOCD64_WRONG_MAGIC);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_EOCD64_WRONG_MAGIC);
         if (free_buffer) {
             _libzip_buffer_free(buffer);
         }
@@ -797,8 +797,8 @@ _libzip_read_eocd64(libzip_source_t *src, libzip_buffer_t *buffer, libzip_uint64
     size = _libzip_buffer_get_64(buffer);
 
     /* is there a hole between EOCD and EOCD locator, or do they overlap? */
-    if ((flags & ZIP_CHECKCONS) && size + eocd_offset + 12 != buf_offset + eocdloc_offset) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_EOCD64_OVERLAPS_EOCD);
+    if ((flags & LIBZIP_CHECKCONS) && size + eocd_offset + 12 != buf_offset + eocdloc_offset) {
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_EOCD64_OVERLAPS_EOCD);
         if (free_buffer) {
             _libzip_buffer_free(buffer);
         }
@@ -819,15 +819,15 @@ _libzip_read_eocd64(libzip_source_t *src, libzip_buffer_t *buffer, libzip_uint64
     if (eocd_disk == 0xffff) {
         eocd_disk = eocd_disk64;
     }
-    if ((flags & ZIP_CHECKCONS) && (eocd_disk != eocd_disk64 || num_disks != num_disks64)) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_EOCD64_MISMATCH);
+    if ((flags & LIBZIP_CHECKCONS) && (eocd_disk != eocd_disk64 || num_disks != num_disks64)) {
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_EOCD64_MISMATCH);
         if (free_buffer) {
             _libzip_buffer_free(buffer);
         }
         return NULL;
     }
     if (num_disks != 0 || eocd_disk != 0) {
-        libzip_error_set(error, ZIP_ER_MULTIDISK, 0);
+        libzip_error_set(error, LIBZIP_ER_MULTIDISK, 0);
         if (free_buffer) {
             _libzip_buffer_free(buffer);
         }
@@ -838,7 +838,7 @@ _libzip_read_eocd64(libzip_source_t *src, libzip_buffer_t *buffer, libzip_uint64
     i = _libzip_buffer_get_64(buffer);
 
     if (nentry != i) {
-        libzip_error_set(error, ZIP_ER_MULTIDISK, 0);
+        libzip_error_set(error, LIBZIP_ER_MULTIDISK, 0);
         if (free_buffer) {
             _libzip_buffer_free(buffer);
         }
@@ -850,7 +850,7 @@ _libzip_read_eocd64(libzip_source_t *src, libzip_buffer_t *buffer, libzip_uint64
 
     /* did we read past the end of the buffer? */
     if (!_libzip_buffer_ok(buffer)) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         if (free_buffer) {
             _libzip_buffer_free(buffer);
         }
@@ -861,22 +861,22 @@ _libzip_read_eocd64(libzip_source_t *src, libzip_buffer_t *buffer, libzip_uint64
         _libzip_buffer_free(buffer);
     }
 
-    if (offset > ZIP_INT64_MAX || offset + size < offset) {
-        libzip_error_set(error, ZIP_ER_SEEK, EFBIG);
+    if (offset > LIBZIP_INT64_MAX || offset + size < offset) {
+        libzip_error_set(error, LIBZIP_ER_SEEK, EFBIG);
         return NULL;
     }
     if (offset + size > buf_offset + eocd_offset) {
         /* cdir spans past EOCD record */
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD);
         return NULL;
     }
-    if ((flags & ZIP_CHECKCONS) && offset + size != buf_offset + eocd_offset) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD);
+    if ((flags & LIBZIP_CHECKCONS) && offset + size != buf_offset + eocd_offset) {
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD);
         return NULL;
     }
 
     if (nentry > size / CDENTRYSIZE) {
-        libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_CDIR_INVALID);
+        libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_CDIR_INVALID);
         return NULL;
     }
 
@@ -915,14 +915,14 @@ static void libzip_check_torrentzip(libzip_t *za, const libzip_cdir_t *cdir) {
         return;
     }
 
-    if (_libzip_string_length(cdir->comment) != TORRENTZIP_SIGNATURE_LENGTH + TORRENTZIP_CRC_LENGTH
-        || strncmp((const char *)cdir->comment->raw, TORRENTZIP_SIGNATURE, TORRENTZIP_SIGNATURE_LENGTH) != 0)
+    if (_libzip_string_length(cdir->comment) != TORRENTLIBZIP_SIGNATURE_LENGTH + TORRENTLIBZIP_CRC_LENGTH
+        || strncmp((const char *)cdir->comment->raw, TORRENTLIBZIP_SIGNATURE, TORRENTLIBZIP_SIGNATURE_LENGTH) != 0)
         return;
 
-    memcpy(buf, cdir->comment->raw + TORRENTZIP_SIGNATURE_LENGTH, TORRENTZIP_CRC_LENGTH);
-    buf[TORRENTZIP_CRC_LENGTH] = '\0';
+    memcpy(buf, cdir->comment->raw + TORRENTLIBZIP_SIGNATURE_LENGTH, TORRENTLIBZIP_CRC_LENGTH);
+    buf[TORRENTLIBZIP_CRC_LENGTH] = '\0';
     crc_should = 0;
-    for (i = 0; i < TORRENTZIP_CRC_LENGTH; i += 2) {
+    for (i = 0; i < TORRENTLIBZIP_CRC_LENGTH; i += 2) {
         int low, high;
         high = decode_hex((buf[i]));
         low = decode_hex(buf[i + 1]);
@@ -940,7 +940,7 @@ static void libzip_check_torrentzip(libzip_t *za, const libzip_cdir_t *cdir) {
         libzip_int64_t ret;
 
         libzip_stat_init(&st);
-        st.valid |= ZIP_STAT_SIZE | ZIP_STAT_CRC;
+        st.valid |= LIBZIP_STAT_SIZE | LIBZIP_STAT_CRC;
         st.size = cdir->size;
         st.crc = crc_should;
         if ((src_window = _libzip_source_window_new(za->src, cdir->offset, cdir->size, &st, 0, NULL, NULL, 0, false, NULL))  == NULL) {
@@ -963,5 +963,5 @@ static void libzip_check_torrentzip(libzip_t *za, const libzip_cdir_t *cdir) {
     }
 
     /* TODO: if check consistency, check cdir entries for valid values */
-    za->flags |= ZIP_AFL_IS_TORRENTZIP;
+    za->flags |= LIBZIP_AFL_IS_TORRENTZIP;
 }

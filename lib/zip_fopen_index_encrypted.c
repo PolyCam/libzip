@@ -40,7 +40,7 @@
 static libzip_file_t *_libzip_file_new(libzip_t *za);
 
 
-ZIP_EXTERN libzip_file_t *
+LIBZIP_EXTERN libzip_file_t *
 libzip_fopen_index_encrypted(libzip_t *za, libzip_uint64_t index, libzip_flags_t flags, const char *password) {
     libzip_file_t *zf;
     libzip_source_t *src;
@@ -74,7 +74,7 @@ _libzip_file_new(libzip_t *za) {
     libzip_file_t *zf;
 
     if ((zf = (libzip_file_t *)malloc(sizeof(struct libzip_file))) == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 

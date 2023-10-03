@@ -35,33 +35,33 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_set_file_compression(libzip_t *za, libzip_uint64_t idx, libzip_int32_t method, libzip_uint32_t flags) {
     libzip_entry_t *e;
     libzip_int32_t old_method;
 
     if (idx >= za->nentry) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
-    if (ZIP_WANT_TORRENTZIP(za)) {
-        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
     if (!libzip_compression_method_supported(method, true)) {
-        libzip_error_set(&za->error, ZIP_ER_COMPNOTSUPP, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_COMPNOTSUPP, 0);
         return -1;
     }
 
     e = za->entry + idx;
 
-    old_method = (e->orig == NULL ? ZIP_CM_DEFAULT : e->orig->comp_method);
+    old_method = (e->orig == NULL ? LIBZIP_CM_DEFAULT : e->orig->comp_method);
 
     /* TODO: do we want to recompress if level is set? Only if it's
      * different than what bit flags tell us, but those are not
@@ -70,7 +70,7 @@ libzip_set_file_compression(libzip_t *za, libzip_uint64_t idx, libzip_int32_t me
 
     if (method == old_method) {
         if (e->changes) {
-            e->changes->changed &= ~ZIP_DIRENT_COMP_METHOD;
+            e->changes->changed &= ~LIBZIP_DIRENT_COMP_METHOD;
             e->changes->compression_level = 0;
             if (e->changes->changed == 0) {
                 _libzip_dirent_free(e->changes);
@@ -81,14 +81,14 @@ libzip_set_file_compression(libzip_t *za, libzip_uint64_t idx, libzip_int32_t me
     else {
         if (e->changes == NULL) {
             if ((e->changes = _libzip_dirent_clone(e->orig)) == NULL) {
-                libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
                 return -1;
             }
         }
 
         e->changes->comp_method = method;
         e->changes->compression_level = (libzip_uint16_t)flags;
-        e->changes->changed |= ZIP_DIRENT_COMP_METHOD;
+        e->changes->changed |= LIBZIP_DIRENT_COMP_METHOD;
     }
 
     return 0;

@@ -175,7 +175,7 @@ main(int argc, char **argv) {
     }
 
     if (compress) {
-        to = open_compressed(argv[optind + 1], ZIP_CREATE);
+        to = open_compressed(argv[optind + 1], LIBZIP_CREATE);
     }
     else {
         to = open_file(argv[optind + 1]);

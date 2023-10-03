@@ -34,7 +34,7 @@
 
 #include "zipint.h"
 
-ZIP_EXTERN libzip_int8_t
+LIBZIP_EXTERN libzip_int8_t
 libzip_fseek(libzip_file_t *zf, libzip_int64_t offset, int whence) {
     if (!zf)
         return -1;
@@ -51,7 +51,7 @@ libzip_fseek(libzip_file_t *zf, libzip_int64_t offset, int whence) {
 }
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_file_is_seekable(libzip_file_t *zfile) {
     if (!zfile) {
         return -1;

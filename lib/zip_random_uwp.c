@@ -42,7 +42,7 @@
 #include <windows.h>
 #include <bcrypt.h>
 
-ZIP_EXTERN bool
+LIBZIP_EXTERN bool
 libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     BCRYPT_ALG_HANDLE hAlg = NULL;
     NTSTATUS hr = BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_RNG_ALGORITHM, MS_PRIMITIVE_PROVIDER, 0);

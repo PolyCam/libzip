@@ -290,7 +290,7 @@ PBKDF2_end:
 
 bool
 _libzip_crypto_pbkdf2(const libzip_uint8_t *key, libzip_uint64_t key_length, const libzip_uint8_t *salt, libzip_uint16_t salt_length, libzip_uint16_t iterations, libzip_uint8_t *output, libzip_uint16_t output_length) {
-    return (key_length <= ZIP_UINT32_MAX) && pbkdf2((PUCHAR)key, (ULONG)key_length, (PUCHAR)salt, salt_length, iterations, output, output_length);
+    return (key_length <= LIBZIP_UINT32_MAX) && pbkdf2((PUCHAR)key, (ULONG)key_length, (PUCHAR)salt, salt_length, iterations, output, output_length);
 }
 
 #endif
@@ -311,7 +311,7 @@ _libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libz
     ULONG key_length = key_size / 8;
 
     if (aes == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -333,7 +333,7 @@ _libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libz
     aes->pbKeyObject = malloc(aes->cbKeyObject);
     if (aes->pbKeyObject == NULL) {
         _libzip_crypto_aes_free(aes);
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -369,7 +369,7 @@ _libzip_crypto_aes_free(_libzip_crypto_aes_t *aes) {
 bool
 _libzip_crypto_aes_encrypt_block(_libzip_crypto_aes_t *aes, const libzip_uint8_t *in, libzip_uint8_t *out) {
     ULONG cbResult;
-    NTSTATUS status = BCryptEncrypt(aes->hKey, (PUCHAR)in, ZIP_CRYPTO_AES_BLOCK_LENGTH, NULL, NULL, 0, (PUCHAR)out, ZIP_CRYPTO_AES_BLOCK_LENGTH, &cbResult, 0);
+    NTSTATUS status = BCryptEncrypt(aes->hKey, (PUCHAR)in, LIBZIP_CRYPTO_AES_BLOCK_LENGTH, NULL, NULL, 0, (PUCHAR)out, LIBZIP_CRYPTO_AES_BLOCK_LENGTH, &cbResult, 0);
     return BCRYPT_SUCCESS(status);
 }
 
@@ -391,14 +391,14 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
     _libzip_crypto_hmac_t *hmac;
 
     if (secret_length > INT_MAX) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     hmac = (_libzip_crypto_hmac_t *)calloc(1, sizeof(*hmac));
 
     if (hmac == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -417,7 +417,7 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
     hmac->pbHashObject = malloc(hmac->cbHashObject);
     if (hmac->pbHashObject == NULL) {
         _libzip_crypto_hmac_free(hmac);
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -430,7 +430,7 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
     hmac->pbHash = malloc(hmac->cbHash);
     if (hmac->pbHash == NULL) {
         _libzip_crypto_hmac_free(hmac);
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -486,7 +486,7 @@ _libzip_crypto_hmac_output(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data) {
     return BCRYPT_SUCCESS(BCryptFinishHash(hmac->hHash, data, hmac->cbHash, 0));
 }
 
-ZIP_EXTERN bool
+LIBZIP_EXTERN bool
 libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     return BCRYPT_SUCCESS(BCryptGenRandom(NULL, buffer, length, BCRYPT_USE_SYSTEM_PREFERRED_RNG));
 }

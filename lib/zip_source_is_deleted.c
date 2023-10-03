@@ -35,7 +35,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_source_is_deleted(libzip_source_t *src) {
-    return src->write_state == ZIP_SOURCE_WRITE_REMOVED;
+    return src->write_state == LIBZIP_SOURCE_WRITE_REMOVED;
 }

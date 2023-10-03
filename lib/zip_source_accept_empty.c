@@ -39,14 +39,14 @@ bool
 libzip_source_accept_empty(libzip_source_t *src) {
     libzip_int64_t ret;
 
-    if ((libzip_source_supports(src) & ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_ACCEPT_EMPTY)) == 0) {
-        if (ZIP_SOURCE_IS_LAYERED(src)) {
+    if ((libzip_source_supports(src) & LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_ACCEPT_EMPTY)) == 0) {
+        if (LIBZIP_SOURCE_IS_LAYERED(src)) {
             return libzip_source_accept_empty(src->src);
         }
         return true;
     }
 
-    ret = _libzip_source_call(src, NULL, 0, ZIP_SOURCE_ACCEPT_EMPTY);
+    ret = _libzip_source_call(src, NULL, 0, LIBZIP_SOURCE_ACCEPT_EMPTY);
 
     return ret != 0;
 }

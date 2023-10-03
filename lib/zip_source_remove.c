@@ -37,29 +37,29 @@
 
 int
 libzip_source_remove(libzip_source_t *src) {
-    if (ZIP_SOURCE_IS_LAYERED(src)) {
-        libzip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
+    if (LIBZIP_SOURCE_IS_LAYERED(src)) {
+        libzip_error_set(&src->error, LIBZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 
-    if (src->write_state == ZIP_SOURCE_WRITE_REMOVED) {
+    if (src->write_state == LIBZIP_SOURCE_WRITE_REMOVED) {
         return 0;
     }
 
-    if (ZIP_SOURCE_IS_OPEN_READING(src)) {
+    if (LIBZIP_SOURCE_IS_OPEN_READING(src)) {
         if (libzip_source_close(src) < 0) {
             return -1;
         }
     }
-    if (src->write_state != ZIP_SOURCE_WRITE_CLOSED) {
+    if (src->write_state != LIBZIP_SOURCE_WRITE_CLOSED) {
         libzip_source_rollback_write(src);
     }
 
-    if (_libzip_source_call(src, NULL, 0, ZIP_SOURCE_REMOVE) < 0) {
+    if (_libzip_source_call(src, NULL, 0, LIBZIP_SOURCE_REMOVE) < 0) {
         return -1;
     }
 
-    src->write_state = ZIP_SOURCE_WRITE_REMOVED;
+    src->write_state = LIBZIP_SOURCE_WRITE_REMOVED;
 
     return 0;
 }

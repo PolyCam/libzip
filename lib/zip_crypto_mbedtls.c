@@ -48,7 +48,7 @@ _libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libz
     _libzip_crypto_aes_t *aes;
 
     if ((aes = (_libzip_crypto_aes_t *)malloc(sizeof(*aes))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -74,25 +74,25 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
     _libzip_crypto_hmac_t *hmac;
 
     if (secret_length > INT_MAX) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if ((hmac = (_libzip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     mbedtls_md_init(hmac);
 
     if (mbedtls_md_setup(hmac, mbedtls_md_info_from_type(MBEDTLS_MD_SHA1), 1) != 0) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         free(hmac);
         return NULL;
     }
 
     if (mbedtls_md_hmac_starts(hmac, (const unsigned char *)secret, (size_t)secret_length) != 0) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         free(hmac);
         return NULL;
     }
@@ -146,7 +146,7 @@ typedef struct {
     mbedtls_ctr_drbg_context ctr_drbg;
 } libzip_random_context_t;
 
-ZIP_EXTERN bool
+LIBZIP_EXTERN bool
 libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     static libzip_random_context_t *ctx = NULL;
     const unsigned char *pers = "zip_crypto_mbedtls";

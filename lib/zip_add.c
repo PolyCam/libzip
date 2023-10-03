@@ -32,18 +32,18 @@
 */
 
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 
 /*
   NOTE: Return type is signed so we can return -1 on error.
-        The index can not be larger than ZIP_INT64_MAX since the size
+        The index can not be larger than LIBZIP_INT64_MAX since the size
         of the central directory cannot be larger than
-        ZIP_UINT64_MAX, and each entry is larger than 2 bytes.
+        LIBZIP_UINT64_MAX, and each entry is larger than 2 bytes.
 */
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_add(libzip_t *za, const char *name, libzip_source_t *source) {
     return libzip_file_add(za, name, source, 0);
 }

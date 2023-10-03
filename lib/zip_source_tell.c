@@ -35,23 +35,23 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_source_tell(libzip_source_t *src) {
     if (src->source_closed) {
         return -1;
     }
-    if (!ZIP_SOURCE_IS_OPEN_READING(src)) {
-        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
+    if (!LIBZIP_SOURCE_IS_OPEN_READING(src)) {
+        libzip_error_set(&src->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    if ((src->supports & (ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_TELL) | ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_SEEK))) == 0) {
-        if (src->bytes_read > ZIP_INT64_MAX) {
-            libzip_error_set(&src->error, ZIP_ER_TELL, EOVERFLOW);
+    if ((src->supports & (LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_TELL) | LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_SEEK))) == 0) {
+        if (src->bytes_read > LIBZIP_INT64_MAX) {
+            libzip_error_set(&src->error, LIBZIP_ER_TELL, EOVERFLOW);
             return -1;
         }
         return (libzip_int64_t)src->bytes_read;
     }
 
-    return _libzip_source_call(src, NULL, 0, ZIP_SOURCE_TELL);
+    return _libzip_source_call(src, NULL, 0, LIBZIP_SOURCE_TELL);
 }

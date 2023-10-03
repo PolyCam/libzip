@@ -35,7 +35,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_file_error_clear(libzip_file_t *zf) {
     if (zf == NULL)
         return;

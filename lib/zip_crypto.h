@@ -31,11 +31,11 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef HAD_ZIP_CRYPTO_H
-#define HAD_ZIP_CRYPTO_H
+#ifndef HAD_LIBZIP_CRYPTO_H
+#define HAD_LIBZIP_CRYPTO_H
 
-#define ZIP_CRYPTO_SHA1_LENGTH 20
-#define ZIP_CRYPTO_AES_BLOCK_LENGTH 16
+#define LIBZIP_CRYPTO_SHA1_LENGTH 20
+#define LIBZIP_CRYPTO_AES_BLOCK_LENGTH 16
 
 #if defined(HAVE_WINDOWS_CRYPTO)
 #include "zip_crypto_win.h"
@@ -51,4 +51,4 @@
 #error "no crypto backend found"
 #endif
 
-#endif /*  HAD_ZIP_CRYPTO_H */
+#endif /*  HAD_LIBZIP_CRYPTO_H */

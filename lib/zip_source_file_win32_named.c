@@ -68,25 +68,25 @@ _libzip_win32_named_op_commit_write(libzip_source_file_context_t *ctx) {
     DWORD attributes;
 
     if (!CloseHandle((HANDLE)ctx->fout)) {
-        libzip_error_set(&ctx->error, ZIP_ER_WRITE, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_WRITE, _libzip_win32_error_to_errno(GetLastError()));
         return -1;
     }
 
     attributes = file_ops->get_file_attributes(ctx->tmpname);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
-        libzip_error_set(&ctx->error, ZIP_ER_RENAME, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_RENAME, _libzip_win32_error_to_errno(GetLastError()));
         return -1;
     }
 
     if (attributes & FILE_ATTRIBUTE_TEMPORARY) {
         if (!file_ops->set_file_attributes(ctx->tmpname, attributes & ~FILE_ATTRIBUTE_TEMPORARY)) {
-            libzip_error_set(&ctx->error, ZIP_ER_RENAME, _libzip_win32_error_to_errno(GetLastError()));
+            libzip_error_set(&ctx->error, LIBZIP_ER_RENAME, _libzip_win32_error_to_errno(GetLastError()));
             return -1;
         }
     }
 
     if (!file_ops->move_file(ctx->tmpname, ctx->fname, MOVEFILE_REPLACE_EXISTING)) {
-        libzip_error_set(&ctx->error, ZIP_ER_RENAME, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_RENAME, _libzip_win32_error_to_errno(GetLastError()));
         return -1;
     }
 
@@ -126,7 +126,7 @@ _libzip_win32_named_op_create_temp_output(libzip_source_file_context_t *ctx) {
 #endif
 
     if ((tempname = file_ops->allocate_tempname(ctx->fname, 10, &tempname_size)) == NULL) {
-        libzip_error_set(&ctx->error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(&ctx->error, LIBZIP_ER_MEMORY, 0);
         return -1;
     }
 
@@ -141,7 +141,7 @@ _libzip_win32_named_op_create_temp_output(libzip_source_file_context_t *ctx) {
     if (th == INVALID_HANDLE_VALUE) {
         free(tempname);
         LocalFree(psd);
-        libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, _libzip_win32_error_to_errno(GetLastError()));
         return -1;
     }
 
@@ -171,7 +171,7 @@ _libzip_win32_named_op_remove(libzip_source_file_context_t *ctx) {
     libzip_win32_file_operations_t *file_ops = (libzip_win32_file_operations_t *)ctx->ops_userdata;
 
     if (!file_ops->delete_file(ctx->fname)) {
-        libzip_error_set(&ctx->error, ZIP_ER_REMOVE, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_REMOVE, _libzip_win32_error_to_errno(GetLastError()));
         return -1;
     }
 
@@ -202,7 +202,7 @@ _libzip_win32_named_op_stat(libzip_source_file_context_t *ctx, libzip_source_fil
             st->exists = false;
             return true;
         }
-        libzip_error_set(&ctx->error, ZIP_ER_READ, _libzip_win32_error_to_errno(error));
+        libzip_error_set(&ctx->error, LIBZIP_ER_READ, _libzip_win32_error_to_errno(error));
         return false;
     }
 
@@ -216,7 +216,7 @@ _libzip_win32_named_op_stat(libzip_source_file_context_t *ctx, libzip_source_fil
     }
 
     if (!_libzip_filetime_to_time_t(file_attributes.ftLastWriteTime, &st->mtime)) {
-        libzip_error_set(&ctx->error, ZIP_ER_READ, ERANGE);
+        libzip_error_set(&ctx->error, LIBZIP_ER_READ, ERANGE);
         return false;
     }
     st->size = ((libzip_uint64_t)file_attributes.nFileSizeHigh << 32) | file_attributes.nFileSizeLow;
@@ -239,7 +239,7 @@ static libzip_int64_t
 _libzip_win32_named_op_write(libzip_source_file_context_t *ctx, const void *data, libzip_uint64_t len) {
     DWORD ret;
     if (!WriteFile((HANDLE)ctx->fout, data, (DWORD)len, &ret, NULL) || ret != len) {
-        libzip_error_set(&ctx->error, ZIP_ER_WRITE, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_WRITE, _libzip_win32_error_to_errno(GetLastError()));
         return -1;
     }
 
@@ -267,7 +267,7 @@ win32_named_open(libzip_source_file_context_t *ctx, const char *name, bool tempo
     h = file_ops->create_file(name, access, share_mode, security_attributes, creation_disposition, file_attributes, NULL);
 
     if (h == INVALID_HANDLE_VALUE) {
-        libzip_error_set(&ctx->error, ZIP_ER_OPEN, _libzip_win32_error_to_errno(GetLastError()));
+        libzip_error_set(&ctx->error, LIBZIP_ER_OPEN, _libzip_win32_error_to_errno(GetLastError()));
     }
 
     return h;

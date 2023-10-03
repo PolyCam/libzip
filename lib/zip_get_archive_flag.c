@@ -35,11 +35,11 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_get_archive_flag(libzip_t *za, libzip_flags_t flag, libzip_flags_t flags) {
     unsigned int fl;
 
-    fl = (flags & ZIP_FL_UNCHANGED) ? za->flags : za->ch_flags;
+    fl = (flags & LIBZIP_FL_UNCHANGED) ? za->flags : za->ch_flags;
 
     return (fl & flag) ? 1 : 0;
 }

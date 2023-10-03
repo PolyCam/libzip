@@ -35,7 +35,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_unchange_all(libzip_t *za) {
     int ret;
     libzip_uint64_t i;

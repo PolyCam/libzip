@@ -45,7 +45,7 @@ _libzip_ef_clone(const libzip_extra_field_t *ef, libzip_error_t *error) {
 
     while (ef) {
         if ((def = _libzip_ef_new(ef->id, ef->size, ef->data, ef->flags)) == NULL) {
-            libzip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
             _libzip_ef_free(head);
             return NULL;
         }
@@ -72,10 +72,10 @@ _libzip_ef_delete_by_id(libzip_extra_field_t *ef, libzip_uint16_t id, libzip_uin
     head = ef;
     prev = NULL;
     for (; ef; ef = (prev ? prev->next : head)) {
-        if ((ef->flags & flags & ZIP_EF_BOTH) && ((ef->id == id) || (id == ZIP_EXTRA_FIELD_ALL))) {
-            if (id_idx == ZIP_EXTRA_FIELD_ALL || i == id_idx) {
-                ef->flags &= ~(flags & ZIP_EF_BOTH);
-                if ((ef->flags & ZIP_EF_BOTH) == 0) {
+        if ((ef->flags & flags & LIBZIP_EF_BOTH) && ((ef->id == id) || (id == LIBZIP_EXTRA_FIELD_ALL))) {
+            if (id_idx == LIBZIP_EXTRA_FIELD_ALL || i == id_idx) {
+                ef->flags &= ~(flags & LIBZIP_EF_BOTH);
+                if ((ef->flags & LIBZIP_EF_BOTH) == 0) {
                     if (prev)
                         prev->next = ef->next;
                     else
@@ -83,7 +83,7 @@ _libzip_ef_delete_by_id(libzip_extra_field_t *ef, libzip_uint16_t id, libzip_uin
                     ef->next = NULL;
                     _libzip_ef_free(ef);
 
-                    if (id_idx == ZIP_EXTRA_FIELD_ALL)
+                    if (id_idx == LIBZIP_EXTRA_FIELD_ALL)
                         continue;
                 }
             }
@@ -120,7 +120,7 @@ _libzip_ef_get_by_id(const libzip_extra_field_t *ef, libzip_uint16_t *lenp, libz
 
     i = 0;
     for (; ef; ef = ef->next) {
-        if (ef->id == id && (ef->flags & flags & ZIP_EF_BOTH)) {
+        if (ef->id == id && (ef->flags & flags & LIBZIP_EF_BOTH)) {
             if (i < id_idx) {
                 i++;
                 continue;
@@ -135,7 +135,7 @@ _libzip_ef_get_by_id(const libzip_extra_field_t *ef, libzip_uint16_t *lenp, libz
         }
     }
 
-    libzip_error_set(error, ZIP_ER_NOENT, 0);
+    libzip_error_set(error, LIBZIP_ER_NOENT, 0);
     return NULL;
 }
 
@@ -157,7 +157,7 @@ _libzip_ef_merge(libzip_extra_field_t *to, libzip_extra_field_t *from) {
         duplicate = 0;
         for (tt = to; tt; tt = tt->next) {
             if (tt->id == from->id && tt->size == from->size && (tt->size == 0 || memcmp(tt->data, from->data, tt->size) == 0)) {
-                tt->flags |= (from->flags & ZIP_EF_BOTH);
+                tt->flags |= (from->flags & LIBZIP_EF_BOTH);
                 duplicate = 1;
                 break;
             }
@@ -204,7 +204,7 @@ _libzip_ef_parse(const libzip_uint8_t *data, libzip_uint16_t len, libzip_flags_t
     libzip_extra_field_t *ef, *ef2, *ef_head;
 
     if ((buffer = _libzip_buffer_new((libzip_uint8_t *)data, len)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return false;
     }
 
@@ -219,14 +219,14 @@ _libzip_ef_parse(const libzip_uint8_t *data, libzip_uint16_t len, libzip_flags_t
         ef_data = _libzip_buffer_get(buffer, flen);
 
         if (ef_data == NULL) {
-            libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_INVALID_EF_LENGTH);
+            libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_INVALID_EF_LENGTH);
             _libzip_buffer_free(buffer);
             _libzip_ef_free(ef_head);
             return false;
         }
 
         if ((ef2 = _libzip_ef_new(fid, flen, ef_data, flags)) == NULL) {
-            libzip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
             _libzip_buffer_free(buffer);
             _libzip_ef_free(ef_head);
             return false;
@@ -248,7 +248,7 @@ _libzip_ef_parse(const libzip_uint8_t *data, libzip_uint16_t len, libzip_flags_t
         libzip_uint8_t *garbage;
         garbage = _libzip_buffer_get(buffer, glen);
         if (glen >= 4 || garbage == NULL || memcmp(garbage, "\0\0\0", (size_t)glen) != 0) {
-            libzip_error_set(error, ZIP_ER_INCONS, ZIP_ER_DETAIL_EF_TRAILING_GARBAGE);
+            libzip_error_set(error, LIBZIP_ER_INCONS, LIBZIP_ER_DETAIL_EF_TRAILING_GARBAGE);
             _libzip_buffer_free(buffer);
             _libzip_ef_free(ef_head);
             return false;
@@ -277,7 +277,7 @@ _libzip_ef_remove_internal(libzip_extra_field_t *ef) {
     prev = NULL;
 
     while (ef) {
-        if (ZIP_EF_IS_INTERNAL(ef->id)) {
+        if (LIBZIP_EF_IS_INTERNAL(ef->id)) {
             next = ef->next;
             if (ef_head == ef)
                 ef_head = next;
@@ -303,7 +303,7 @@ _libzip_ef_size(const libzip_extra_field_t *ef, libzip_flags_t flags) {
 
     size = 0;
     for (; ef; ef = ef->next) {
-        if (ef->flags & flags & ZIP_EF_BOTH)
+        if (ef->flags & flags & LIBZIP_EF_BOTH)
             size = (libzip_uint16_t)(size + 4 + ef->size);
     }
 
@@ -321,12 +321,12 @@ _libzip_ef_write(libzip_t *za, const libzip_extra_field_t *ef, libzip_flags_t fl
     }
 
     for (; ef; ef = ef->next) {
-        if (ef->flags & flags & ZIP_EF_BOTH) {
+        if (ef->flags & flags & LIBZIP_EF_BOTH) {
             _libzip_buffer_set_offset(buffer, 0);
             _libzip_buffer_put_16(buffer, ef->id);
             _libzip_buffer_put_16(buffer, ef->size);
             if (!_libzip_buffer_ok(buffer)) {
-                libzip_error_set(&za->error, ZIP_ER_INTERNAL, 0);
+                libzip_error_set(&za->error, LIBZIP_ER_INTERNAL, 0);
                 _libzip_buffer_free(buffer);
                 return -1;
             }
@@ -356,7 +356,7 @@ _libzip_read_local_ef(libzip_t *za, libzip_uint64_t idx) {
     libzip_uint16_t fname_len, ef_len;
 
     if (idx >= za->nentry) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
@@ -365,8 +365,8 @@ _libzip_read_local_ef(libzip_t *za, libzip_uint64_t idx) {
     if (e->orig == NULL || e->orig->local_extra_fields_read)
         return 0;
 
-    if (e->orig->offset + 26 > ZIP_INT64_MAX) {
-        libzip_error_set(&za->error, ZIP_ER_SEEK, EFBIG);
+    if (e->orig->offset + 26 > LIBZIP_INT64_MAX) {
+        libzip_error_set(&za->error, LIBZIP_ER_SEEK, EFBIG);
         return -1;
     }
 
@@ -384,7 +384,7 @@ _libzip_read_local_ef(libzip_t *za, libzip_uint64_t idx) {
 
     if (!_libzip_buffer_eof(buffer)) {
         _libzip_buffer_free(buffer);
-        libzip_error_set(&za->error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INTERNAL, 0);
         return -1;
     }
 
@@ -395,7 +395,7 @@ _libzip_read_local_ef(libzip_t *za, libzip_uint64_t idx) {
         libzip_uint8_t *ef_raw;
 
         if (libzip_source_seek(za->src, fname_len, SEEK_CUR) < 0) {
-            libzip_error_set(&za->error, ZIP_ER_SEEK, errno);
+            libzip_error_set(&za->error, LIBZIP_ER_SEEK, errno);
             return -1;
         }
 
@@ -404,7 +404,7 @@ _libzip_read_local_ef(libzip_t *za, libzip_uint64_t idx) {
         if (ef_raw == NULL)
             return -1;
 
-        if (!_libzip_ef_parse(ef_raw, ef_len, ZIP_EF_LOCAL, &ef, &za->error)) {
+        if (!_libzip_ef_parse(ef_raw, ef_len, LIBZIP_EF_LOCAL, &ef, &za->error)) {
             free(ef_raw);
             return -1;
         }

@@ -54,7 +54,7 @@ maximum_compressed_size(libzip_uint64_t uncompressed_size) {
     libzip_uint64_t compressed_size = uncompressed_size + (uncompressed_size + 16383) / 16384 * 5 + 6;
 
     if (compressed_size < uncompressed_size) {
-        return ZIP_UINT64_MAX;
+        return LIBZIP_UINT64_MAX;
     }
     return compressed_size;
 }
@@ -65,7 +65,7 @@ allocate(bool compress, libzip_uint32_t compression_flags, libzip_error_t *error
     struct ctx *ctx;
 
     if ((ctx = (struct ctx *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(error, ZIP_ET_SYS, errno);
+        libzip_error_set(error, LIBZIP_ET_SYS, errno);
         return NULL;
     }
 
@@ -77,7 +77,7 @@ allocate(bool compress, libzip_uint32_t compression_flags, libzip_error_t *error
     else {
         ctx->level = Z_BEST_COMPRESSION;
     }
-    ctx->mem_level = compression_flags == TORRENTZIP_COMPRESSION_FLAGS ? TORRENTZIP_MEM_LEVEL : MAX_MEM_LEVEL;
+    ctx->mem_level = compression_flags == TORRENTLIBZIP_COMPRESSION_FLAGS ? TORRENTLIBZIP_MEM_LEVEL : MAX_MEM_LEVEL;
     ctx->end_of_input = false;
 
     ctx->zstr.zalloc = Z_NULL;
@@ -150,7 +150,7 @@ start(void *ud, libzip_stat_t *st, libzip_file_attributes_t *attributes) {
     }
 
     if (ret != Z_OK) {
-        libzip_error_set(ctx->error, ZIP_ER_ZLIB, ret);
+        libzip_error_set(ctx->error, LIBZIP_ER_ZLIB, ret);
         return false;
     }
 
@@ -172,7 +172,7 @@ end(void *ud) {
     }
 
     if (err != Z_OK) {
-        libzip_error_set(ctx->error, ZIP_ER_ZLIB, err);
+        libzip_error_set(ctx->error, LIBZIP_ER_ZLIB, err);
         return false;
     }
 
@@ -185,7 +185,7 @@ input(void *ud, libzip_uint8_t *data, libzip_uint64_t length) {
     struct ctx *ctx = (struct ctx *)ud;
 
     if (length > UINT_MAX || ctx->zstr.avail_in > 0) {
-        libzip_error_set(ctx->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(ctx->error, LIBZIP_ER_INVAL, 0);
         return false;
     }
 
@@ -211,7 +211,7 @@ process(void *ud, libzip_uint8_t *data, libzip_uint64_t *length) {
 
     int ret;
 
-    avail_out = (uInt)ZIP_MIN(UINT_MAX, *length);
+    avail_out = (uInt)LIBZIP_MIN(UINT_MAX, *length);
     ctx->zstr.avail_out = avail_out;
     ctx->zstr.next_out = (Bytef *)data;
 
@@ -226,21 +226,21 @@ process(void *ud, libzip_uint8_t *data, libzip_uint64_t *length) {
 
     switch (ret) {
     case Z_OK:
-        return ZIP_COMPRESSION_OK;
+        return LIBZIP_COMPRESSION_OK;
 
     case Z_STREAM_END:
-        return ZIP_COMPRESSION_END;
+        return LIBZIP_COMPRESSION_END;
 
     case Z_BUF_ERROR:
         if (ctx->zstr.avail_in == 0) {
-            return ZIP_COMPRESSION_NEED_DATA;
+            return LIBZIP_COMPRESSION_NEED_DATA;
         }
 
         /* fallthrough */
 
     default:
-        libzip_error_set(ctx->error, ZIP_ER_ZLIB, ret);
-        return ZIP_COMPRESSION_ERROR;
+        libzip_error_set(ctx->error, LIBZIP_ER_ZLIB, ret);
+        return LIBZIP_COMPRESSION_ERROR;
     }
 }
 

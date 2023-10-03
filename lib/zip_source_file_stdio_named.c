@@ -90,7 +90,7 @@ static libzip_source_file_operations_t ops_stdio_named = {
 };
 /* clang-format on */
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_file(libzip_t *za, const char *fname, libzip_uint64_t start, libzip_int64_t len) {
     if (za == NULL)
         return NULL;
@@ -99,10 +99,10 @@ libzip_source_file(libzip_t *za, const char *fname, libzip_uint64_t start, libzi
 }
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_file_create(const char *fname, libzip_uint64_t start, libzip_int64_t length, libzip_error_t *error) {
-    if (fname == NULL || length < ZIP_LENGTH_UNCHECKED) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+    if (fname == NULL || length < LIBZIP_LENGTH_UNCHECKED) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
@@ -113,11 +113,11 @@ libzip_source_file_create(const char *fname, libzip_uint64_t start, libzip_int64
 static libzip_int64_t
 _libzip_stdio_op_commit_write(libzip_source_file_context_t *ctx) {
     if (fclose(ctx->fout) < 0) {
-        libzip_error_set(&ctx->error, ZIP_ER_WRITE, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_WRITE, errno);
         return -1;
     }
     if (rename(ctx->tmpname, ctx->fname) < 0) {
-        libzip_error_set(&ctx->error, ZIP_ER_RENAME, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_RENAME, errno);
         return -1;
     }
 
@@ -134,7 +134,7 @@ _libzip_stdio_op_create_temp_output(libzip_source_file_context_t *ctx) {
     }
     
     if ((ctx->fout = fdopen(fd, "r+b")) == NULL) {
-        libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, errno);
         close(fd);
         (void)remove(ctx->tmpname);
         free(ctx->tmpname);
@@ -150,8 +150,8 @@ static libzip_int64_t
 _libzip_stdio_op_create_temp_output_cloning(libzip_source_file_context_t *ctx, libzip_uint64_t offset) {
     FILE *tfp;
     
-    if (offset > ZIP_OFF_MAX) {
-        libzip_error_set(&ctx->error, ZIP_ER_SEEK, E2BIG);
+    if (offset > LIBZIP_OFF_MAX) {
+        libzip_error_set(&ctx->error, LIBZIP_ER_SEEK, E2BIG);
         return -1;
     }
     
@@ -162,13 +162,13 @@ _libzip_stdio_op_create_temp_output_cloning(libzip_source_file_context_t *ctx, l
     }
     
     if (clonefile(ctx->fname, ctx->tmpname, 0) < 0) {
-        libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, errno);
         free(ctx->tmpname);
         ctx->tmpname = NULL;
         return -1;
     }
     if ((tfp = _libzip_fopen_close_on_exec(ctx->tmpname, true)) == NULL) {
-        libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, errno);
         (void)remove(ctx->tmpname);
         free(ctx->tmpname);
         ctx->tmpname = NULL;
@@ -181,7 +181,7 @@ _libzip_stdio_op_create_temp_output_cloning(libzip_source_file_context_t *ctx, l
         struct stat st;
         
         if (fstat(fileno(ctx->f), &st) < 0) {
-            libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+            libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, errno);
             return -1;
         }
         
@@ -197,7 +197,7 @@ _libzip_stdio_op_create_temp_output_cloning(libzip_source_file_context_t *ctx, l
         }
         range.dest_offset = 0;
         if (ioctl(fd, FICLONERANGE, &range) < 0) {
-            libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+            libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, errno);
             (void)close(fd);
             (void)remove(ctx->tmpname);
             free(ctx->tmpname);
@@ -206,7 +206,7 @@ _libzip_stdio_op_create_temp_output_cloning(libzip_source_file_context_t *ctx, l
         }
 
         if ((tfp = fdopen(fd, "r+b")) == NULL) {
-            libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+            libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, errno);
             (void)close(fd);
             (void)remove(ctx->tmpname);
             free(ctx->tmpname);
@@ -224,7 +224,7 @@ _libzip_stdio_op_create_temp_output_cloning(libzip_source_file_context_t *ctx, l
         return -1;
     }
     if (fseeko(tfp, (off_t)offset, SEEK_SET) < 0) {
-        libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, errno);
         (void)fclose(tfp);
         (void)remove(ctx->tmpname);
         free(ctx->tmpname);
@@ -241,7 +241,7 @@ _libzip_stdio_op_create_temp_output_cloning(libzip_source_file_context_t *ctx, l
 static bool
 _libzip_stdio_op_open(libzip_source_file_context_t *ctx) {
     if ((ctx->f = _libzip_fopen_close_on_exec(ctx->fname, false)) == NULL) {
-        libzip_error_set(&ctx->error, ZIP_ER_OPEN, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_OPEN, errno);
         return false;
     }
     return true;
@@ -251,7 +251,7 @@ _libzip_stdio_op_open(libzip_source_file_context_t *ctx) {
 static libzip_int64_t
 _libzip_stdio_op_remove(libzip_source_file_context_t *ctx) {
     if (remove(ctx->fname) < 0) {
-        libzip_error_set(&ctx->error, ZIP_ER_REMOVE, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_REMOVE, errno);
         return -1;
     }
     return 0;
@@ -279,7 +279,7 @@ _libzip_stdio_op_write(libzip_source_file_context_t *ctx, const void *data, libz
     clearerr((FILE *)ctx->fout);
     ret = fwrite(data, 1, len, (FILE *)ctx->fout);
     if (ret != len || ferror((FILE *)ctx->fout)) {
-        libzip_error_set(&ctx->error, ZIP_ER_WRITE, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_WRITE, errno);
         return -1;
     }
 
@@ -303,7 +303,7 @@ static int create_temp_file(libzip_source_file_context_t *ctx, bool create_file)
     
     size_t temp_size = strlen(ctx->fname) + 13;
     if ((temp = (char *)malloc(temp_size)) == NULL) {
-        libzip_error_set(&ctx->error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(&ctx->error, LIBZIP_ER_MEMORY, 0);
         return -1;
     }
     snprintf_s(temp, temp_size, "%s.XXXXXX.part", ctx->fname);
@@ -338,7 +338,7 @@ static int create_temp_file(libzip_source_file_context_t *ctx, bool create_file)
                 break;
             }
             if (errno != EEXIST) {
-                libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+                libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, errno);
                 free(temp);
                 return -1;
             }
@@ -349,7 +349,7 @@ static int create_temp_file(libzip_source_file_context_t *ctx, bool create_file)
                     break;
                 }
                 else {
-                    libzip_error_set(&ctx->error, ZIP_ER_TMPOPEN, errno);
+                    libzip_error_set(&ctx->error, LIBZIP_ER_TMPOPEN, errno);
                     free(temp);
                     return -1;
                 }

@@ -35,16 +35,16 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_source_rollback_write(libzip_source_t *src) {
-    if (ZIP_SOURCE_IS_LAYERED(src)) {
+    if (LIBZIP_SOURCE_IS_LAYERED(src)) {
         return;
     }
 
-    if (src->write_state != ZIP_SOURCE_WRITE_OPEN && src->write_state != ZIP_SOURCE_WRITE_FAILED) {
+    if (src->write_state != LIBZIP_SOURCE_WRITE_OPEN && src->write_state != LIBZIP_SOURCE_WRITE_FAILED) {
         return;
     }
 
-    _libzip_source_call(src, NULL, 0, ZIP_SOURCE_ROLLBACK_WRITE);
-    src->write_state = ZIP_SOURCE_WRITE_CLOSED;
+    _libzip_source_call(src, NULL, 0, LIBZIP_SOURCE_ROLLBACK_WRITE);
+    src->write_state = LIBZIP_SOURCE_WRITE_CLOSED;
 }

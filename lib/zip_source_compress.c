@@ -62,21 +62,21 @@ struct implementation {
 };
 
 static struct implementation implementations[] = {
-    {ZIP_CM_DEFLATE, &libzip_algorithm_deflate_compress, &libzip_algorithm_deflate_decompress},
+    {LIBZIP_CM_DEFLATE, &libzip_algorithm_deflate_compress, &libzip_algorithm_deflate_decompress},
 #if defined(HAVE_LIBBZ2)
-    {ZIP_CM_BZIP2, &libzip_algorithm_bzip2_compress, &libzip_algorithm_bzip2_decompress},
+    {LIBZIP_CM_BZIP2, &libzip_algorithm_bzip2_compress, &libzip_algorithm_bzip2_decompress},
 #endif
 #if defined(HAVE_LIBLZMA)
-    {ZIP_CM_LZMA, &libzip_algorithm_xz_compress, &libzip_algorithm_xz_decompress},
+    {LIBZIP_CM_LZMA, &libzip_algorithm_xz_compress, &libzip_algorithm_xz_decompress},
     /*  Disabled - because 7z isn't able to unpack ZIP+LZMA2
         archives made this way - and vice versa.
 
-        {ZIP_CM_LZMA2, &libzip_algorithm_xz_compress, &libzip_algorithm_xz_decompress},
+        {LIBZIP_CM_LZMA2, &libzip_algorithm_xz_compress, &libzip_algorithm_xz_decompress},
     */
-    {ZIP_CM_XZ, &libzip_algorithm_xz_compress, &libzip_algorithm_xz_decompress},
+    {LIBZIP_CM_XZ, &libzip_algorithm_xz_compress, &libzip_algorithm_xz_decompress},
 #endif
 #if defined(HAVE_LIBZSTD)
-    {ZIP_CM_ZSTD, &libzip_algorithm_zstd_compress, &libzip_algorithm_zstd_decompress},
+    {LIBZIP_CM_ZSTD, &libzip_algorithm_zstd_compress, &libzip_algorithm_zstd_decompress},
 #endif
 
 };
@@ -92,7 +92,7 @@ static libzip_int64_t compress_read(libzip_source_t *, struct context *, void *,
 libzip_compression_algorithm_t *
 _libzip_get_compression_algorithm(libzip_int32_t method, bool compress) {
     size_t i;
-    libzip_uint16_t real_method = ZIP_CM_ACTUAL(method);
+    libzip_uint16_t real_method = LIBZIP_CM_ACTUAL(method);
 
     for (i = 0; i < implementations_size; i++) {
         if (implementations[i].method == real_method) {
@@ -108,9 +108,9 @@ _libzip_get_compression_algorithm(libzip_int32_t method, bool compress) {
     return NULL;
 }
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_compression_method_supported(libzip_int32_t method, int compress) {
-    if (method == ZIP_CM_STORE) {
+    if (method == LIBZIP_CM_STORE) {
         return 1;
     }
     return _libzip_get_compression_algorithm(method, compress) != NULL;
@@ -134,17 +134,17 @@ compression_source_new(libzip_t *za, libzip_source_t *src, libzip_int32_t method
     libzip_compression_algorithm_t *algorithm = NULL;
 
     if (src == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if ((algorithm = _libzip_get_compression_algorithm(method, compress)) == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_COMPNOTSUPP, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_COMPNOTSUPP, 0);
         return NULL;
     }
 
     if ((ctx = context_new(method, compress, compression_flags, algorithm)) == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -165,7 +165,7 @@ context_new(libzip_int32_t method, bool compress, libzip_uint32_t compression_fl
         return NULL;
     }
     libzip_error_init(&ctx->error);
-    ctx->can_store = compress ? ZIP_CM_IS_DEFAULT(method) : false;
+    ctx->can_store = compress ? LIBZIP_CM_IS_DEFAULT(method) : false;
     ctx->algorithm = algorithm;
     ctx->method = method;
     ctx->compress = compress;
@@ -173,7 +173,7 @@ context_new(libzip_int32_t method, bool compress, libzip_uint32_t compression_fl
     ctx->end_of_stream = false;
     ctx->is_stored = false;
 
-    if ((ctx->ud = ctx->algorithm->allocate(ZIP_CM_ACTUAL(method), compression_flags, &ctx->error)) == NULL) {
+    if ((ctx->ud = ctx->algorithm->allocate(LIBZIP_CM_ACTUAL(method), compression_flags, &ctx->error)) == NULL) {
         libzip_error_fini(&ctx->error);
         free(ctx);
         return NULL;
@@ -204,7 +204,7 @@ compress_read(libzip_source_t *src, struct context *ctx, void *data, libzip_uint
     libzip_uint64_t out_offset;
     libzip_uint64_t out_len;
 
-    if (libzip_error_code_zip(&ctx->error) != ZIP_ER_OK) {
+    if (libzip_error_code_zip(&ctx->error) != LIBZIP_ER_OK) {
         return -1;
     }
 
@@ -219,12 +219,12 @@ compress_read(libzip_source_t *src, struct context *ctx, void *data, libzip_uint
         out_len = len - out_offset;
         ret = ctx->algorithm->process(ctx->ud, (libzip_uint8_t *)data + out_offset, &out_len);
 
-        if (ret != ZIP_COMPRESSION_ERROR) {
+        if (ret != LIBZIP_COMPRESSION_ERROR) {
             out_offset += out_len;
         }
 
         switch (ret) {
-        case ZIP_COMPRESSION_END:
+        case LIBZIP_COMPRESSION_END:
             ctx->end_of_stream = true;
 
             if (!ctx->end_of_input) {
@@ -233,7 +233,7 @@ compress_read(libzip_source_t *src, struct context *ctx, void *data, libzip_uint
 
             if (ctx->first_read < 0) {
                 /* we got end of processed stream before reading any input data */
-                libzip_error_set(&ctx->error, ZIP_ER_INTERNAL, 0);
+                libzip_error_set(&ctx->error, LIBZIP_ER_INTERNAL, 0);
                 end = true;
                 break;
             }
@@ -246,10 +246,10 @@ compress_read(libzip_source_t *src, struct context *ctx, void *data, libzip_uint
             end = true;
             break;
 
-        case ZIP_COMPRESSION_OK:
+        case LIBZIP_COMPRESSION_OK:
             break;
 
-        case ZIP_COMPRESSION_NEED_DATA:
+        case LIBZIP_COMPRESSION_NEED_DATA:
             if (ctx->end_of_input) {
                 /* TODO: error: stream not ended, but no more input */
                 end = true;
@@ -281,10 +281,10 @@ compress_read(libzip_source_t *src, struct context *ctx, void *data, libzip_uint
             }
             break;
 
-        case ZIP_COMPRESSION_ERROR:
+        case LIBZIP_COMPRESSION_ERROR:
             /* error set by algorithm */
-            if (libzip_error_code_zip(&ctx->error) == ZIP_ER_OK) {
-                libzip_error_set(&ctx->error, ZIP_ER_INTERNAL, 0);
+            if (libzip_error_code_zip(&ctx->error) == LIBZIP_ER_OK) {
+                libzip_error_set(&ctx->error, LIBZIP_ER_INTERNAL, 0);
             }
             end = true;
             break;
@@ -297,7 +297,7 @@ compress_read(libzip_source_t *src, struct context *ctx, void *data, libzip_uint
         return (libzip_int64_t)out_offset;
     }
 
-    return (libzip_error_code_zip(&ctx->error) == ZIP_ER_OK) ? 0 : -1;
+    return (libzip_error_code_zip(&ctx->error) == LIBZIP_ER_OK) ? 0 : -1;
 }
 
 
@@ -308,7 +308,7 @@ compress_callback(libzip_source_t *src, void *ud, void *data, libzip_uint64_t le
     ctx = (struct context *)ud;
 
     switch (cmd) {
-    case ZIP_SOURCE_OPEN: {
+    case LIBZIP_SOURCE_OPEN: {
         libzip_stat_t st;
         libzip_file_attributes_t attributes;
         
@@ -330,67 +330,67 @@ compress_callback(libzip_source_t *src, void *ud, void *data, libzip_uint64_t le
         return 0;
     }
 
-    case ZIP_SOURCE_READ:
+    case LIBZIP_SOURCE_READ:
         return compress_read(src, ctx, data, len);
 
-    case ZIP_SOURCE_CLOSE:
+    case LIBZIP_SOURCE_CLOSE:
         if (!ctx->algorithm->end(ctx->ud)) {
             return -1;
         }
         return 0;
 
-    case ZIP_SOURCE_STAT: {
+    case LIBZIP_SOURCE_STAT: {
         libzip_stat_t *st;
 
         st = (libzip_stat_t *)data;
 
         if (ctx->compress) {
             if (ctx->end_of_stream) {
-                st->comp_method = ctx->is_stored ? ZIP_CM_STORE : ZIP_CM_ACTUAL(ctx->method);
+                st->comp_method = ctx->is_stored ? LIBZIP_CM_STORE : LIBZIP_CM_ACTUAL(ctx->method);
                 st->comp_size = ctx->size;
-                st->valid |= ZIP_STAT_COMP_SIZE | ZIP_STAT_COMP_METHOD;
+                st->valid |= LIBZIP_STAT_COMP_SIZE | LIBZIP_STAT_COMP_METHOD;
             }
             else {
-                st->valid &= ~(ZIP_STAT_COMP_SIZE | ZIP_STAT_COMP_METHOD);
+                st->valid &= ~(LIBZIP_STAT_COMP_SIZE | LIBZIP_STAT_COMP_METHOD);
             }
         }
         else {
-            st->comp_method = ZIP_CM_STORE;
-            st->valid |= ZIP_STAT_COMP_METHOD;
-            st->valid &= ~ZIP_STAT_COMP_SIZE;
+            st->comp_method = LIBZIP_CM_STORE;
+            st->valid |= LIBZIP_STAT_COMP_METHOD;
+            st->valid &= ~LIBZIP_STAT_COMP_SIZE;
             if (ctx->end_of_stream) {
                 st->size = ctx->size;
-                st->valid |= ZIP_STAT_SIZE;
+                st->valid |= LIBZIP_STAT_SIZE;
             }
         }
     }
         return 0;
 
-    case ZIP_SOURCE_ERROR:
+    case LIBZIP_SOURCE_ERROR:
         return libzip_error_to_data(&ctx->error, data, len);
 
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         context_free(ctx);
         return 0;
 
-    case ZIP_SOURCE_GET_FILE_ATTRIBUTES: {
+    case LIBZIP_SOURCE_GET_FILE_ATTRIBUTES: {
         libzip_file_attributes_t *attributes = (libzip_file_attributes_t *)data;
 
         if (len < sizeof(*attributes)) {
-            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
             return -1;
         }
 
-        attributes->valid |= ZIP_FILE_ATTRIBUTES_VERSION_NEEDED | ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS;
+        attributes->valid |= LIBZIP_FILE_ATTRIBUTES_VERSION_NEEDED | LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS;
         attributes->version_needed = ctx->algorithm->version_needed;
-        attributes->general_purpose_bit_mask = ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS_ALLOWED_MASK;
+        attributes->general_purpose_bit_mask = LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS_ALLOWED_MASK;
         attributes->general_purpose_bit_flags = (ctx->is_stored ? 0 : ctx->algorithm->general_purpose_bit_flags(ctx->ud));
 
         return sizeof(*attributes);
     }
 
-    case ZIP_SOURCE_SUPPORTS:
-        return ZIP_SOURCE_SUPPORTS_READABLE | libzip_source_make_command_bitmap(ZIP_SOURCE_GET_FILE_ATTRIBUTES, ZIP_SOURCE_SUPPORTS_REOPEN, -1);
+    case LIBZIP_SOURCE_SUPPORTS:
+        return LIBZIP_SOURCE_SUPPORTS_READABLE | libzip_source_make_command_bitmap(LIBZIP_SOURCE_GET_FILE_ATTRIBUTES, LIBZIP_SOURCE_SUPPORTS_REOPEN, -1);
 
     default:
         return libzip_source_pass_to_lower_layer(src, data, len, cmd);

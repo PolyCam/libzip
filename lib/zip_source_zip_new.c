@@ -38,12 +38,12 @@
 
 static void _libzip_file_attributes_from_dirent(libzip_file_attributes_t *attributes, libzip_dirent_t *de);
 
-ZIP_EXTERN libzip_source_t *libzip_source_libzip_file(libzip_t* za, libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len, const char *password) {
+LIBZIP_EXTERN libzip_source_t *libzip_source_libzip_file(libzip_t* za, libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len, const char *password) {
     return libzip_source_libzip_file_create(srcza, srcidx, flags, start, len, password, &za->error);
 }
 
 
-ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len, const char *password, libzip_error_t *error) {
+LIBZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len, const char *password, libzip_error_t *error) {
     /* TODO: We need to make sure that the returned source is invalidated when srcza is closed. */
     libzip_source_t *src, *s2;
     libzip_stat_t st;
@@ -56,57 +56,57 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
     bool empty_data = false;
 
     if (srcza == NULL || srcidx >= srcza->nentry || len < -1) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
-    if (flags & ZIP_FL_ENCRYPTED) {
-        flags |= ZIP_FL_COMPRESSED;
+    if (flags & LIBZIP_FL_ENCRYPTED) {
+        flags |= LIBZIP_FL_COMPRESSED;
     }
 
     changed_data = false;
-    if ((flags & ZIP_FL_UNCHANGED) == 0) {
+    if ((flags & LIBZIP_FL_UNCHANGED) == 0) {
         libzip_entry_t *entry = srcza->entry + srcidx;
-        if (ZIP_ENTRY_DATA_CHANGED(entry)) {
-            if ((flags & ZIP_FL_COMPRESSED) || !libzip_source_supports_reopen(entry->source)) {
-                libzip_error_set(error, ZIP_ER_CHANGED, 0);
+        if (LIBZIP_ENTRY_DATA_CHANGED(entry)) {
+            if ((flags & LIBZIP_FL_COMPRESSED) || !libzip_source_supports_reopen(entry->source)) {
+                libzip_error_set(error, LIBZIP_ER_CHANGED, 0);
                 return NULL;
             }
 
             changed_data = true;
         }
         else if (entry->deleted) {
-            libzip_error_set(error, ZIP_ER_CHANGED, 0);
+            libzip_error_set(error, LIBZIP_ER_CHANGED, 0);
             return NULL;
         }
     }
 
     stat_flags = flags;
     if (!changed_data) {
-        stat_flags |= ZIP_FL_UNCHANGED;
+        stat_flags |= LIBZIP_FL_UNCHANGED;
     }
 
     if (libzip_stat_index(srcza, srcidx, stat_flags, &st) < 0) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         return NULL;
     }
 
-    if ((start > 0 || len >= 0) && (flags & ZIP_FL_COMPRESSED)) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+    if ((start > 0 || len >= 0) && (flags & LIBZIP_FL_COMPRESSED)) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
-    have_size = (st.valid & ZIP_STAT_SIZE) != 0;
+    have_size = (st.valid & LIBZIP_STAT_SIZE) != 0;
     /* overflow or past end of file */
     if (len >= 0 && ((start > 0 && start + len < start) || (have_size && start + len > st.size))) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if (len == -1) {
         if (have_size) {
-            if (st.size - start > ZIP_INT64_MAX) {
-                libzip_error_set(error, ZIP_ER_INVAL, 0);
+            if (st.size - start > LIBZIP_INT64_MAX) {
+                libzip_error_set(error, LIBZIP_ER_INVAL, 0);
                 return NULL;
             }
             data_len = (libzip_int64_t)(st.size - start);
@@ -125,19 +125,19 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
     else {
         partial_data = true;
     }
-    encrypted = (st.valid & ZIP_STAT_ENCRYPTION_METHOD) && (st.encryption_method != ZIP_EM_NONE);
-    needs_decrypt = ((flags & ZIP_FL_ENCRYPTED) == 0) && encrypted;
-    compressed = (st.valid & ZIP_STAT_COMP_METHOD) && (st.comp_method != ZIP_CM_STORE);
-    needs_decompress = ((flags & ZIP_FL_COMPRESSED) == 0) && compressed;
+    encrypted = (st.valid & LIBZIP_STAT_ENCRYPTION_METHOD) && (st.encryption_method != LIBZIP_EM_NONE);
+    needs_decrypt = ((flags & LIBZIP_FL_ENCRYPTED) == 0) && encrypted;
+    compressed = (st.valid & LIBZIP_STAT_COMP_METHOD) && (st.comp_method != LIBZIP_CM_STORE);
+    needs_decompress = ((flags & LIBZIP_FL_COMPRESSED) == 0) && compressed;
     /* when reading the whole file, check for CRC errors */
-    needs_crc = ((flags & ZIP_FL_COMPRESSED) == 0 || !compressed) && !partial_data && (st.valid & ZIP_STAT_CRC) != 0;
+    needs_crc = ((flags & LIBZIP_FL_COMPRESSED) == 0 || !compressed) && !partial_data && (st.valid & LIBZIP_STAT_CRC) != 0;
 
     if (needs_decrypt) {
         if (password == NULL) {
             password = srcza->default_password;
         }
         if (password == NULL) {
-            libzip_error_set(error, ZIP_ER_NOPASSWD, 0);
+            libzip_error_set(error, LIBZIP_ER_NOPASSWD, 0);
             return NULL;
         }
     }
@@ -147,7 +147,7 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
     }
     _libzip_file_attributes_from_dirent(&attributes, de);
 
-    have_comp_size = (st.valid & ZIP_STAT_COMP_SIZE) != 0;
+    have_comp_size = (st.valid & LIBZIP_STAT_COMP_SIZE) != 0;
     if (needs_decrypt || needs_decompress) {
         empty_data = (have_comp_size && st.comp_size == 0);
     }
@@ -188,19 +188,19 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
             source_index = srcidx;
         }
 
-        st2.comp_method = ZIP_CM_STORE;
-        st2.valid = ZIP_STAT_COMP_METHOD;
+        st2.comp_method = LIBZIP_CM_STORE;
+        st2.valid = LIBZIP_STAT_COMP_METHOD;
         if (data_len >= 0) {
             st2.size = (libzip_uint64_t)data_len;
             st2.comp_size = (libzip_uint64_t)data_len;
-            st2.valid |= ZIP_STAT_SIZE | ZIP_STAT_COMP_SIZE;
+            st2.valid |= LIBZIP_STAT_SIZE | LIBZIP_STAT_COMP_SIZE;
         }
-        if (st.valid & ZIP_STAT_MTIME) {
+        if (st.valid & LIBZIP_STAT_MTIME) {
             st2.mtime = st.mtime;
-            st2.valid |= ZIP_STAT_MTIME;
+            st2.valid |= LIBZIP_STAT_MTIME;
         }
 
-        if ((src = _libzip_source_window_new(src, start, data_len, &st2, ZIP_STAT_NAME, &attributes, source_archive, source_index, take_ownership, error)) == NULL) {
+        if ((src = _libzip_source_window_new(src, start, data_len, &st2, LIBZIP_STAT_NAME, &attributes, source_archive, source_index, take_ownership, error)) == NULL) {
             return NULL;
         }
     }
@@ -210,8 +210,8 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
         /* this branch is executed only for archive sources; we know
            that stat data come from the archive too, so it's safe to
            assume that st has a comp_size specified */
-        if (st.comp_size > ZIP_INT64_MAX) {
-            libzip_error_set(error, ZIP_ER_INVAL, 0);
+        if (st.comp_size > LIBZIP_INT64_MAX) {
+            libzip_error_set(error, LIBZIP_ER_INVAL, 0);
             return NULL;
         }
         /* despite the fact that we want the whole data file, we still
@@ -219,7 +219,7 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
            attributes and to have a source that positions the read
            offset properly before each read for multiple libzip_file_t
            referring to the same underlying source */
-        if ((src =  _libzip_source_window_new(srcza->src, 0, (libzip_int64_t)st.comp_size, &st, ZIP_STAT_NAME, &attributes, srcza, srcidx, take_ownership, error)) == NULL) {
+        if ((src =  _libzip_source_window_new(srcza->src, 0, (libzip_int64_t)st.comp_size, &st, LIBZIP_STAT_NAME, &attributes, srcza, srcidx, take_ownership, error)) == NULL) {
             return NULL;
         }
     }
@@ -235,7 +235,7 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
            attributes and to have a source that positions the read
            offset properly before each read for multiple libzip_file_t
            referring to the same underlying source */
-        if ((src = _libzip_source_window_new(src, 0, data_len, &st, ZIP_STAT_NAME, &attributes, NULL, 0, take_ownership, error)) == NULL) {
+        if ((src = _libzip_source_window_new(src, 0, data_len, &st, LIBZIP_STAT_NAME, &attributes, NULL, 0, take_ownership, error)) == NULL) {
             return NULL;
         }
     }
@@ -252,9 +252,9 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
     if (needs_decrypt) {
         libzip_encryption_implementation enc_impl;
 
-        if ((enc_impl = _libzip_get_encryption_implementation(st.encryption_method, ZIP_CODEC_DECODE)) == NULL) {
+        if ((enc_impl = _libzip_get_encryption_implementation(st.encryption_method, LIBZIP_CODEC_DECODE)) == NULL) {
             libzip_source_free(src);
-            libzip_error_set(error, ZIP_ER_ENCRNOTSUPP, 0);
+            libzip_error_set(error, LIBZIP_ER_ENCRNOTSUPP, 0);
             return NULL;
         }
 
@@ -287,10 +287,10 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
         libzip_stat_t st2;
         libzip_stat_init(&st2);
         if (data_len >= 0) {
-            st2.valid = ZIP_STAT_SIZE;
+            st2.valid = LIBZIP_STAT_SIZE;
             st2.size = (libzip_uint64_t)data_len;
         }
-        s2 = _libzip_source_window_new(src, start, data_len, &st2, ZIP_STAT_NAME, NULL, NULL, 0, true, error);
+        s2 = _libzip_source_window_new(src, start, data_len, &st2, LIBZIP_STAT_NAME, NULL, NULL, 0, true, error);
         if (s2 == NULL) {
             libzip_source_free(src);
             return NULL;
@@ -304,10 +304,10 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_file_create(libzip_t *srcza, li
 static void
 _libzip_file_attributes_from_dirent(libzip_file_attributes_t *attributes, libzip_dirent_t *de) {
     libzip_file_attributes_init(attributes);
-    attributes->valid = ZIP_FILE_ATTRIBUTES_ASCII | ZIP_FILE_ATTRIBUTES_HOST_SYSTEM | ZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES | ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS;
+    attributes->valid = LIBZIP_FILE_ATTRIBUTES_ASCII | LIBZIP_FILE_ATTRIBUTES_HOST_SYSTEM | LIBZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES | LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS;
     attributes->ascii = de->int_attrib & 1;
     attributes->host_system = de->version_madeby >> 8;
     attributes->external_file_attributes = de->ext_attrib;
     attributes->general_purpose_bit_flags = de->bitflags;
-    attributes->general_purpose_bit_mask = ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS_ALLOWED_MASK;
+    attributes->general_purpose_bit_mask = LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS_ALLOWED_MASK;
 }

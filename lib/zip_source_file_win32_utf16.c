@@ -56,7 +56,7 @@ libzip_win32_file_operations_t ops_utf16 = {
 DONT_WARN_INCOMPATIBLE_FN_PTR_END
 /* clang-format on */
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_win32w(libzip_t *za, const wchar_t *fname, libzip_uint64_t start, libzip_int64_t len) {
     if (za == NULL)
         return NULL;
@@ -65,10 +65,10 @@ libzip_source_win32w(libzip_t *za, const wchar_t *fname, libzip_uint64_t start, 
 }
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_win32w_create(const wchar_t *fname, libzip_uint64_t start, libzip_int64_t length, libzip_error_t *error) {
-    if (fname == NULL || length < ZIP_LENGTH_UNCHECKED) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+    if (fname == NULL || length < LIBZIP_LENGTH_UNCHECKED) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 

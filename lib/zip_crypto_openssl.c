@@ -78,19 +78,19 @@ _libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libz
         cipher_type = EVP_aes_256_ecb();
         break;
     default:
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         return NULL;
     }
 
 #ifdef USE_OPENSSL_1_0_API
     if ((aes = (_libzip_crypto_aes_t *)malloc(sizeof(*aes))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
     memset(aes, 0, sizeof(*aes));
 #else
     if ((aes = EVP_CIPHER_CTX_new()) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 #endif
@@ -101,7 +101,7 @@ _libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libz
 #else
         EVP_CIPHER_CTX_free(aes);
 #endif
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         return NULL;
     }
 
@@ -129,9 +129,9 @@ _libzip_crypto_aes_encrypt_block(_libzip_crypto_aes_t *aes, const libzip_uint8_t
     int len = 0;
     /* TODO: The memset() is just for testing the memory sanitizer,
        _libzip_winlibzip_aes_new() will overwrite the same bytes */
-    memset(out, 0xff, ZIP_CRYPTO_AES_BLOCK_LENGTH);
-    if (EVP_EncryptUpdate(aes, out, &len, in, ZIP_CRYPTO_AES_BLOCK_LENGTH) != 1
-        || len != ZIP_CRYPTO_AES_BLOCK_LENGTH) {
+    memset(out, 0xff, LIBZIP_CRYPTO_AES_BLOCK_LENGTH);
+    if (EVP_EncryptUpdate(aes, out, &len, in, LIBZIP_CRYPTO_AES_BLOCK_LENGTH) != 1
+        || len != LIBZIP_CRYPTO_AES_BLOCK_LENGTH) {
         return false;
     }
     return true;
@@ -143,7 +143,7 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
     _libzip_crypto_hmac_t *hmac;
 
     if (secret_length > INT_MAX) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
@@ -152,7 +152,7 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
         || (hmac->mac = EVP_MAC_fetch(NULL, "HMAC", "provider=default")) == NULL
         || (hmac->ctx = EVP_MAC_CTX_new(hmac->mac)) == NULL) {
         hmac_free(hmac);
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -162,7 +162,7 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
         params[1] = OSSL_PARAM_construct_end();
 
         if (!EVP_MAC_init(hmac->ctx, (const unsigned char *)secret, secret_length, params)) {
-            libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+            libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
             hmac_free(hmac);
             return NULL;
         }
@@ -170,20 +170,20 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
 #else
 #ifdef USE_OPENSSL_1_0_API
     if ((hmac = (_libzip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
         HMAC_CTX_init(hmac);
 #else
     if ((hmac = HMAC_CTX_new()) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 #endif
 
     if (HMAC_Init_ex(hmac, secret, (int)secret_length, EVP_sha1(), NULL) != 1) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
 #ifdef USE_OPENSSL_1_0_API
         free(hmac);
 #else
@@ -219,18 +219,18 @@ bool
 _libzip_crypto_hmac_output(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data) {
     /* TODO: The memset() is just for testing the memory sanitizer,
        _libzip_winlibzip_aes_new() will overwrite the same bytes */
-    memset(data, 0xff, ZIP_CRYPTO_SHA1_LENGTH);
+    memset(data, 0xff, LIBZIP_CRYPTO_SHA1_LENGTH);
 #ifdef USE_OPENSSL_3_API
     size_t length = 0;
-    return EVP_MAC_final(hmac->ctx, data, &length, ZIP_CRYPTO_SHA1_LENGTH) == 1 && length == ZIP_CRYPTO_SHA1_LENGTH;
+    return EVP_MAC_final(hmac->ctx, data, &length, LIBZIP_CRYPTO_SHA1_LENGTH) == 1 && length == LIBZIP_CRYPTO_SHA1_LENGTH;
 #else
     unsigned int length = 0;
-    return HMAC_Final(hmac, data, &length) == 1 && length == ZIP_CRYPTO_SHA1_LENGTH;
+    return HMAC_Final(hmac, data, &length) == 1 && length == LIBZIP_CRYPTO_SHA1_LENGTH;
 #endif
 }
 
 
-ZIP_EXTERN bool
+LIBZIP_EXTERN bool
 libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     return RAND_bytes(buffer, length) == 1;
 }

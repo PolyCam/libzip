@@ -60,7 +60,7 @@ main(int argc, char *argv[]) {
     archive = argv[1];
     file = argv[2];
 
-    if ((za = libzip_open(archive, ZIP_CREATE, &err)) == NULL) {
+    if ((za = libzip_open(archive, LIBZIP_CREATE, &err)) == NULL) {
         libzip_error_t error;
         libzip_error_init_with_code(&error, err);
         fprintf(stderr, "%s: can't open zip archive '%s': %s\n", prg, archive, libzip_error_strerror(&error));

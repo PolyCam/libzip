@@ -47,7 +47,7 @@ _libzip_new(libzip_error_t *error) {
 
     za = (libzip_t *)malloc(sizeof(struct zip));
     if (!za) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 

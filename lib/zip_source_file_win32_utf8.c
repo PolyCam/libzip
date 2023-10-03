@@ -33,7 +33,7 @@
 
 #include "zip_source_file_win32.h"
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_file(libzip_t *za, const char *fname, libzip_uint64_t start, libzip_int64_t len) {
     if (za == NULL) {
         return NULL;
@@ -43,25 +43,25 @@ libzip_source_file(libzip_t *za, const char *fname, libzip_uint64_t start, libzi
 }
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_file_create(const char *fname, libzip_uint64_t start, libzip_int64_t length, libzip_error_t *error) {
     int size;
     wchar_t *wfname;
     libzip_source_t *source;
 
-    if (fname == NULL || length < ZIP_LENGTH_UNCHECKED) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+    if (fname == NULL || length < LIBZIP_LENGTH_UNCHECKED) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     /* Convert fname from UTF-8 to Windows-friendly UTF-16. */
     size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, fname, -1, NULL, 0);
     if (size == 0) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
     if ((wfname = (wchar_t *)malloc(sizeof(wchar_t) * size)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
     MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, fname, -1, wfname, size);

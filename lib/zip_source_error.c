@@ -42,5 +42,5 @@ libzip_source_error(libzip_source_t *src) {
 
 bool
 _libzip_source_had_error(libzip_source_t *src) {
-    return libzip_source_error(src)->libzip_err != ZIP_ER_OK;
+    return libzip_source_error(src)->libzip_err != LIBZIP_ER_OK;
 }

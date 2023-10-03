@@ -35,12 +35,12 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_source_write(libzip_source_t *src, const void *data, libzip_uint64_t length) {
-    if (!ZIP_SOURCE_IS_OPEN_WRITING(src) || length > ZIP_INT64_MAX) {
-        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
+    if (!LIBZIP_SOURCE_IS_OPEN_WRITING(src) || length > LIBZIP_INT64_MAX) {
+        libzip_error_set(&src->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    return _libzip_source_call(src, (void *)data, length, ZIP_SOURCE_WRITE);
+    return _libzip_source_call(src, (void *)data, length, LIBZIP_SOURCE_WRITE);
 }

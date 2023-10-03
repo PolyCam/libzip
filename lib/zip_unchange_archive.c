@@ -37,7 +37,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_unchange_archive(libzip_t *za) {
     if (za->comment_changed) {
         _libzip_string_free(za->comment_changes);

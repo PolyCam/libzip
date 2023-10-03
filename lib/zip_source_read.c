@@ -43,8 +43,8 @@ libzip_source_read(libzip_source_t *src, void *data, libzip_uint64_t len) {
     if (src->source_closed) {
         return -1;
     }
-    if (!ZIP_SOURCE_IS_OPEN_READING(src) || len > ZIP_INT64_MAX || (len > 0 && data == NULL)) {
-        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
+    if (!LIBZIP_SOURCE_IS_OPEN_READING(src) || len > LIBZIP_INT64_MAX || (len > 0 && data == NULL)) {
+        libzip_error_set(&src->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
@@ -62,7 +62,7 @@ libzip_source_read(libzip_source_t *src, void *data, libzip_uint64_t len) {
 
     bytes_read = 0;
     while (bytes_read < len) {
-        if ((n = _libzip_source_call(src, (libzip_uint8_t *)data + bytes_read, len - bytes_read, ZIP_SOURCE_READ)) < 0) {
+        if ((n = _libzip_source_call(src, (libzip_uint8_t *)data + bytes_read, len - bytes_read, LIBZIP_SOURCE_READ)) < 0) {
             src->had_read_error = true;
             if (bytes_read == 0) {
                 return -1;
@@ -81,7 +81,7 @@ libzip_source_read(libzip_source_t *src, void *data, libzip_uint64_t len) {
     }
 
     if (src->bytes_read + bytes_read < src->bytes_read) {
-        src->bytes_read = ZIP_UINT64_MAX;
+        src->bytes_read = LIBZIP_UINT64_MAX;
     }
     else {
         src->bytes_read += bytes_read;

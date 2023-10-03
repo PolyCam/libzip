@@ -35,7 +35,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_stat(libzip_t *za, const char *fname, libzip_flags_t flags, libzip_stat_t *st) {
     libzip_int64_t idx;
 

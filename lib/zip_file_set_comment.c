@@ -37,7 +37,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_file_set_comment(libzip_t *za, libzip_uint64_t idx, const char *comment, libzip_uint16_t len, libzip_flags_t flags) {
     libzip_entry_t *e;
     libzip_string_t *cstr;
@@ -46,25 +46,25 @@ libzip_file_set_comment(libzip_t *za, libzip_uint64_t idx, const char *comment, 
     if (_libzip_get_dirent(za, idx, 0, NULL) == NULL)
         return -1;
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
-    if (ZIP_WANT_TORRENTZIP(za)) {
-        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
     if (len > 0 && comment == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     if (len > 0) {
         if ((cstr = _libzip_string_new((const libzip_uint8_t *)comment, len, flags, &za->error)) == NULL)
             return -1;
-        if ((flags & ZIP_FL_ENCODING_ALL) == ZIP_FL_ENC_GUESS && _libzip_guess_encoding(cstr, ZIP_ENCODING_UNKNOWN) == ZIP_ENCODING_UTF8_GUESSED)
-            cstr->encoding = ZIP_ENCODING_UTF8_KNOWN;
+        if ((flags & LIBZIP_FL_ENCODING_ALL) == LIBZIP_FL_ENC_GUESS && _libzip_guess_encoding(cstr, LIBZIP_ENCODING_UNKNOWN) == LIBZIP_ENCODING_UTF8_GUESSED)
+            cstr->encoding = LIBZIP_ENCODING_UTF8_KNOWN;
     }
     else
         cstr = NULL;
@@ -74,7 +74,7 @@ libzip_file_set_comment(libzip_t *za, libzip_uint64_t idx, const char *comment, 
     if (e->changes) {
         _libzip_string_free(e->changes->comment);
         e->changes->comment = NULL;
-        e->changes->changed &= ~ZIP_DIRENT_COMMENT;
+        e->changes->changed &= ~LIBZIP_DIRENT_COMMENT;
     }
 
     if (e->orig && e->orig->comment)
@@ -85,13 +85,13 @@ libzip_file_set_comment(libzip_t *za, libzip_uint64_t idx, const char *comment, 
     if (changed) {
         if (e->changes == NULL) {
             if ((e->changes = _libzip_dirent_clone(e->orig)) == NULL) {
-                libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
                 _libzip_string_free(cstr);
                 return -1;
             }
         }
         e->changes->comment = cstr;
-        e->changes->changed |= ZIP_DIRENT_COMMENT;
+        e->changes->changed |= LIBZIP_DIRENT_COMMENT;
     }
     else {
         _libzip_string_free(cstr);

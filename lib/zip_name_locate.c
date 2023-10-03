@@ -40,7 +40,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_name_locate(libzip_t *za, const char *fname, libzip_flags_t flags) {
     return _libzip_name_locate(za, fname, flags, &za->error);
 }
@@ -59,18 +59,18 @@ _libzip_name_locate(libzip_t *za, const char *fname, libzip_flags_t flags, libzi
     }
 
     if (fname == NULL) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     fname_length = strlen(fname);
 
-    if (fname_length > ZIP_UINT16_MAX) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+    if (fname_length > LIBZIP_UINT16_MAX) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    if ((flags & (ZIP_FL_ENC_UTF_8 | ZIP_FL_ENC_RAW)) == 0 && fname[0] != '\0') {
+    if ((flags & (LIBZIP_FL_ENC_UTF_8 | LIBZIP_FL_ENC_RAW)) == 0 && fname[0] != '\0') {
         if ((str = _libzip_string_new((const libzip_uint8_t *)fname, (libzip_uint16_t)strlen(fname), flags, error)) == NULL) {
             return -1;
         }
@@ -80,9 +80,9 @@ _libzip_name_locate(libzip_t *za, const char *fname, libzip_flags_t flags, libzi
         }
     }
 
-    if (flags & (ZIP_FL_NOCASE | ZIP_FL_NODIR | ZIP_FL_ENC_RAW | ZIP_FL_ENC_STRICT)) {
+    if (flags & (LIBZIP_FL_NOCASE | LIBZIP_FL_NODIR | LIBZIP_FL_ENC_RAW | LIBZIP_FL_ENC_STRICT)) {
         /* can't use hash table */
-        cmp = (flags & ZIP_FL_NOCASE) ? strcasecmp : strcmp;
+        cmp = (flags & LIBZIP_FL_NOCASE) ? strcasecmp : strcmp;
 
         for (i = 0; i < za->nentry; i++) {
             fn = _libzip_get_name(za, i, flags, error);
@@ -91,7 +91,7 @@ _libzip_name_locate(libzip_t *za, const char *fname, libzip_flags_t flags, libzi
             if (fn == NULL)
                 continue;
 
-            if (flags & ZIP_FL_NODIR) {
+            if (flags & LIBZIP_FL_NODIR) {
                 p = strrchr(fn, '/');
                 if (p)
                     fn = p + 1;
@@ -104,7 +104,7 @@ _libzip_name_locate(libzip_t *za, const char *fname, libzip_flags_t flags, libzi
             }
         }
 
-        libzip_error_set(error, ZIP_ER_NOENT, 0);
+        libzip_error_set(error, LIBZIP_ER_NOENT, 0);
         _libzip_string_free(str);
         return -1;
     }

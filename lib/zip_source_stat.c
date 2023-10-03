@@ -35,30 +35,30 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_source_stat(libzip_source_t *src, libzip_stat_t *st) {
     if (src->source_closed) {
         return -1;
     }
     if (st == NULL) {
-        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&src->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    if (src->write_state == ZIP_SOURCE_WRITE_REMOVED) {
-        libzip_error_set(&src->error, ZIP_ER_READ, ENOENT);
+    if (src->write_state == LIBZIP_SOURCE_WRITE_REMOVED) {
+        libzip_error_set(&src->error, LIBZIP_ER_READ, ENOENT);
     }
 
     libzip_stat_init(st);
 
-    if (ZIP_SOURCE_IS_LAYERED(src)) {
+    if (LIBZIP_SOURCE_IS_LAYERED(src)) {
         if (libzip_source_stat(src->src, st) < 0) {
             libzip_error_set_from_source(&src->error, src->src);
             return -1;
         }
     }
 
-    if (_libzip_source_call(src, st, sizeof(*st), ZIP_SOURCE_STAT) < 0) {
+    if (_libzip_source_call(src, st, sizeof(*st), LIBZIP_SOURCE_STAT) < 0) {
         return -1;
     }
 

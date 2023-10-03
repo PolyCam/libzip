@@ -51,7 +51,7 @@ maximum_compressed_size(libzip_uint64_t uncompressed_size) {
     libzip_uint64_t compressed_size = (libzip_uint64_t)((double)uncompressed_size * 1.006);
 
     if (compressed_size < uncompressed_size) {
-        return ZIP_UINT64_MAX;
+        return LIBZIP_UINT64_MAX;
     }
     return compressed_size;
 }
@@ -120,25 +120,25 @@ map_error(int ret) {
     case BZ_OK:
     case BZ_RUN_OK:
     case BZ_STREAM_END:
-        return ZIP_ER_OK;
+        return LIBZIP_ER_OK;
 
     case BZ_DATA_ERROR:
     case BZ_DATA_ERROR_MAGIC:
     case BZ_UNEXPECTED_EOF:
-        return ZIP_ER_COMPRESSED_DATA;
+        return LIBZIP_ER_COMPRESSED_DATA;
 
     case BZ_MEM_ERROR:
-        return ZIP_ER_MEMORY;
+        return LIBZIP_ER_MEMORY;
 
     case BZ_PARAM_ERROR:
-        return ZIP_ER_INVAL;
+        return LIBZIP_ER_INVAL;
 
     case BZ_CONFIG_ERROR: /* actually, bzip2 miscompiled */
     case BZ_IO_ERROR:
     case BZ_OUTBUFF_FULL:
     case BZ_SEQUENCE_ERROR:
     default:
-        return ZIP_ER_INTERNAL;
+        return LIBZIP_ER_INTERNAL;
     }
 }
 
@@ -197,7 +197,7 @@ input(void *ud, libzip_uint8_t *data, libzip_uint64_t length) {
     struct ctx *ctx = (struct ctx *)ud;
 
     if (length > UINT_MAX || ctx->zstr.avail_in > 0) {
-        libzip_error_set(ctx->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(ctx->error, LIBZIP_ER_INVAL, 0);
         return false;
     }
 
@@ -225,10 +225,10 @@ process(void *ud, libzip_uint8_t *data, libzip_uint64_t *length) {
 
     if (ctx->zstr.avail_in == 0 && !ctx->end_of_input) {
         *length = 0;
-        return ZIP_COMPRESSION_NEED_DATA;
+        return LIBZIP_COMPRESSION_NEED_DATA;
     }
 
-    avail_out = (unsigned int)ZIP_MIN(UINT_MAX, *length);
+    avail_out = (unsigned int)LIBZIP_MIN(UINT_MAX, *length);
     ctx->zstr.avail_out = avail_out;
     ctx->zstr.next_out = (char *)data;
 
@@ -243,21 +243,21 @@ process(void *ud, libzip_uint8_t *data, libzip_uint64_t *length) {
 
     switch (ret) {
     case BZ_FINISH_OK: /* compression */
-        return ZIP_COMPRESSION_OK;
+        return LIBZIP_COMPRESSION_OK;
 
     case BZ_OK:     /* decompression */
     case BZ_RUN_OK: /* compression */
         if (ctx->zstr.avail_in == 0) {
-            return ZIP_COMPRESSION_NEED_DATA;
+            return LIBZIP_COMPRESSION_NEED_DATA;
         }
-        return ZIP_COMPRESSION_OK;
+        return LIBZIP_COMPRESSION_OK;
 
     case BZ_STREAM_END:
-        return ZIP_COMPRESSION_END;
+        return LIBZIP_COMPRESSION_END;
 
     default:
         libzip_error_set(ctx->error, map_error(ret), 0);
-        return ZIP_COMPRESSION_ERROR;
+        return LIBZIP_COMPRESSION_ERROR;
     }
 }
 

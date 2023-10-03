@@ -35,29 +35,29 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_file_extra_field_delete(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t ef_idx, libzip_flags_t flags) {
     libzip_dirent_t *de;
 
-    if ((flags & ZIP_EF_BOTH) == 0) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if ((flags & LIBZIP_EF_BOTH) == 0) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    if (((flags & ZIP_EF_BOTH) == ZIP_EF_BOTH) && (ef_idx != ZIP_EXTRA_FIELD_ALL)) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if (((flags & LIBZIP_EF_BOTH) == LIBZIP_EF_BOTH) && (ef_idx != LIBZIP_EXTRA_FIELD_ALL)) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     if (_libzip_get_dirent(za, idx, 0, NULL) == NULL)
         return -1;
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
-    if (ZIP_WANT_TORRENTZIP(za)) {
-        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
@@ -66,34 +66,34 @@ libzip_file_extra_field_delete(libzip_t *za, libzip_uint64_t idx, libzip_uint16_
 
     de = za->entry[idx].changes;
 
-    de->extra_fields = _libzip_ef_delete_by_id(de->extra_fields, ZIP_EXTRA_FIELD_ALL, ef_idx, flags);
+    de->extra_fields = _libzip_ef_delete_by_id(de->extra_fields, LIBZIP_EXTRA_FIELD_ALL, ef_idx, flags);
     return 0;
 }
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_file_extra_field_delete_by_id(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t ef_id, libzip_uint16_t ef_idx, libzip_flags_t flags) {
     libzip_dirent_t *de;
 
-    if ((flags & ZIP_EF_BOTH) == 0) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if ((flags & LIBZIP_EF_BOTH) == 0) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    if (((flags & ZIP_EF_BOTH) == ZIP_EF_BOTH) && (ef_idx != ZIP_EXTRA_FIELD_ALL)) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if (((flags & LIBZIP_EF_BOTH) == LIBZIP_EF_BOTH) && (ef_idx != LIBZIP_EXTRA_FIELD_ALL)) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     if (_libzip_get_dirent(za, idx, 0, NULL) == NULL)
         return -1;
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
-    if (ZIP_WANT_TORRENTZIP(za)) {
-        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
@@ -107,7 +107,7 @@ libzip_file_extra_field_delete_by_id(libzip_t *za, libzip_uint64_t idx, libzip_u
 }
 
 
-ZIP_EXTERN const libzip_uint8_t *
+LIBZIP_EXTERN const libzip_uint8_t *
 libzip_file_extra_field_get(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t ef_idx, libzip_uint16_t *idp, libzip_uint16_t *lenp, libzip_flags_t flags) {
     static const libzip_uint8_t empty[1] = {'\0'};
 
@@ -115,21 +115,21 @@ libzip_file_extra_field_get(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t e
     libzip_extra_field_t *ef;
     int i;
 
-    if ((flags & ZIP_EF_BOTH) == 0) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if ((flags & LIBZIP_EF_BOTH) == 0) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if ((de = _libzip_get_dirent(za, idx, flags, &za->error)) == NULL)
         return NULL;
 
-    if (flags & ZIP_FL_LOCAL)
+    if (flags & LIBZIP_FL_LOCAL)
         if (_libzip_read_local_ef(za, idx) < 0)
             return NULL;
 
     i = 0;
     for (ef = de->extra_fields; ef; ef = ef->next) {
-        if (ef->flags & flags & ZIP_EF_BOTH) {
+        if (ef->flags & flags & LIBZIP_EF_BOTH) {
             if (i < ef_idx) {
                 i++;
                 continue;
@@ -146,24 +146,24 @@ libzip_file_extra_field_get(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t e
         }
     }
 
-    libzip_error_set(&za->error, ZIP_ER_NOENT, 0);
+    libzip_error_set(&za->error, LIBZIP_ER_NOENT, 0);
     return NULL;
 }
 
 
-ZIP_EXTERN const libzip_uint8_t *
+LIBZIP_EXTERN const libzip_uint8_t *
 libzip_file_extra_field_get_by_id(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t ef_id, libzip_uint16_t ef_idx, libzip_uint16_t *lenp, libzip_flags_t flags) {
     libzip_dirent_t *de;
 
-    if ((flags & ZIP_EF_BOTH) == 0) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if ((flags & LIBZIP_EF_BOTH) == 0) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if ((de = _libzip_get_dirent(za, idx, flags, &za->error)) == NULL)
         return NULL;
 
-    if (flags & ZIP_FL_LOCAL)
+    if (flags & LIBZIP_FL_LOCAL)
         if (_libzip_read_local_ef(za, idx) < 0)
             return NULL;
 
@@ -171,86 +171,86 @@ libzip_file_extra_field_get_by_id(libzip_t *za, libzip_uint64_t idx, libzip_uint
 }
 
 
-ZIP_EXTERN libzip_int16_t
+LIBZIP_EXTERN libzip_int16_t
 libzip_file_extra_fields_count(libzip_t *za, libzip_uint64_t idx, libzip_flags_t flags) {
     libzip_dirent_t *de;
     libzip_extra_field_t *ef;
     libzip_uint16_t n;
 
-    if ((flags & ZIP_EF_BOTH) == 0) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if ((flags & LIBZIP_EF_BOTH) == 0) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     if ((de = _libzip_get_dirent(za, idx, flags, &za->error)) == NULL)
         return -1;
 
-    if (flags & ZIP_FL_LOCAL)
+    if (flags & LIBZIP_FL_LOCAL)
         if (_libzip_read_local_ef(za, idx) < 0)
             return -1;
 
     n = 0;
     for (ef = de->extra_fields; ef; ef = ef->next)
-        if (ef->flags & flags & ZIP_EF_BOTH)
+        if (ef->flags & flags & LIBZIP_EF_BOTH)
             n++;
 
     return (libzip_int16_t)n;
 }
 
 
-ZIP_EXTERN libzip_int16_t
+LIBZIP_EXTERN libzip_int16_t
 libzip_file_extra_fields_count_by_id(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t ef_id, libzip_flags_t flags) {
     libzip_dirent_t *de;
     libzip_extra_field_t *ef;
     libzip_uint16_t n;
 
-    if ((flags & ZIP_EF_BOTH) == 0) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if ((flags & LIBZIP_EF_BOTH) == 0) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     if ((de = _libzip_get_dirent(za, idx, flags, &za->error)) == NULL)
         return -1;
 
-    if (flags & ZIP_FL_LOCAL)
+    if (flags & LIBZIP_FL_LOCAL)
         if (_libzip_read_local_ef(za, idx) < 0)
             return -1;
 
     n = 0;
     for (ef = de->extra_fields; ef; ef = ef->next)
-        if (ef->id == ef_id && (ef->flags & flags & ZIP_EF_BOTH))
+        if (ef->id == ef_id && (ef->flags & flags & LIBZIP_EF_BOTH))
             n++;
 
     return (libzip_int16_t)n;
 }
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_file_extra_field_set(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t ef_id, libzip_uint16_t ef_idx, const libzip_uint8_t *data, libzip_uint16_t len, libzip_flags_t flags) {
     libzip_dirent_t *de;
     libzip_uint16_t ls, cs;
     libzip_extra_field_t *ef, *ef_prev, *ef_new;
     int i, found, new_len;
 
-    if ((flags & ZIP_EF_BOTH) == 0) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if ((flags & LIBZIP_EF_BOTH) == 0) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     if (_libzip_get_dirent(za, idx, 0, NULL) == NULL)
         return -1;
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
-    if (ZIP_WANT_TORRENTZIP(za)) {
-        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
-    if (ZIP_EF_IS_INTERNAL(ef_id)) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if (LIBZIP_EF_IS_INTERNAL(ef_id)) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
@@ -265,7 +265,7 @@ libzip_file_extra_field_set(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t e
     found = 0;
 
     for (; ef; ef = ef->next) {
-        if (ef->id == ef_id && (ef->flags & flags & ZIP_EF_BOTH)) {
+        if (ef->id == ef_id && (ef->flags & flags & LIBZIP_EF_BOTH)) {
             if (i == ef_idx) {
                 found = 1;
                 break;
@@ -275,17 +275,17 @@ libzip_file_extra_field_set(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t e
         ef_prev = ef;
     }
 
-    if (i < ef_idx && ef_idx != ZIP_EXTRA_FIELD_NEW) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if (i < ef_idx && ef_idx != LIBZIP_EXTRA_FIELD_NEW) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    if (flags & ZIP_EF_LOCAL)
-        ls = _libzip_ef_size(de->extra_fields, ZIP_EF_LOCAL);
+    if (flags & LIBZIP_EF_LOCAL)
+        ls = _libzip_ef_size(de->extra_fields, LIBZIP_EF_LOCAL);
     else
         ls = 0;
-    if (flags & ZIP_EF_CENTRAL)
-        cs = _libzip_ef_size(de->extra_fields, ZIP_EF_CENTRAL);
+    if (flags & LIBZIP_EF_CENTRAL)
+        cs = _libzip_ef_size(de->extra_fields, LIBZIP_EF_CENTRAL);
     else
         cs = 0;
 
@@ -294,18 +294,18 @@ libzip_file_extra_field_set(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t e
         new_len -= ef->size + 4;
     new_len += len + 4;
 
-    if (new_len > ZIP_UINT16_MAX) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if (new_len > LIBZIP_UINT16_MAX) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     if ((ef_new = _libzip_ef_new(ef_id, len, data, flags)) == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
         return -1;
     }
 
     if (found) {
-        if ((ef->flags & ZIP_EF_BOTH) == (flags & ZIP_EF_BOTH)) {
+        if ((ef->flags & LIBZIP_EF_BOTH) == (flags & LIBZIP_EF_BOTH)) {
             ef_new->next = ef->next;
             ef->next = NULL;
             _libzip_ef_free(ef);
@@ -315,7 +315,7 @@ libzip_file_extra_field_set(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t e
                 de->extra_fields = ef_new;
         }
         else {
-            ef->flags &= ~(flags & ZIP_EF_BOTH);
+            ef->flags &= ~(flags & LIBZIP_EF_BOTH);
             ef_new->next = ef->next;
             ef->next = ef_new;
         }
@@ -336,13 +336,13 @@ _libzip_file_extra_field_prepare_for_change(libzip_t *za, libzip_uint64_t idx) {
     libzip_entry_t *e;
 
     if (idx >= za->nentry) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     e = za->entry + idx;
 
-    if (e->changes && (e->changes->changed & ZIP_DIRENT_EXTRA_FIELD))
+    if (e->changes && (e->changes->changed & LIBZIP_DIRENT_EXTRA_FIELD))
         return 0;
 
     if (e->orig) {
@@ -352,7 +352,7 @@ _libzip_file_extra_field_prepare_for_change(libzip_t *za, libzip_uint64_t idx) {
 
     if (e->changes == NULL) {
         if ((e->changes = _libzip_dirent_clone(e->orig)) == NULL) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             return -1;
         }
     }
@@ -361,7 +361,7 @@ _libzip_file_extra_field_prepare_for_change(libzip_t *za, libzip_uint64_t idx) {
         if ((e->changes->extra_fields = _libzip_ef_clone(e->orig->extra_fields, &za->error)) == NULL)
             return -1;
     }
-    e->changes->changed |= ZIP_DIRENT_EXTRA_FIELD;
+    e->changes->changed |= LIBZIP_DIRENT_EXTRA_FIELD;
 
     return 0;
 }

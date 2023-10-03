@@ -32,23 +32,23 @@
 */
 
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_error_get(libzip_t *za, int *zep, int *sep) {
     _libzip_error_get(&za->error, zep, sep);
 }
 
 
-ZIP_EXTERN libzip_error_t *
+LIBZIP_EXTERN libzip_error_t *
 libzip_get_error(libzip_t *za) {
     return &za->error;
 }
 
 
-ZIP_EXTERN libzip_error_t *
+LIBZIP_EXTERN libzip_error_t *
 libzip_file_get_error(libzip_file_t *f) {
     return &f->error;
 }

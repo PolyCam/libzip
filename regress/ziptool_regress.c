@@ -2,7 +2,7 @@
 
 #include <sys/stat.h>
 
-#define ZIP_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define LIBZIP_MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #define FOR_REGRESS
 
@@ -352,7 +352,7 @@ read_hole(const char *archive, int flags, libzip_error_t *error) {
     libzip_t *zs = NULL;
 
     if (strcmp(archive, "/dev/stdin") == 0) {
-        libzip_error_set(error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(error, LIBZIP_ER_OPNOTSUPP, 0);
         return NULL;
     }
 
@@ -387,7 +387,7 @@ read_to_memory(const char *archive, int flags, libzip_error_t *error, libzip_sou
     FILE *fp;
 
     if (strcmp(archive, "/dev/stdin") == 0) {
-        libzip_error_set(error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(error, LIBZIP_ER_OPNOTSUPP, 0);
         return NULL;
     }
 
@@ -396,7 +396,7 @@ read_to_memory(const char *archive, int flags, libzip_error_t *error, libzip_sou
             src = libzip_source_buffer_create(NULL, 0, 0, error);
         }
         else {
-            libzip_error_set(error, ZIP_ER_OPEN, errno);
+            libzip_error_set(error, LIBZIP_ER_OPEN, errno);
             return NULL;
         }
     }
@@ -405,20 +405,20 @@ read_to_memory(const char *archive, int flags, libzip_error_t *error, libzip_sou
 
         if (fstat(fileno(fp), &st) < 0) {
             fclose(fp);
-            libzip_error_set(error, ZIP_ER_OPEN, errno);
+            libzip_error_set(error, LIBZIP_ER_OPEN, errno);
             return NULL;
         }
         if (fragment_size == 0) {
             char *buf;
             if ((buf = malloc((size_t)st.st_size)) == NULL) {
                 fclose(fp);
-                libzip_error_set(error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
                 return NULL;
             }
             if (fread(buf, (size_t)st.st_size, 1, fp) < 1) {
                 free(buf);
                 fclose(fp);
-                libzip_error_set(error, ZIP_ER_READ, errno);
+                libzip_error_set(error, LIBZIP_ER_READ, errno);
                 return NULL;
             }
             src = libzip_source_buffer_create(buf, (libzip_uint64_t)st.st_size, 1, error);
@@ -433,11 +433,11 @@ read_to_memory(const char *archive, int flags, libzip_error_t *error, libzip_sou
             nfragments = ((size_t)st.st_size + fragment_size - 1) / fragment_size;
             if ((fragments = malloc(sizeof(fragments[0]) * nfragments)) == NULL) {
                 fclose(fp);
-                libzip_error_set(error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
                 return NULL;
             }
             for (i = 0; i < nfragments; i++) {
-                left = ZIP_MIN(fragment_size, (size_t)st.st_size - i * fragment_size);
+                left = LIBZIP_MIN(fragment_size, (size_t)st.st_size - i * fragment_size);
                 if ((fragments[i].data = malloc(left)) == NULL) {
 #ifndef __clang_analyzer__
                     /* fragments is initialized up to i - 1*/
@@ -447,7 +447,7 @@ read_to_memory(const char *archive, int flags, libzip_error_t *error, libzip_sou
 #endif
                     free(fragments);
                     fclose(fp);
-                    libzip_error_set(error, ZIP_ER_MEMORY, 0);
+                    libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
                     return NULL;
                 }
                 fragments[i].length = left;
@@ -460,7 +460,7 @@ read_to_memory(const char *archive, int flags, libzip_error_t *error, libzip_sou
 #endif
                     free(fragments);
                     fclose(fp);
-                    libzip_error_set(error, ZIP_ER_READ, errno);
+                    libzip_error_set(error, LIBZIP_ER_READ, errno);
                     return NULL;
                 }
             }
@@ -502,23 +502,23 @@ source_nul_cb(void *ud, void *data, libzip_uint64_t length, libzip_source_cmd_t 
     source_nul_t *ctx = (source_nul_t *)ud;
 
     switch (command) {
-    case ZIP_SOURCE_CLOSE:
+    case LIBZIP_SOURCE_CLOSE:
         return 0;
 
-    case ZIP_SOURCE_ERROR:
+    case LIBZIP_SOURCE_ERROR:
         return libzip_error_to_data(&ctx->error, data, length);
 
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         free(ctx);
         return 0;
 
-    case ZIP_SOURCE_OPEN:
+    case LIBZIP_SOURCE_OPEN:
         ctx->offset = 0;
         return 0;
 
-    case ZIP_SOURCE_READ:
-        if (length > ZIP_INT64_MAX) {
-            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+    case LIBZIP_SOURCE_READ:
+        if (length > LIBZIP_INT64_MAX) {
+            libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
             return -1;
         }
 
@@ -530,24 +530,24 @@ source_nul_cb(void *ud, void *data, libzip_uint64_t length, libzip_source_cmd_t 
         ctx->offset += length;
         return (libzip_int64_t)length;
 
-    case ZIP_SOURCE_STAT: {
-        libzip_stat_t *st = ZIP_SOURCE_GET_ARGS(libzip_stat_t, data, length, &ctx->error);
+    case LIBZIP_SOURCE_STAT: {
+        libzip_stat_t *st = LIBZIP_SOURCE_GET_ARGS(libzip_stat_t, data, length, &ctx->error);
 
         if (st == NULL) {
             return -1;
         }
 
-        st->valid |= ZIP_STAT_SIZE;
+        st->valid |= LIBZIP_STAT_SIZE;
         st->size = ctx->length;
 
         return 0;
     }
 
-    case ZIP_SOURCE_SUPPORTS:
-        return libzip_source_make_command_bitmap(ZIP_SOURCE_CLOSE, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE, ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_STAT, -1);
+    case LIBZIP_SOURCE_SUPPORTS:
+        return libzip_source_make_command_bitmap(LIBZIP_SOURCE_CLOSE, LIBZIP_SOURCE_ERROR, LIBZIP_SOURCE_FREE, LIBZIP_SOURCE_OPEN, LIBZIP_SOURCE_READ, LIBZIP_SOURCE_STAT, -1);
 
     default:
-        libzip_error_set(&ctx->error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(&ctx->error, LIBZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 }
@@ -558,7 +558,7 @@ source_nul(libzip_t *zs, libzip_uint64_t length) {
     libzip_source_t *src;
 
     if ((ctx = (source_nul_t *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(libzip_get_error(zs), ZIP_ER_MEMORY, 0);
+        libzip_error_set(libzip_get_error(zs), LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -586,7 +586,7 @@ write_memory_src_to_file(const char *archive, libzip_source_t *src) {
         return -1;
     }
     if (libzip_source_open(src) < 0) {
-        if (libzip_error_code_zip(libzip_source_error(src)) == ZIP_ER_DELETED) {
+        if (libzip_error_code_zip(libzip_source_error(src)) == LIBZIP_ER_DELETED) {
             if (unlink(archive) < 0 && errno != ENOENT) {
                 fprintf(stderr, "unlink failed: %s\n", strerror(errno));
                 return -1;

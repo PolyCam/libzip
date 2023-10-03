@@ -57,49 +57,49 @@ libzip_source_file_common_new(const char *fname, void *file, libzip_uint64_t sta
     libzip_uint64_t length;
 
     if (ops == NULL) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if (ops->close == NULL || ops->read == NULL || ops->seek == NULL || ops->stat == NULL) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         return NULL;
     }
 
     if (ops->write != NULL && (ops->commit_write == NULL || ops->create_temp_output == NULL || ops->remove == NULL || ops->rollback_write == NULL || ops->tell == NULL)) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         return NULL;
     }
 
     if (fname != NULL) {
         if (ops->open == NULL || ops->string_duplicate == NULL) {
-            libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+            libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
             return NULL;
         }
     }
     else if (file == NULL) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if (len < 0) {
         if (len == -1) {
-            len = ZIP_LENGTH_TO_END;
+            len = LIBZIP_LENGTH_TO_END;
         }
-        // TODO: return ZIP_ER_INVAL if len != ZIP_LENGTH_UNCHECKED?
+        // TODO: return LIBZIP_ER_INVAL if len != LIBZIP_LENGTH_UNCHECKED?
         length = 0;
     }
     else {
         length = (libzip_uint64_t)len;
     }
 
-    if (start > ZIP_INT64_MAX || start + length < start) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+    if (start > LIBZIP_INT64_MAX || start + length < start) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if ((ctx = (libzip_source_file_context_t *)malloc(sizeof(libzip_source_file_context_t))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -108,7 +108,7 @@ libzip_source_file_common_new(const char *fname, void *file, libzip_uint64_t sta
     ctx->fname = NULL;
     if (fname) {
         if ((ctx->fname = ops->string_duplicate(ctx, fname)) == NULL) {
-            libzip_error_set(error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
             free(ctx);
             return NULL;
         }
@@ -119,7 +119,7 @@ libzip_source_file_common_new(const char *fname, void *file, libzip_uint64_t sta
     if (st) {
         (void)memcpy_s(&ctx->st, sizeof(ctx->st), st, sizeof(*st));
         ctx->st.name = NULL;
-        ctx->st.valid &= ~ZIP_STAT_NAME;
+        ctx->st.valid &= ~LIBZIP_STAT_NAME;
     }
     else {
         libzip_stat_init(&ctx->st);
@@ -127,7 +127,7 @@ libzip_source_file_common_new(const char *fname, void *file, libzip_uint64_t sta
 
     if (ctx->len > 0) {
         ctx->st.size = ctx->len;
-        ctx->st.valid |= ZIP_STAT_SIZE;
+        ctx->st.valid |= LIBZIP_STAT_SIZE;
     }
 
     libzip_error_init(&ctx->stat_error);
@@ -138,7 +138,7 @@ libzip_source_file_common_new(const char *fname, void *file, libzip_uint64_t sta
     libzip_error_init(&ctx->error);
     libzip_file_attributes_init(&ctx->attributes);
 
-    ctx->supports = ZIP_SOURCE_SUPPORTS_READABLE | libzip_source_make_command_bitmap(ZIP_SOURCE_SUPPORTS, ZIP_SOURCE_TELL, ZIP_SOURCE_SUPPORTS_REOPEN, -1);
+    ctx->supports = LIBZIP_SOURCE_SUPPORTS_READABLE | libzip_source_make_command_bitmap(LIBZIP_SOURCE_SUPPORTS, LIBZIP_SOURCE_TELL, LIBZIP_SOURCE_SUPPORTS_REOPEN, -1);
 
     libzip_source_file_stat_init(&sb);
     if (!ops->stat(ctx, &sb)) {
@@ -150,53 +150,53 @@ libzip_source_file_common_new(const char *fname, void *file, libzip_uint64_t sta
 
     if (!sb.exists) {
         if (ctx->fname && ctx->start == 0 && ctx->len == 0 && ops->write != NULL) {
-            ctx->supports = ZIP_SOURCE_SUPPORTS_WRITABLE;
+            ctx->supports = LIBZIP_SOURCE_SUPPORTS_WRITABLE;
             /* libzip_open_from_source checks for this to detect non-existing files */
-            libzip_error_set(&ctx->stat_error, ZIP_ER_READ, ENOENT);
+            libzip_error_set(&ctx->stat_error, LIBZIP_ER_READ, ENOENT);
         }
         else {
-            libzip_error_set(&ctx->stat_error, ZIP_ER_READ, ENOENT);
+            libzip_error_set(&ctx->stat_error, LIBZIP_ER_READ, ENOENT);
             free(ctx->fname);
             free(ctx);
             return NULL;
         }
     }
     else {
-        if ((ctx->st.valid & ZIP_STAT_MTIME) == 0) {
+        if ((ctx->st.valid & LIBZIP_STAT_MTIME) == 0) {
             ctx->st.mtime = sb.mtime;
-            ctx->st.valid |= ZIP_STAT_MTIME;
+            ctx->st.valid |= LIBZIP_STAT_MTIME;
         }
         if (sb.regular_file) {
-            ctx->supports = ZIP_SOURCE_SUPPORTS_SEEKABLE;
+            ctx->supports = LIBZIP_SOURCE_SUPPORTS_SEEKABLE;
 
             if (ctx->start + ctx->len > sb.size) {
-                libzip_error_set(error, ZIP_ER_INVAL, 0);
+                libzip_error_set(error, LIBZIP_ER_INVAL, 0);
                 free(ctx->fname);
                 free(ctx);
                 return NULL;
             }
 
             if (ctx->len == 0) {
-                if (len != ZIP_LENGTH_UNCHECKED) {
+                if (len != LIBZIP_LENGTH_UNCHECKED) {
                     ctx->len = sb.size - ctx->start;
                     ctx->st.size = ctx->len;
-                    ctx->st.valid |= ZIP_STAT_SIZE;
+                    ctx->st.valid |= LIBZIP_STAT_SIZE;
                 }
 
                 /* when using a partial file, don't allow writing */
                 if (ctx->fname && start == 0 && ops->write != NULL) {
-                    ctx->supports = ZIP_SOURCE_SUPPORTS_WRITABLE;
+                    ctx->supports = LIBZIP_SOURCE_SUPPORTS_WRITABLE;
                 }
             }
         }
 
-        ctx->supports |= ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_GET_FILE_ATTRIBUTES);
+        ctx->supports |= LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_GET_FILE_ATTRIBUTES);
     }
 
-    ctx->supports |= ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_ACCEPT_EMPTY);
+    ctx->supports |= LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_ACCEPT_EMPTY);
     if (ops->create_temp_output_cloning != NULL) {
-        if (ctx->supports & ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_BEGIN_WRITE)) {
-            ctx->supports |= ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_BEGIN_WRITE_CLONING);
+        if (ctx->supports & LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_BEGIN_WRITE)) {
+            ctx->supports |= LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_BEGIN_WRITE_CLONING);
         }
     }
 
@@ -219,33 +219,33 @@ read_file(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
     buf = (char *)data;
 
     switch (cmd) {
-    case ZIP_SOURCE_ACCEPT_EMPTY:
+    case LIBZIP_SOURCE_ACCEPT_EMPTY:
         return 0;
 
-    case ZIP_SOURCE_BEGIN_WRITE:
+    case LIBZIP_SOURCE_BEGIN_WRITE:
         /* write support should not be set if fname is NULL */
         if (ctx->fname == NULL) {
-            libzip_error_set(&ctx->error, ZIP_ER_INTERNAL, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_INTERNAL, 0);
             return -1;
         }
         return ctx->ops->create_temp_output(ctx);
 
-    case ZIP_SOURCE_BEGIN_WRITE_CLONING:
+    case LIBZIP_SOURCE_BEGIN_WRITE_CLONING:
         /* write support should not be set if fname is NULL */
         if (ctx->fname == NULL) {
-            libzip_error_set(&ctx->error, ZIP_ER_INTERNAL, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_INTERNAL, 0);
             return -1;
         }
         return ctx->ops->create_temp_output_cloning(ctx, len);
 
-    case ZIP_SOURCE_CLOSE:
+    case LIBZIP_SOURCE_CLOSE:
         if (ctx->fname) {
             ctx->ops->close(ctx);
             ctx->f = NULL;
         }
         return 0;
 
-    case ZIP_SOURCE_COMMIT_WRITE: {
+    case LIBZIP_SOURCE_COMMIT_WRITE: {
         libzip_int64_t ret = ctx->ops->commit_write(ctx);
         ctx->fout = NULL;
         if (ret == 0) {
@@ -255,10 +255,10 @@ read_file(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         return ret;
     }
 
-    case ZIP_SOURCE_ERROR:
+    case LIBZIP_SOURCE_ERROR:
         return libzip_error_to_data(&ctx->error, data, len);
 
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         free(ctx->fname);
         free(ctx->tmpname);
         if (ctx->f) {
@@ -267,15 +267,15 @@ read_file(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         free(ctx);
         return 0;
 
-    case ZIP_SOURCE_GET_FILE_ATTRIBUTES:
+    case LIBZIP_SOURCE_GET_FILE_ATTRIBUTES:
         if (len < sizeof(ctx->attributes)) {
-            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
             return -1;
         }
         (void)memcpy_s(data, sizeof(ctx->attributes), &ctx->attributes, sizeof(ctx->attributes));
         return sizeof(ctx->attributes);
 
-    case ZIP_SOURCE_OPEN:
+    case LIBZIP_SOURCE_OPEN:
         if (ctx->fname) {
             if (ctx->ops->open(ctx) == false) {
                 return -1;
@@ -291,19 +291,19 @@ read_file(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         ctx->offset = 0;
         return 0;
 
-    case ZIP_SOURCE_READ: {
+    case LIBZIP_SOURCE_READ: {
         libzip_int64_t i;
         libzip_uint64_t n;
 
         if (ctx->len > 0) {
-            n = ZIP_MIN(ctx->len - ctx->offset, len);
+            n = LIBZIP_MIN(ctx->len - ctx->offset, len);
         }
         else {
             n = len;
         }
 
         if ((i = ctx->ops->read(ctx, buf, n)) < 0) {
-            libzip_error_set(&ctx->error, ZIP_ER_READ, errno);
+            libzip_error_set(&ctx->error, LIBZIP_ER_READ, errno);
             return -1;
         }
         ctx->offset += (libzip_uint64_t)i;
@@ -311,17 +311,17 @@ read_file(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         return i;
     }
 
-    case ZIP_SOURCE_REMOVE:
+    case LIBZIP_SOURCE_REMOVE:
         return ctx->ops->remove(ctx);
 
-    case ZIP_SOURCE_ROLLBACK_WRITE:
+    case LIBZIP_SOURCE_ROLLBACK_WRITE:
         ctx->ops->rollback_write(ctx);
         ctx->fout = NULL;
         free(ctx->tmpname);
         ctx->tmpname = NULL;
         return 0;
 
-    case ZIP_SOURCE_SEEK: {
+    case LIBZIP_SOURCE_SEEK: {
         libzip_int64_t new_offset = libzip_source_seek_compute_offset(ctx->offset, ctx->len, data, len, &ctx->error);
 
         if (new_offset < 0) {
@@ -329,8 +329,8 @@ read_file(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         }
 
         /* The actual offset inside the file must be representable as libzip_int64_t. */
-        if (new_offset > ZIP_INT64_MAX - (libzip_int64_t)ctx->start) {
-            libzip_error_set(&ctx->error, ZIP_ER_SEEK, EOVERFLOW);
+        if (new_offset > LIBZIP_INT64_MAX - (libzip_int64_t)ctx->start) {
+            libzip_error_set(&ctx->error, LIBZIP_ER_SEEK, EOVERFLOW);
             return -1;
         }
 
@@ -342,10 +342,10 @@ read_file(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         return 0;
     }
 
-    case ZIP_SOURCE_SEEK_WRITE: {
+    case LIBZIP_SOURCE_SEEK_WRITE: {
         libzip_source_args_seek_t *args;
 
-        args = ZIP_SOURCE_GET_ARGS(libzip_source_args_seek_t, data, len, &ctx->error);
+        args = LIBZIP_SOURCE_GET_ARGS(libzip_source_args_seek_t, data, len, &ctx->error);
         if (args == NULL) {
             return -1;
         }
@@ -356,7 +356,7 @@ read_file(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         return 0;
     }
 
-    case ZIP_SOURCE_STAT: {
+    case LIBZIP_SOURCE_STAT: {
         if (len < sizeof(ctx->st))
             return -1;
 
@@ -369,20 +369,20 @@ read_file(void *state, void *data, libzip_uint64_t len, libzip_source_cmd_t cmd)
         return sizeof(ctx->st);
     }
 
-    case ZIP_SOURCE_SUPPORTS:
+    case LIBZIP_SOURCE_SUPPORTS:
         return ctx->supports;
 
-    case ZIP_SOURCE_TELL:
+    case LIBZIP_SOURCE_TELL:
         return (libzip_int64_t)ctx->offset;
 
-    case ZIP_SOURCE_TELL_WRITE:
+    case LIBZIP_SOURCE_TELL_WRITE:
         return ctx->ops->tell(ctx, ctx->fout);
 
-    case ZIP_SOURCE_WRITE:
+    case LIBZIP_SOURCE_WRITE:
         return ctx->ops->write(ctx, data, len);
 
     default:
-        libzip_error_set(&ctx->error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(&ctx->error, LIBZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 }

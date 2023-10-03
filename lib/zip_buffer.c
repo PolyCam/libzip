@@ -140,7 +140,7 @@ _libzip_buffer_read(libzip_buffer_t *buffer, libzip_uint8_t *data, libzip_uint64
 
     copied = 0;
     while (copied < length) {
-        size_t n = ZIP_MIN(length - copied, SIZE_MAX);
+        size_t n = LIBZIP_MIN(length - copied, SIZE_MAX);
         (void)memcpy_s(data + copied, n, _libzip_buffer_get(buffer, n), n);
         copied += n;
     }
@@ -154,7 +154,7 @@ _libzip_buffer_new(libzip_uint8_t *data, libzip_uint64_t size) {
     bool free_data = (data == NULL);
     libzip_buffer_t *buffer;
 
-#if ZIP_UINT64_MAX > SIZE_MAX
+#if LIBZIP_UINT64_MAX > SIZE_MAX
     if (size > SIZE_MAX) {
         return NULL;
     }
@@ -188,7 +188,7 @@ _libzip_buffer_new_from_source(libzip_source_t *src, libzip_uint64_t size, libzi
     libzip_buffer_t *buffer;
 
     if ((buffer = _libzip_buffer_new(buf, size)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 

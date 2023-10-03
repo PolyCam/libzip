@@ -33,45 +33,45 @@
 
 #include "zipint.h"
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_file_set_dostime(libzip_t *za, libzip_uint64_t idx, libzip_uint16_t dtime, libzip_uint16_t ddate, libzip_flags_t flags) {
     time_t mtime;
     mtime = _libzip_d2u_time(dtime, ddate);
     return libzip_file_set_mtime(za, idx, mtime, flags);
 }
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_file_set_mtime(libzip_t *za, libzip_uint64_t idx, time_t mtime, libzip_flags_t flags) {
     libzip_entry_t *e;
 
     if (_libzip_get_dirent(za, idx, 0, NULL) == NULL)
         return -1;
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
-    if (ZIP_WANT_TORRENTZIP(za)) {
-        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
     e = za->entry + idx;
 
-    if (e->orig != NULL && e->orig->encryption_method == ZIP_EM_TRAD_PKWARE && !ZIP_ENTRY_CHANGED(e, ZIP_DIRENT_ENCRYPTION_METHOD) && !ZIP_ENTRY_DATA_CHANGED(e)) {
-        libzip_error_set(&za->error, ZIP_ER_OPNOTSUPP, 0);
+    if (e->orig != NULL && e->orig->encryption_method == LIBZIP_EM_TRAD_PKWARE && !LIBZIP_ENTRY_CHANGED(e, LIBZIP_DIRENT_ENCRYPTION_METHOD) && !LIBZIP_ENTRY_DATA_CHANGED(e)) {
+        libzip_error_set(&za->error, LIBZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 
     if (e->changes == NULL) {
         if ((e->changes = _libzip_dirent_clone(e->orig)) == NULL) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             return -1;
         }
     }
 
     e->changes->last_mod = mtime;
-    e->changes->changed |= ZIP_DIRENT_LAST_MOD;
+    e->changes->changed |= LIBZIP_DIRENT_LAST_MOD;
 
     return 0;
 }

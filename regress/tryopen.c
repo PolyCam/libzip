@@ -63,16 +63,16 @@ main(int argc, char *argv[]) {
     while ((c = getopt(argc, argv, "cent")) != -1) {
         switch (c) {
         case 'c':
-            flags |= ZIP_CHECKCONS;
+            flags |= LIBZIP_CHECKCONS;
             break;
         case 'e':
-            flags |= ZIP_EXCL;
+            flags |= LIBZIP_EXCL;
             break;
         case 'n':
-            flags |= ZIP_CREATE;
+            flags |= LIBZIP_CREATE;
             break;
         case 't':
-            flags |= ZIP_TRUNCATE;
+            flags |= LIBZIP_TRUNCATE;
             break;
 
         default:
@@ -96,8 +96,8 @@ main(int argc, char *argv[]) {
         libzip_error_init_with_code(&error, ze);
         printf("opening '%s' returned error %d", fname, ze);
         switch (libzip_error_system_type(&error)) {
-            case ZIP_ET_SYS:
-            case ZIP_ET_LIBZIP:
+            case LIBZIP_ET_SYS:
+            case LIBZIP_ET_LIBZIP:
                 printf("/%d", libzip_error_code_system(&error));
                 break;
 

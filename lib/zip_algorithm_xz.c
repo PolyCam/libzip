@@ -97,7 +97,7 @@ maximum_compressed_size(libzip_uint64_t uncompressed_size) {
     libzip_uint64_t compressed_size = (libzip_uint64_t)((double)uncompressed_size * 1.1) + 64 * 1024 + 13;
 
     if (compressed_size < uncompressed_size) {
-        return ZIP_UINT64_MAX;
+        return LIBZIP_UINT64_MAX;
     }
     return compressed_size;
 }
@@ -108,7 +108,7 @@ allocate(bool compress, libzip_uint32_t compression_flags, libzip_error_t *error
     struct ctx *ctx;
 
     if ((ctx = (struct ctx *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -123,7 +123,7 @@ allocate(bool compress, libzip_uint32_t compression_flags, libzip_error_t *error
     ctx->end_of_input = false;
     memset(ctx->header, 0, sizeof(ctx->header));
     ctx->header_bytes_offset = 0;
-    if (method == ZIP_CM_LZMA) {
+    if (method == LIBZIP_CM_LZMA) {
         ctx->header_state = INCOMPLETE;
     }
     else {
@@ -162,7 +162,7 @@ general_purpose_bit_flags(void *ud) {
         return 0;
     }
 
-    if (ctx->method == ZIP_CM_LZMA) {
+    if (ctx->method == LIBZIP_CM_LZMA) {
         /* liblzma always returns an EOS/EOPM marker, see
 	 * https://sourceforge.net/p/lzmautils/discussion/708858/thread/84c5dbb9/#a5e4/3764 */
 	return 1 << 1;
@@ -175,16 +175,16 @@ map_error(lzma_ret ret) {
     switch (ret) {
     case LZMA_DATA_ERROR:
     case LZMA_UNSUPPORTED_CHECK:
-        return ZIP_ER_COMPRESSED_DATA;
+        return LIBZIP_ER_COMPRESSED_DATA;
 
     case LZMA_MEM_ERROR:
-        return ZIP_ER_MEMORY;
+        return LIBZIP_ER_MEMORY;
 
     case LZMA_OPTIONS_ERROR:
-        return ZIP_ER_INVAL;
+        return LIBZIP_ER_INVAL;
 
     default:
-        return ZIP_ER_INTERNAL;
+        return LIBZIP_ER_INTERNAL;
     }
 }
 
@@ -197,7 +197,7 @@ start(void *ud, libzip_stat_t *st, libzip_file_attributes_t *attributes) {
     lzma_options_lzma opt_lzma;
     lzma_lzma_preset(&opt_lzma, ctx->compression_flags);
     lzma_filter filters[] = {
-        {.id = (ctx->method == ZIP_CM_LZMA ? LZMA_FILTER_LZMA1 : LZMA_FILTER_LZMA2), .options = &opt_lzma},
+        {.id = (ctx->method == LIBZIP_CM_LZMA ? LZMA_FILTER_LZMA1 : LZMA_FILTER_LZMA2), .options = &opt_lzma},
         {.id = LZMA_VLI_UNKNOWN, .options = NULL},
     };
 
@@ -207,13 +207,13 @@ start(void *ud, libzip_stat_t *st, libzip_file_attributes_t *attributes) {
     ctx->zstr.next_out = NULL;
 
     if (ctx->compress) {
-        if (ctx->method == ZIP_CM_LZMA)
+        if (ctx->method == LIBZIP_CM_LZMA)
             ret = lzma_alone_encoder(&ctx->zstr, filters[0].options);
         else
             ret = lzma_stream_encoder(&ctx->zstr, filters, LZMA_CHECK_CRC64);
     }
     else {
-        if (ctx->method == ZIP_CM_LZMA)
+        if (ctx->method == LIBZIP_CM_LZMA)
             ret = lzma_alone_decoder(&ctx->zstr, UINT64_MAX);
         else
             ret = lzma_stream_decoder(&ctx->zstr, UINT64_MAX, LZMA_CONCATENATED);
@@ -225,11 +225,11 @@ start(void *ud, libzip_stat_t *st, libzip_file_attributes_t *attributes) {
     }
 
     /* If general purpose bits 1 & 2 are both zero, write real uncompressed size in header. */
-    if ((attributes->valid & ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS) && (attributes->general_purpose_bit_mask & 0x6) == 0x6 && (attributes->general_purpose_bit_flags & 0x06) == 0 && (st->valid & ZIP_STAT_SIZE)) {
+    if ((attributes->valid & LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS) && (attributes->general_purpose_bit_mask & 0x6) == 0x6 && (attributes->general_purpose_bit_flags & 0x06) == 0 && (st->valid & LIBZIP_STAT_SIZE)) {
         ctx->uncompresssed_size = st->size;
     }
     else {
-        ctx->uncompresssed_size = ZIP_UINT64_MAX;
+        ctx->uncompresssed_size = LIBZIP_UINT64_MAX;
     }
 
     return true;
@@ -250,14 +250,14 @@ input(void *ud, libzip_uint8_t *data, libzip_uint64_t length) {
     struct ctx *ctx = (struct ctx *)ud;
 
     if (length > UINT_MAX || ctx->zstr.avail_in > 0) {
-        libzip_error_set(ctx->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(ctx->error, LIBZIP_ER_INVAL, 0);
         return false;
     }
 
     /* For decompression of LZMA1: Have we read the full "lzma alone" header yet? */
-    if (ctx->method == ZIP_CM_LZMA && !ctx->compress && ctx->header_state == INCOMPLETE) {
+    if (ctx->method == LIBZIP_CM_LZMA && !ctx->compress && ctx->header_state == INCOMPLETE) {
         /* if not, get more of the data */
-        libzip_uint8_t got = (libzip_uint8_t)ZIP_MIN(HEADER_BYTES_ZIP - ctx->header_bytes_offset, length);
+        libzip_uint8_t got = (libzip_uint8_t)LIBZIP_MIN(HEADER_BYTES_ZIP - ctx->header_bytes_offset, length);
         (void)memcpy_s(ctx->header + ctx->header_bytes_offset, sizeof(ctx->header) - ctx->header_bytes_offset, data, got);
         ctx->header_bytes_offset += got;
         length -= got;
@@ -269,12 +269,12 @@ input(void *ud, libzip_uint8_t *data, libzip_uint64_t length) {
             /* check magic */
             if (ctx->header[HEADER_MAGIC2_OFFSET] != 0x05 || ctx->header[HEADER_MAGIC2_OFFSET + 1] != 0x00) {
                 /* magic does not match */
-                libzip_error_set(ctx->error, ZIP_ER_COMPRESSED_DATA, 0);
+                libzip_error_set(ctx->error, LIBZIP_ER_COMPRESSED_DATA, 0);
                 return false;
             }
             /* set size of uncompressed data in "lzma alone" header to "unknown" */
             if ((buffer = _libzip_buffer_new(ctx->header + HEADER_SIZE_OFFSET, HEADER_SIZE_LENGTH)) == NULL) {
-                libzip_error_set(ctx->error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(ctx->error, LIBZIP_ER_MEMORY, 0);
                 return false;
             }
             _libzip_buffer_put_64(buffer, ctx->uncompresssed_size);
@@ -289,7 +289,7 @@ input(void *ud, libzip_uint8_t *data, libzip_uint64_t length) {
             ctx->zstr.total_out = 0;
             /* this just initializes the decoder and does not produce output, so it consumes the complete header */
             if (lzma_code(&ctx->zstr, LZMA_RUN) != LZMA_OK || ctx->zstr.total_out > 0) {
-                libzip_error_set(ctx->error, ZIP_ER_COMPRESSED_DATA, 0);
+                libzip_error_set(ctx->error, LIBZIP_ER_COMPRESSED_DATA, 0);
                 return false;
             }
             ctx->header_state = DONE;
@@ -316,7 +316,7 @@ process(void *ud, libzip_uint8_t *data, libzip_uint64_t *length) {
     uInt avail_out;
     lzma_ret ret;
     /* for compression of LZMA1 */
-    if (ctx->method == ZIP_CM_LZMA && ctx->compress) {
+    if (ctx->method == LIBZIP_CM_LZMA && ctx->compress) {
         if (ctx->header_state == INCOMPLETE) {
             /* write magic to output buffer */
             ctx->header[0] = 0x09;
@@ -329,24 +329,24 @@ process(void *ud, libzip_uint8_t *data, libzip_uint64_t *length) {
             ret = lzma_code(&ctx->zstr, LZMA_RUN);
             if (ret != LZMA_OK || ctx->zstr.avail_out != 0) {
                 /* assume that the whole header will be provided with the first call to lzma_code */
-                return ZIP_COMPRESSION_ERROR;
+                return LIBZIP_COMPRESSION_ERROR;
             }
             ctx->header_state = OUTPUT;
         }
         if (ctx->header_state == OUTPUT) {
             /* write header */
-            libzip_uint8_t write_len = (libzip_uint8_t)ZIP_MIN(HEADER_BYTES_ZIP - ctx->header_bytes_offset, *length);
+            libzip_uint8_t write_len = (libzip_uint8_t)LIBZIP_MIN(HEADER_BYTES_ZIP - ctx->header_bytes_offset, *length);
             (void)memcpy_s(data, *length, ctx->header + ctx->header_bytes_offset, write_len);
             ctx->header_bytes_offset += write_len;
             *length = write_len;
             if (ctx->header_bytes_offset == HEADER_BYTES_ZIP) {
                 ctx->header_state = DONE;
             }
-            return ZIP_COMPRESSION_OK;
+            return LIBZIP_COMPRESSION_OK;
         }
     }
 
-    avail_out = (uInt)ZIP_MIN(UINT_MAX, *length);
+    avail_out = (uInt)LIBZIP_MIN(UINT_MAX, *length);
     ctx->zstr.avail_out = avail_out;
     ctx->zstr.next_out = (Bytef *)data;
 
@@ -355,20 +355,20 @@ process(void *ud, libzip_uint8_t *data, libzip_uint64_t *length) {
 
     switch (ret) {
     case LZMA_OK:
-        return ZIP_COMPRESSION_OK;
+        return LIBZIP_COMPRESSION_OK;
 
     case LZMA_STREAM_END:
-        return ZIP_COMPRESSION_END;
+        return LIBZIP_COMPRESSION_END;
 
     case LZMA_BUF_ERROR:
         if (ctx->zstr.avail_in == 0) {
-            return ZIP_COMPRESSION_NEED_DATA;
+            return LIBZIP_COMPRESSION_NEED_DATA;
         }
 
         /* fallthrough */
     default:
         libzip_error_set(ctx->error, map_error(ret), 0);
-        return ZIP_COMPRESSION_ERROR;
+        return LIBZIP_COMPRESSION_ERROR;
     }
 }
 

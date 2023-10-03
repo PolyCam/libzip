@@ -37,7 +37,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_fclose(libzip_file_t *zf) {
     int ret;
 

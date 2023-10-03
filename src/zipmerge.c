@@ -104,10 +104,10 @@ main(int argc, char *argv[]) {
     while ((c = getopt(argc, argv, OPTIONS)) != -1) {
         switch (c) {
         case 'D':
-            name_flags |= ZIP_FL_NODIR;
+            name_flags |= LIBZIP_FL_NODIR;
             break;
         case 'I':
-            name_flags |= ZIP_FL_NOCASE;
+            name_flags |= LIBZIP_FL_NOCASE;
             break;
         case 'i':
             confirm &= ~CONFIRM_ALL_YES;
@@ -153,7 +153,7 @@ main(int argc, char *argv[]) {
         exit(1);
     }
 
-    if ((za = libzip_open(tname, ZIP_CREATE, &err)) == NULL) {
+    if ((za = libzip_open(tname, LIBZIP_CREATE, &err)) == NULL) {
         libzip_error_t error;
         libzip_error_init_with_code(&error, err);
         fprintf(stderr, "%s: can't open zip archive '%s': %s\n", progname, tname, libzip_error_strerror(&error));
@@ -188,7 +188,7 @@ confirm_replace(libzip_t *za, const char *tname, libzip_uint64_t it, libzip_t *z
     else if (confirm & CONFIRM_ALL_NO)
         return 0;
 
-    if (libzip_stat_index(za, it, ZIP_FL_UNCHANGED, &st) < 0) {
+    if (libzip_stat_index(za, it, LIBZIP_FL_UNCHANGED, &st) < 0) {
         fprintf(stderr, "%s: cannot stat file %" PRIu64 " in '%s': %s\n", progname, it, tname, libzip_strerror(za));
         return -1;
     }
@@ -285,7 +285,7 @@ merge_zip(libzip_t *za, const char *tname, const char *sname) {
 
 
 static int copy_file(libzip_t *destination_archive, libzip_int64_t destination_index, libzip_t *source_archive, libzip_uint64_t source_index, const char* name) {
-    libzip_source_t *source = libzip_source_libzip_file(destination_archive, source_archive, source_index, ZIP_FL_COMPRESSED, 0, -1, NULL);
+    libzip_source_t *source = libzip_source_libzip_file(destination_archive, source_archive, source_index, LIBZIP_FL_COMPRESSED, 0, -1, NULL);
 
     if (source == NULL) {
         return -1;
@@ -305,12 +305,12 @@ static int copy_file(libzip_t *destination_archive, libzip_int64_t destination_i
         }
     }
 
-    copy_extra_fields(destination_archive, (libzip_uint64_t)destination_index, source_archive, source_index, ZIP_FL_CENTRAL);
-    copy_extra_fields(destination_archive, (libzip_uint64_t)destination_index, source_archive, source_index, ZIP_FL_LOCAL);
+    copy_extra_fields(destination_archive, (libzip_uint64_t)destination_index, source_archive, source_index, LIBZIP_FL_CENTRAL);
+    copy_extra_fields(destination_archive, (libzip_uint64_t)destination_index, source_archive, source_index, LIBZIP_FL_LOCAL);
     if (keep_stored) {
         libzip_stat_t st;
-        if (libzip_stat_index(source_archive, source_index, 0, &st) == 0 && (st.valid & ZIP_STAT_COMP_METHOD) && st.comp_method == ZIP_CM_STORE) {
-            libzip_set_file_compression(destination_archive, destination_index, ZIP_CM_STORE, 0);
+        if (libzip_stat_index(source_archive, source_index, 0, &st) == 0 && (st.valid & LIBZIP_STAT_COMP_METHOD) && st.comp_method == LIBZIP_CM_STORE) {
+            libzip_set_file_compression(destination_archive, destination_index, LIBZIP_CM_STORE, 0);
         }
     }
 
@@ -331,6 +331,6 @@ static void copy_extra_fields(libzip_t *destination_archive, libzip_uint64_t des
         if ((data = libzip_file_extra_field_get(source_archive, source_index, i, &id, &length, flags)) == NULL) {
             continue;
         }
-        libzip_file_extra_field_set(destination_archive, destination_index, id, ZIP_EXTRA_FIELD_NEW, data, length, flags);
+        libzip_file_extra_field_set(destination_archive, destination_index, id, LIBZIP_EXTRA_FIELD_NEW, data, length, flags);
     }
 }

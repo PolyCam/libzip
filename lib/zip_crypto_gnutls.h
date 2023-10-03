@@ -31,8 +31,8 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef HAD_ZIP_CRYPTO_GNUTLS_H
-#define HAD_ZIP_CRYPTO_GNUTLS_H
+#ifndef HAD_LIBZIP_CRYPTO_GNUTLS_H
+#define HAD_LIBZIP_CRYPTO_GNUTLS_H
 
 #define HAVE_SECURE_RANDOM
 
@@ -65,4 +65,4 @@ _libzip_crypto_hmac_t *_libzip_crypto_hmac_new(const libzip_uint8_t *secret, lib
 
 #define _libzip_crypto_pbkdf2(key, key_length, salt, salt_length, iterations, output, output_length) (pbkdf2_hmac_sha1((key_length), (key), (iterations), (salt_length), (salt), (output_length), (output)), true)
 
-#endif /*  HAD_ZIP_CRYPTO_GNUTLS_H */
+#endif /*  HAD_LIBZIP_CRYPTO_GNUTLS_H */

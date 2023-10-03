@@ -63,12 +63,12 @@ libzip_source_winlibzip_aes_decode(libzip_t *za, libzip_source_t *src, libzip_ui
     libzip_uint64_t aux_length;
     struct winlibzip_aes *ctx;
 
-    if ((encryption_method != ZIP_EM_AES_128 && encryption_method != ZIP_EM_AES_192 && encryption_method != ZIP_EM_AES_256) || password == NULL || src == NULL) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if ((encryption_method != LIBZIP_EM_AES_128 && encryption_method != LIBZIP_EM_AES_192 && encryption_method != LIBZIP_EM_AES_256) || password == NULL || src == NULL) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
-    if (flags & ZIP_CODEC_ENCODE) {
-        libzip_error_set(&za->error, ZIP_ER_ENCRNOTSUPP, 0);
+    if (flags & LIBZIP_CODEC_ENCODE) {
+        libzip_error_set(&za->error, LIBZIP_ER_ENCRNOTSUPP, 0);
         return NULL;
     }
 
@@ -77,10 +77,10 @@ libzip_source_winlibzip_aes_decode(libzip_t *za, libzip_source_t *src, libzip_ui
         return NULL;
     }
 
-    aux_length = WINZIP_AES_PASSWORD_VERIFY_LENGTH + SALT_LENGTH(encryption_method) + HMAC_LENGTH;
+    aux_length = WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH + SALT_LENGTH(encryption_method) + HMAC_LENGTH;
 
-    if ((st.valid & ZIP_STAT_COMP_SIZE) == 0 || st.comp_size < aux_length) {
-        libzip_error_set(&za->error, ZIP_ER_OPNOTSUPP, 0);
+    if ((st.valid & LIBZIP_STAT_COMP_SIZE) == 0 || st.comp_size < aux_length) {
+        libzip_error_set(&za->error, LIBZIP_ER_OPNOTSUPP, 0);
         return NULL;
     }
 
@@ -101,29 +101,29 @@ libzip_source_winlibzip_aes_decode(libzip_t *za, libzip_source_t *src, libzip_ui
 
 static int
 decrypt_header(libzip_source_t *src, struct winlibzip_aes *ctx) {
-    libzip_uint8_t header[WINZIP_AES_MAX_HEADER_LENGTH];
-    libzip_uint8_t password_verification[WINZIP_AES_PASSWORD_VERIFY_LENGTH];
+    libzip_uint8_t header[WINLIBZIP_AES_MAX_HEADER_LENGTH];
+    libzip_uint8_t password_verification[WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH];
     unsigned int headerlen;
     libzip_int64_t n;
 
-    headerlen = WINZIP_AES_PASSWORD_VERIFY_LENGTH + SALT_LENGTH(ctx->encryption_method);
+    headerlen = WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH + SALT_LENGTH(ctx->encryption_method);
     if ((n = libzip_source_read(src, header, headerlen)) < 0) {
         libzip_error_set_from_source(&ctx->error, src);
         return -1;
     }
 
     if (n != headerlen) {
-        libzip_error_set(&ctx->error, ZIP_ER_EOF, 0);
+        libzip_error_set(&ctx->error, LIBZIP_ER_EOF, 0);
         return -1;
     }
 
     if ((ctx->aes_ctx = _libzip_winlibzip_aes_new((libzip_uint8_t *)ctx->password, strlen(ctx->password), header, ctx->encryption_method, password_verification, &ctx->error)) == NULL) {
         return -1;
     }
-    if (memcmp(password_verification, header + SALT_LENGTH(ctx->encryption_method), WINZIP_AES_PASSWORD_VERIFY_LENGTH) != 0) {
+    if (memcmp(password_verification, header + SALT_LENGTH(ctx->encryption_method), WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH) != 0) {
         _libzip_winlibzip_aes_free(ctx->aes_ctx);
         ctx->aes_ctx = NULL;
-        libzip_error_set(&ctx->error, ZIP_ER_WRONGPASSWD, 0);
+        libzip_error_set(&ctx->error, LIBZIP_ER_WRONGPASSWD, 0);
         return -1;
     }
     return 0;
@@ -132,21 +132,21 @@ decrypt_header(libzip_source_t *src, struct winlibzip_aes *ctx) {
 
 static bool
 verify_hmac(libzip_source_t *src, struct winlibzip_aes *ctx) {
-    unsigned char computed[ZIP_CRYPTO_SHA1_LENGTH], from_file[HMAC_LENGTH];
+    unsigned char computed[LIBZIP_CRYPTO_SHA1_LENGTH], from_file[HMAC_LENGTH];
     if (libzip_source_read(src, from_file, HMAC_LENGTH) < HMAC_LENGTH) {
         libzip_error_set_from_source(&ctx->error, src);
         return false;
     }
 
     if (!_libzip_winlibzip_aes_finish(ctx->aes_ctx, computed)) {
-        libzip_error_set(&ctx->error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(&ctx->error, LIBZIP_ER_INTERNAL, 0);
         return false;
     }
     _libzip_winlibzip_aes_free(ctx->aes_ctx);
     ctx->aes_ctx = NULL;
 
     if (memcmp(from_file, computed, HMAC_LENGTH) != 0) {
-        libzip_error_set(&ctx->error, ZIP_ER_CRC, 0);
+        libzip_error_set(&ctx->error, LIBZIP_ER_CRC, 0);
         return false;
     }
 
@@ -162,14 +162,14 @@ winlibzip_aes_decrypt(libzip_source_t *src, void *ud, void *data, libzip_uint64_
     ctx = (struct winlibzip_aes *)ud;
 
     switch (cmd) {
-    case ZIP_SOURCE_OPEN:
+    case LIBZIP_SOURCE_OPEN:
         if (decrypt_header(src, ctx) < 0) {
             return -1;
         }
         ctx->current_position = 0;
         return 0;
 
-    case ZIP_SOURCE_READ:
+    case LIBZIP_SOURCE_READ:
         if (len > ctx->data_length - ctx->current_position) {
             len = ctx->data_length - ctx->current_position;
         }
@@ -188,36 +188,36 @@ winlibzip_aes_decrypt(libzip_source_t *src, void *ud, void *data, libzip_uint64_
         ctx->current_position += (libzip_uint64_t)n;
 
         if (!_libzip_winlibzip_aes_decrypt(ctx->aes_ctx, (libzip_uint8_t *)data, (libzip_uint64_t)n)) {
-            libzip_error_set(&ctx->error, ZIP_ER_INTERNAL, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_INTERNAL, 0);
             return -1;
         }
 
         return n;
 
-    case ZIP_SOURCE_CLOSE:
+    case LIBZIP_SOURCE_CLOSE:
         return 0;
 
-    case ZIP_SOURCE_STAT: {
+    case LIBZIP_SOURCE_STAT: {
         libzip_stat_t *st;
 
         st = (libzip_stat_t *)data;
 
-        st->encryption_method = ZIP_EM_NONE;
-        st->valid |= ZIP_STAT_ENCRYPTION_METHOD;
-        if (st->valid & ZIP_STAT_COMP_SIZE) {
+        st->encryption_method = LIBZIP_EM_NONE;
+        st->valid |= LIBZIP_STAT_ENCRYPTION_METHOD;
+        if (st->valid & LIBZIP_STAT_COMP_SIZE) {
             st->comp_size -= 12 + SALT_LENGTH(ctx->encryption_method);
         }
 
         return 0;
     }
 
-    case ZIP_SOURCE_SUPPORTS:
-        return libzip_source_make_command_bitmap(ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_CLOSE, ZIP_SOURCE_STAT, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE, ZIP_SOURCE_SUPPORTS_REOPEN, -1);
+    case LIBZIP_SOURCE_SUPPORTS:
+        return libzip_source_make_command_bitmap(LIBZIP_SOURCE_OPEN, LIBZIP_SOURCE_READ, LIBZIP_SOURCE_CLOSE, LIBZIP_SOURCE_STAT, LIBZIP_SOURCE_ERROR, LIBZIP_SOURCE_FREE, LIBZIP_SOURCE_SUPPORTS_REOPEN, -1);
 
-    case ZIP_SOURCE_ERROR:
+    case LIBZIP_SOURCE_ERROR:
         return libzip_error_to_data(&ctx->error, data, len);
 
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         winlibzip_aes_free(ctx);
         return 0;
 
@@ -246,12 +246,12 @@ winlibzip_aes_new(libzip_uint16_t encryption_method, const char *password, libzi
     struct winlibzip_aes *ctx;
 
     if ((ctx = (struct winlibzip_aes *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     if ((ctx->password = strdup(password)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         free(ctx);
         return NULL;
     }

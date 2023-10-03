@@ -1,5 +1,5 @@
-#ifndef _HAD_ZIP_SOURCE_FILE_STDIO_H
-#define _HAD_ZIP_SOURCE_FILE_STDIO_H
+#ifndef _HAD_LIBZIP_SOURCE_FILE_STDIO_H
+#define _HAD_LIBZIP_SOURCE_FILE_STDIO_H
 
 /*
   libzip_source_file_stdio.h -- common header for stdio file implementation
@@ -42,4 +42,4 @@ bool _libzip_stdio_op_seek(libzip_source_file_context_t *ctx, void *f, libzip_in
 bool _libzip_stdio_op_stat(libzip_source_file_context_t *ctx, libzip_source_file_stat_t *st);
 libzip_int64_t _libzip_stdio_op_tell(libzip_source_file_context_t *ctx, void *f);
 
-#endif /* _HAD_ZIP_SOURCE_FILE_STDIO_H */
+#endif /* _HAD_LIBZIP_SOURCE_FILE_STDIO_H */

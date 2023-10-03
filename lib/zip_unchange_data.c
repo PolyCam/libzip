@@ -41,8 +41,8 @@ _libzip_unchange_data(libzip_entry_t *ze) {
         ze->source = NULL;
     }
 
-    if (ze->changes != NULL && (ze->changes->changed & ZIP_DIRENT_COMP_METHOD) && ze->changes->comp_method == ZIP_CM_REPLACED_DEFAULT) {
-        ze->changes->changed &= ~ZIP_DIRENT_COMP_METHOD;
+    if (ze->changes != NULL && (ze->changes->changed & LIBZIP_DIRENT_COMP_METHOD) && ze->changes->comp_method == LIBZIP_CM_REPLACED_DEFAULT) {
+        ze->changes->changed &= ~LIBZIP_DIRENT_COMP_METHOD;
         if (ze->changes->changed == 0) {
             _libzip_dirent_free(ze->changes);
             ze->changes = NULL;

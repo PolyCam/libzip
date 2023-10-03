@@ -55,12 +55,12 @@ libzip_source_pkware_decode(libzip_t *za, libzip_source_t *src, libzip_uint16_t 
     struct trad_pkware *ctx;
     libzip_source_t *s2;
 
-    if (password == NULL || src == NULL || em != ZIP_EM_TRAD_PKWARE) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if (password == NULL || src == NULL || em != LIBZIP_EM_TRAD_PKWARE) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
-    if (flags & ZIP_CODEC_ENCODE) {
-        libzip_error_set(&za->error, ZIP_ER_ENCRNOTSUPP, 0);
+    if (flags & LIBZIP_CODEC_ENCODE) {
+        libzip_error_set(&za->error, LIBZIP_ER_ENCRNOTSUPP, 0);
         return NULL;
     }
 
@@ -79,22 +79,22 @@ libzip_source_pkware_decode(libzip_t *za, libzip_source_t *src, libzip_uint16_t 
 
 static int
 decrypt_header(libzip_source_t *src, struct trad_pkware *ctx) {
-    libzip_uint8_t header[ZIP_CRYPTO_PKWARE_HEADERLEN];
+    libzip_uint8_t header[LIBZIP_CRYPTO_PKWARE_HEADERLEN];
     struct libzip_stat st;
     libzip_int64_t n;
     bool ok = false;
 
-    if ((n = libzip_source_read(src, header, ZIP_CRYPTO_PKWARE_HEADERLEN)) < 0) {
+    if ((n = libzip_source_read(src, header, LIBZIP_CRYPTO_PKWARE_HEADERLEN)) < 0) {
         libzip_error_set_from_source(&ctx->error, src);
         return -1;
     }
 
-    if (n != ZIP_CRYPTO_PKWARE_HEADERLEN) {
-        libzip_error_set(&ctx->error, ZIP_ER_EOF, 0);
+    if (n != LIBZIP_CRYPTO_PKWARE_HEADERLEN) {
+        libzip_error_set(&ctx->error, LIBZIP_ER_EOF, 0);
         return -1;
     }
 
-    _libzip_pkware_decrypt(&ctx->keys, header, header, ZIP_CRYPTO_PKWARE_HEADERLEN);
+    _libzip_pkware_decrypt(&ctx->keys, header, header, LIBZIP_CRYPTO_PKWARE_HEADERLEN);
 
     if (libzip_source_stat(src, &st)) {
         /* stat failed, skip password validation */
@@ -106,22 +106,22 @@ decrypt_header(libzip_source_t *src, struct trad_pkware *ctx) {
      *  CRC - old PKWare way
      */
 
-    if (st.valid & ZIP_STAT_MTIME) {
+    if (st.valid & LIBZIP_STAT_MTIME) {
         unsigned short dostime, dosdate;
         _libzip_u2d_time(st.mtime, &dostime, &dosdate);
-        if (header[ZIP_CRYPTO_PKWARE_HEADERLEN - 1] == dostime >> 8) {
+        if (header[LIBZIP_CRYPTO_PKWARE_HEADERLEN - 1] == dostime >> 8) {
             ok = true;
         }
     }
 
-    if (st.valid & ZIP_STAT_CRC) {
-        if (header[ZIP_CRYPTO_PKWARE_HEADERLEN - 1] == st.crc >> 24) {
+    if (st.valid & LIBZIP_STAT_CRC) {
+        if (header[LIBZIP_CRYPTO_PKWARE_HEADERLEN - 1] == st.crc >> 24) {
             ok = true;
         }
     }
 
-    if (!ok && ((st.valid & (ZIP_STAT_MTIME | ZIP_STAT_CRC)) != 0)) {
-        libzip_error_set(&ctx->error, ZIP_ER_WRONGPASSWD, 0);
+    if (!ok && ((st.valid & (LIBZIP_STAT_MTIME | LIBZIP_STAT_CRC)) != 0)) {
+        libzip_error_set(&ctx->error, LIBZIP_ER_WRONGPASSWD, 0);
         return -1;
     }
 
@@ -137,7 +137,7 @@ pkware_decrypt(libzip_source_t *src, void *ud, void *data, libzip_uint64_t len, 
     ctx = (struct trad_pkware *)ud;
 
     switch (cmd) {
-    case ZIP_SOURCE_OPEN:
+    case LIBZIP_SOURCE_OPEN:
         _libzip_pkware_keys_reset(&ctx->keys);
         _libzip_pkware_decrypt(&ctx->keys, NULL, (const libzip_uint8_t *)ctx->password, strlen(ctx->password));
         if (decrypt_header(src, ctx) < 0) {
@@ -145,7 +145,7 @@ pkware_decrypt(libzip_source_t *src, void *ud, void *data, libzip_uint64_t len, 
         }
         return 0;
 
-    case ZIP_SOURCE_READ:
+    case LIBZIP_SOURCE_READ:
         if ((n = libzip_source_read(src, data, len)) < 0) {
             libzip_error_set_from_source(&ctx->error, src);
             return -1;
@@ -154,30 +154,30 @@ pkware_decrypt(libzip_source_t *src, void *ud, void *data, libzip_uint64_t len, 
         _libzip_pkware_decrypt(&ctx->keys, (libzip_uint8_t *)data, (libzip_uint8_t *)data, (libzip_uint64_t)n);
         return n;
 
-    case ZIP_SOURCE_CLOSE:
+    case LIBZIP_SOURCE_CLOSE:
         return 0;
 
-    case ZIP_SOURCE_STAT: {
+    case LIBZIP_SOURCE_STAT: {
         libzip_stat_t *st;
 
         st = (libzip_stat_t *)data;
 
-        st->encryption_method = ZIP_EM_NONE;
-        st->valid |= ZIP_STAT_ENCRYPTION_METHOD;
-        if (st->valid & ZIP_STAT_COMP_SIZE) {
-            st->comp_size -= ZIP_CRYPTO_PKWARE_HEADERLEN;
+        st->encryption_method = LIBZIP_EM_NONE;
+        st->valid |= LIBZIP_STAT_ENCRYPTION_METHOD;
+        if (st->valid & LIBZIP_STAT_COMP_SIZE) {
+            st->comp_size -= LIBZIP_CRYPTO_PKWARE_HEADERLEN;
         }
 
         return 0;
     }
 
-    case ZIP_SOURCE_SUPPORTS:
-        return libzip_source_make_command_bitmap(ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_CLOSE, ZIP_SOURCE_STAT, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE, ZIP_SOURCE_SUPPORTS_REOPEN, -1);
+    case LIBZIP_SOURCE_SUPPORTS:
+        return libzip_source_make_command_bitmap(LIBZIP_SOURCE_OPEN, LIBZIP_SOURCE_READ, LIBZIP_SOURCE_CLOSE, LIBZIP_SOURCE_STAT, LIBZIP_SOURCE_ERROR, LIBZIP_SOURCE_FREE, LIBZIP_SOURCE_SUPPORTS_REOPEN, -1);
 
-    case ZIP_SOURCE_ERROR:
+    case LIBZIP_SOURCE_ERROR:
         return libzip_error_to_data(&ctx->error, data, len);
 
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         trad_pkware_free(ctx);
         return 0;
 
@@ -192,12 +192,12 @@ trad_pkware_new(const char *password, libzip_error_t *error) {
     struct trad_pkware *ctx;
 
     if ((ctx = (struct trad_pkware *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     if ((ctx->password = strdup(password)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         free(ctx);
         return NULL;
     }

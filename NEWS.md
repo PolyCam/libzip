@@ -145,7 +145,7 @@
 
 # 1.3.1 [2017-11-19]
 
-* Install zipconf.h into ${PREFIX}/include
+* Install libzipconf.h into ${PREFIX}/include
 * Add zip_libzip_version()
 * Fix AES tests on Linux
 

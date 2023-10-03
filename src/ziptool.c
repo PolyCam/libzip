@@ -102,7 +102,7 @@ cat_impl_backend(libzip_uint64_t idx, libzip_uint64_t start, libzip_uint64_t len
             return -1;
         }
 
-        if (!(sb.valid & ZIP_STAT_SIZE)) {
+        if (!(sb.valid & LIBZIP_STAT_SIZE)) {
             fprintf(stderr, "can't cat file at index '%" PRIu64 "' with unknown size\n", idx);
             return -1;
         }
@@ -216,7 +216,7 @@ add_from_zip(char *argv[]) {
     idx = strtoull(argv[2], NULL, 10);
     start = strtoull(argv[3], NULL, 10);
     len = strtoll(argv[4], NULL, 10);
-    if ((z_in[z_in_count] = libzip_open(argv[1], ZIP_CHECKCONS, &err)) == NULL) {
+    if ((z_in[z_in_count] = libzip_open(argv[1], LIBZIP_CHECKCONS, &err)) == NULL) {
         libzip_error_t error;
         libzip_error_init_with_code(&error, err);
         fprintf(stderr, "can't open zip archive '%s': %s\n", argv[1], libzip_error_strerror(&error));
@@ -224,7 +224,7 @@ add_from_zip(char *argv[]) {
         return -1;
     }
     if (start == 0 && len == -1) {
-        flags = ZIP_FL_COMPRESSED;
+        flags = LIBZIP_FL_COMPRESSED;
     }
     if ((zs = libzip_source_libzip_file(za, z_in[z_in_count], idx, flags, start, len, NULL)) == NULL) {
         fprintf(stderr, "error creating file source from '%s' index '%" PRIu64 "': %s\n", argv[1], idx, libzip_strerror(za));
@@ -663,15 +663,15 @@ zstat(char *argv[]) {
         return -1;
     }
 
-    if (sb.valid & ZIP_STAT_NAME)
+    if (sb.valid & LIBZIP_STAT_NAME)
         printf("name: '%s'\n", encode_filename(sb.name));
-    if (sb.valid & ZIP_STAT_INDEX)
+    if (sb.valid & LIBZIP_STAT_INDEX)
         printf("index: '%" PRIu64 "'\n", sb.index);
-    if (sb.valid & ZIP_STAT_SIZE)
+    if (sb.valid & LIBZIP_STAT_SIZE)
         printf("size: '%" PRIu64 "'\n", sb.size);
-    if (sb.valid & ZIP_STAT_COMP_SIZE)
+    if (sb.valid & LIBZIP_STAT_COMP_SIZE)
         printf("compressed size: '%" PRIu64 "'\n", sb.comp_size);
-    if (sb.valid & ZIP_STAT_MTIME) {
+    if (sb.valid & LIBZIP_STAT_MTIME) {
         struct tm *tpm;
         struct tm tm;
         tpm = libzip_localtime(&sb.mtime, &tm);
@@ -683,13 +683,13 @@ zstat(char *argv[]) {
             printf("mtime: '%s'\n", buf);
         }
     }
-    if (sb.valid & ZIP_STAT_CRC)
+    if (sb.valid & LIBZIP_STAT_CRC)
         printf("crc: '%0x'\n", sb.crc);
-    if (sb.valid & ZIP_STAT_COMP_METHOD)
+    if (sb.valid & LIBZIP_STAT_COMP_METHOD)
         printf("compression method: '%d'\n", sb.comp_method);
-    if (sb.valid & ZIP_STAT_ENCRYPTION_METHOD)
+    if (sb.valid & LIBZIP_STAT_ENCRYPTION_METHOD)
         printf("encryption method: '%d'\n", sb.encryption_method);
-    if (sb.valid & ZIP_STAT_FLAGS)
+    if (sb.valid & LIBZIP_STAT_FLAGS)
         printf("flags: '%ld'\n", (long)sb.flags);
     printf("\n");
 
@@ -698,16 +698,16 @@ zstat(char *argv[]) {
 
 static int parse_archive_flag(const char* arg) {
     if (strcasecmp(arg, "rdonly") == 0) {
-        return ZIP_AFL_RDONLY;
+        return LIBZIP_AFL_RDONLY;
     }
     else if (strcasecmp(arg, "is-torrentzip") == 0) {
-        return ZIP_AFL_IS_TORRENTZIP;
+        return LIBZIP_AFL_IS_TORRENTZIP;
     }
     else if (strcasecmp(arg, "want-torrentzip") == 0) {
-        return ZIP_AFL_WANT_TORRENTZIP;
+        return LIBZIP_AFL_WANT_TORRENTZIP;
     }
     else if (strcasecmp(arg, "create-or-keep-file-for-empty-archive") == 0) {
-        return ZIP_AFL_CREATE_OR_KEEP_FILE_FOR_EMPTY_ARCHIVE;
+        return LIBZIP_AFL_CREATE_OR_KEEP_FILE_FOR_EMPTY_ARCHIVE;
     }
     return -1;
 }
@@ -716,53 +716,53 @@ static libzip_flags_t
 get_flags(const char *arg) {
     libzip_flags_t flags = 0;
     if (strchr(arg, 'C') != NULL)
-        flags |= ZIP_FL_NOCASE;
+        flags |= LIBZIP_FL_NOCASE;
     if (strchr(arg, 'c') != NULL)
-        flags |= ZIP_FL_CENTRAL;
+        flags |= LIBZIP_FL_CENTRAL;
     if (strchr(arg, 'd') != NULL)
-        flags |= ZIP_FL_NODIR;
+        flags |= LIBZIP_FL_NODIR;
     if (strchr(arg, 'l') != NULL)
-        flags |= ZIP_FL_LOCAL;
+        flags |= LIBZIP_FL_LOCAL;
     if (strchr(arg, 'u') != NULL)
-        flags |= ZIP_FL_UNCHANGED;
+        flags |= LIBZIP_FL_UNCHANGED;
     if (strchr(arg, '8') != NULL)
-        flags |= ZIP_FL_ENC_UTF_8;
+        flags |= LIBZIP_FL_ENC_UTF_8;
     if (strchr(arg, '4') != NULL)
-        flags |= ZIP_FL_ENC_CP437;
+        flags |= LIBZIP_FL_ENC_CP437;
     if (strchr(arg, 'r') != NULL)
-        flags |= ZIP_FL_ENC_RAW;
+        flags |= LIBZIP_FL_ENC_RAW;
     if (strchr(arg, 's') != NULL)
-        flags |= ZIP_FL_ENC_STRICT;
+        flags |= LIBZIP_FL_ENC_STRICT;
     return flags;
 }
 
 static libzip_int32_t
 get_compression_method(const char *arg) {
     if (strcasecmp(arg, "default") == 0)
-        return ZIP_CM_DEFAULT;
+        return LIBZIP_CM_DEFAULT;
     else if (strcasecmp(arg, "store") == 0)
-        return ZIP_CM_STORE;
+        return LIBZIP_CM_STORE;
     else if (strcasecmp(arg, "deflate") == 0)
-        return ZIP_CM_DEFLATE;
+        return LIBZIP_CM_DEFLATE;
 #if defined(HAVE_LIBBZ2)
     else if (strcasecmp(arg, "bzip2") == 0)
-        return ZIP_CM_BZIP2;
+        return LIBZIP_CM_BZIP2;
 #endif
 #if defined(HAVE_LIBLZMA)
     /*  Disabled - because 7z isn't able to unpack ZIP+LZMA ZIP+LZMA2
         archives made this way - and vice versa.
 
         else if (strcasecmp(arg, "lzma2") == 0)
-          return ZIP_CM_LZMA2;
+          return LIBZIP_CM_LZMA2;
     */
     else if (strcasecmp(arg, "lzma") == 0)
-	return ZIP_CM_LZMA;
+	return LIBZIP_CM_LZMA;
     else if (strcasecmp(arg, "xz") == 0)
-        return ZIP_CM_XZ;
+        return LIBZIP_CM_XZ;
 #endif
 #if defined(HAVE_LIBZSTD)
     else if (strcasecmp(arg, "zstd") == 0)
-        return ZIP_CM_ZSTD;
+        return LIBZIP_CM_ZSTD;
 
 #endif
     else if (strcasecmp(arg, "unknown") == 0)
@@ -773,15 +773,15 @@ get_compression_method(const char *arg) {
 static libzip_uint16_t
 get_encryption_method(const char *arg) {
     if (strcasecmp(arg, "none") == 0)
-        return ZIP_EM_NONE;
+        return LIBZIP_EM_NONE;
     else if (strcasecmp(arg, "PKWARE") == 0)
-        return ZIP_EM_TRAD_PKWARE;
+        return LIBZIP_EM_TRAD_PKWARE;
     else if (strcasecmp(arg, "AES-128") == 0)
-        return ZIP_EM_AES_128;
+        return LIBZIP_EM_AES_128;
     else if (strcasecmp(arg, "AES-192") == 0)
-        return ZIP_EM_AES_192;
+        return LIBZIP_EM_AES_192;
     else if (strcasecmp(arg, "AES-256") == 0)
-        return ZIP_EM_AES_256;
+        return LIBZIP_EM_AES_256;
     else if (strcasecmp(arg, "unknown") == 0)
         return 100;
     return (libzip_uint16_t)-1; /* TODO: error handling */
@@ -809,7 +809,7 @@ read_from_file(const char *archive, int flags, libzip_error_t *error, libzip_uin
 
     if (offset == 0 && length == 0) {
         if (strcmp(archive, "/dev/stdin") == 0) {
-            zaa = libzip_fdopen(STDIN_FILENO, flags & ~ZIP_CREATE, &err);
+            zaa = libzip_fdopen(STDIN_FILENO, flags & ~LIBZIP_CREATE, &err);
         }
         else {
             zaa = libzip_open(archive, flags, &err);
@@ -820,8 +820,8 @@ read_from_file(const char *archive, int flags, libzip_error_t *error, libzip_uin
         }
     }
     else {
-        if (length > ZIP_INT64_MAX) {
-            libzip_error_set(error, ZIP_ER_INVAL, 0);
+        if (length > LIBZIP_INT64_MAX) {
+            libzip_error_set(error, LIBZIP_ER_INVAL, 0);
             return NULL;
         }
         if ((source = libzip_source_file_create(archive, offset, (libzip_int64_t)length, error)) == NULL || (zaa = libzip_open_from_source(source, flags, error)) == NULL) {
@@ -934,15 +934,15 @@ usage(const char *progname, const char *reason) {
     }
     fprintf(out, "\nSupported flags are:\n"
                  "\t0\t(no flags)\n"
-                 "\t4\tZIP_FL_ENC_CP437\n"
-                 "\t8\tZIP_FL_ENC_UTF_8\n"
-                 "\tC\tZIP_FL_NOCASE\n"
-                 "\tc\tZIP_FL_CENTRAL\n"
-                 "\td\tZIP_FL_NODIR\n"
-                 "\tl\tZIP_FL_LOCAL\n"
-                 "\tr\tZIP_FL_ENC_RAW\n"
-                 "\ts\tZIP_FL_ENC_STRICT\n"
-                 "\tu\tZIP_FL_UNCHANGED\n");
+                 "\t4\tLIBZIP_FL_ENC_CP437\n"
+                 "\t8\tLIBZIP_FL_ENC_UTF_8\n"
+                 "\tC\tLIBZIP_FL_NOCASE\n"
+                 "\tc\tLIBZIP_FL_CENTRAL\n"
+                 "\td\tLIBZIP_FL_NODIR\n"
+                 "\tl\tLIBZIP_FL_LOCAL\n"
+                 "\tr\tLIBZIP_FL_ENC_RAW\n"
+                 "\ts\tLIBZIP_FL_ENC_STRICT\n"
+                 "\tu\tLIBZIP_FL_UNCHANGED\n");
     fprintf(out, "\nSupported archive flags are:\n"
 	         "\tcreate-or-keep-empty-file-for-archive\n"
 	         "\tis-torrentzip\n"
@@ -950,26 +950,26 @@ usage(const char *progname, const char *reason) {
 	         "\twant-torrentzip\n");
     fprintf(out, "\nSupported compression methods are:\n"
                  "\tdefault\n");
-    if (libzip_compression_method_supported(ZIP_CM_BZIP2, 1)) {
+    if (libzip_compression_method_supported(LIBZIP_CM_BZIP2, 1)) {
         fprintf(out, "\tbzip2\n");
     }
     fprintf(out, "\tdeflate\n"
                  "\tstore\n");
-    if (libzip_compression_method_supported(ZIP_CM_XZ, 1)) {
+    if (libzip_compression_method_supported(LIBZIP_CM_XZ, 1)) {
         fprintf(out, "\txz\n");
     }
-    if (libzip_compression_method_supported(ZIP_CM_ZSTD, 1)) {
+    if (libzip_compression_method_supported(LIBZIP_CM_ZSTD, 1)) {
         fprintf(out, "\tzstd\n");
     }
     fprintf(out, "\nSupported encryption methods are:\n"
                  "\tnone\n");
-    if (libzip_encryption_method_supported(ZIP_EM_AES_128, 1)) {
+    if (libzip_encryption_method_supported(LIBZIP_EM_AES_128, 1)) {
         fprintf(out, "\tAES-128\n");
     }
-    if (libzip_encryption_method_supported(ZIP_EM_AES_192, 1)) {
+    if (libzip_encryption_method_supported(LIBZIP_EM_AES_192, 1)) {
         fprintf(out, "\tAES-192\n");
     }
-    if (libzip_encryption_method_supported(ZIP_EM_AES_256, 1)) {
+    if (libzip_encryption_method_supported(LIBZIP_EM_AES_256, 1)) {
         fprintf(out, "\tAES-256\n");
     }
     fprintf(out, "\tPKWARE\n");
@@ -1000,13 +1000,13 @@ main(int argc, char *argv[]) {
     while ((c = getopt(argc, argv, "ceghl:no:rst" OPTIONS_REGRESS)) != -1) {
         switch (c) {
         case 'c':
-            flags |= ZIP_CHECKCONS;
+            flags |= LIBZIP_CHECKCONS;
             break;
         case 'e':
-            flags |= ZIP_EXCL;
+            flags |= LIBZIP_EXCL;
             break;
         case 'g':
-            stat_flags = ZIP_FL_ENC_GUESS;
+            stat_flags = LIBZIP_FL_ENC_GUESS;
             break;
         case 'h':
             usage(prg, NULL);
@@ -1015,19 +1015,19 @@ main(int argc, char *argv[]) {
             len = strtoull(optarg, NULL, 10);
             break;
         case 'n':
-            flags |= ZIP_CREATE;
+            flags |= LIBZIP_CREATE;
             break;
         case 'o':
             offset = strtoull(optarg, NULL, 10);
             break;
         case 'r':
-            stat_flags = ZIP_FL_ENC_RAW;
+            stat_flags = LIBZIP_FL_ENC_RAW;
             break;
         case 's':
-            stat_flags = ZIP_FL_ENC_STRICT;
+            stat_flags = LIBZIP_FL_ENC_STRICT;
             break;
         case 't':
-            flags |= ZIP_TRUNCATE;
+            flags |= LIBZIP_TRUNCATE;
             break;
 #ifdef GETOPT_REGRESS
             GETOPT_REGRESS
@@ -1049,7 +1049,7 @@ main(int argc, char *argv[]) {
     archive = argv[arg++];
 
     if (flags == 0)
-        flags = ZIP_CREATE;
+        flags = LIBZIP_CREATE;
 
     libzip_error_init(&error);
     za = ziptool_open(archive, flags, &error, offset, len);

@@ -42,7 +42,7 @@ _libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libz
     _libzip_crypto_aes_t *aes;
 
     if ((aes = (_libzip_crypto_aes_t *)malloc(sizeof(*aes))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -59,7 +59,7 @@ _libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libz
         nettle_aes256_set_encrypt_key(&aes->ctx.ctx_256, key);
         break;
     default:
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         free(aes);
         return NULL;
     }
@@ -71,13 +71,13 @@ bool
 _libzip_crypto_aes_encrypt_block(_libzip_crypto_aes_t *aes, const libzip_uint8_t *in, libzip_uint8_t *out) {
     switch (aes->key_size) {
     case 128:
-        nettle_aes128_encrypt(&aes->ctx.ctx_128, ZIP_CRYPTO_AES_BLOCK_LENGTH, out, in);
+        nettle_aes128_encrypt(&aes->ctx.ctx_128, LIBZIP_CRYPTO_AES_BLOCK_LENGTH, out, in);
         break;
     case 192:
-        nettle_aes192_encrypt(&aes->ctx.ctx_192, ZIP_CRYPTO_AES_BLOCK_LENGTH, out, in);
+        nettle_aes192_encrypt(&aes->ctx.ctx_192, LIBZIP_CRYPTO_AES_BLOCK_LENGTH, out, in);
         break;
     case 256:
-        nettle_aes256_encrypt(&aes->ctx.ctx_256, ZIP_CRYPTO_AES_BLOCK_LENGTH, out, in);
+        nettle_aes256_encrypt(&aes->ctx.ctx_256, LIBZIP_CRYPTO_AES_BLOCK_LENGTH, out, in);
         break;
     }
 
@@ -100,12 +100,12 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
     _libzip_crypto_hmac_t *hmac;
 
     if ((hmac = (_libzip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     if (gnutls_hmac_init(hmac, GNUTLS_MAC_SHA1, secret, secret_length) < 0) {
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         free(hmac);
         return NULL;
     }
@@ -116,7 +116,7 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
 
 void
 _libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac) {
-    libzip_uint8_t buf[ZIP_CRYPTO_SHA1_LENGTH];
+    libzip_uint8_t buf[LIBZIP_CRYPTO_SHA1_LENGTH];
 
     if (hmac == NULL) {
         return;
@@ -128,7 +128,7 @@ _libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac) {
 }
 
 
-ZIP_EXTERN bool
+LIBZIP_EXTERN bool
 libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     return gnutls_rnd(GNUTLS_RND_KEY, buffer, length) == 0;
 }

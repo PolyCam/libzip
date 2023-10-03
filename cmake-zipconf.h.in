@@ -2,7 +2,7 @@
 #define _HAD_ZIPCONF_H
 
 /*
-   zipconf.h -- platform specific include file
+   liblibzipconf.h -- platform specific include file
 
    This file was generated automatically by CMake
    based on ../cmake-zipconf.h.in.
@@ -28,20 +28,20 @@ typedef ${ZIP_UINT32_T} libzip_uint32_t;
 typedef ${ZIP_INT64_T} libzip_int64_t;
 typedef ${ZIP_UINT64_T} libzip_uint64_t;
 
-#define ZIP_INT8_MIN	 (-ZIP_INT8_MAX-1)
-#define ZIP_INT8_MAX	 0x7f
-#define ZIP_UINT8_MAX	 0xff
+#define LIBZIP_INT8_MIN	 (-LIBZIP_INT8_MAX-1)
+#define LIBZIP_INT8_MAX	 0x7f
+#define LIBZIP_UINT8_MAX	 0xff
 
-#define ZIP_INT16_MIN	 (-ZIP_INT16_MAX-1)
-#define ZIP_INT16_MAX	 0x7fff
-#define ZIP_UINT16_MAX	 0xffff
+#define LIBZIP_INT16_MIN	 (-LIBZIP_INT16_MAX-1)
+#define LIBZIP_INT16_MAX	 0x7fff
+#define LIBZIP_UINT16_MAX	 0xffff
 
-#define ZIP_INT32_MIN	 (-ZIP_INT32_MAX-1L)
-#define ZIP_INT32_MAX	 0x7fffffffL
-#define ZIP_UINT32_MAX	 0xffffffffLU
+#define LIBZIP_INT32_MIN	 (-LIBZIP_INT32_MAX-1L)
+#define LIBZIP_INT32_MAX	 0x7fffffffL
+#define LIBZIP_UINT32_MAX	 0xffffffffLU
 
-#define ZIP_INT64_MIN	 (-ZIP_INT64_MAX-1LL)
-#define ZIP_INT64_MAX	 0x7fffffffffffffffLL
-#define ZIP_UINT64_MAX	 0xffffffffffffffffULL
+#define LIBZIP_INT64_MIN	 (-LIBZIP_INT64_MAX-1LL)
+#define LIBZIP_INT64_MAX	 0x7fffffffffffffffLL
+#define LIBZIP_UINT64_MAX	 0xffffffffffffffffULL
 
-#endif /* zipconf.h */
+#endif /* libzipconf.h */

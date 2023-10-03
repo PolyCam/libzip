@@ -33,7 +33,7 @@
 
 #include "zipint.h"
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_file_set_external_attributes(libzip_t *za, libzip_uint64_t idx, libzip_flags_t flags, libzip_uint8_t opsys, libzip_uint32_t attributes) {
     libzip_entry_t *e;
     int changed;
@@ -43,35 +43,35 @@ libzip_file_set_external_attributes(libzip_t *za, libzip_uint64_t idx, libzip_fl
     if (_libzip_get_dirent(za, idx, 0, NULL) == NULL)
         return -1;
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
-    if (ZIP_WANT_TORRENTZIP(za)) {
-        libzip_error_set(&za->error, ZIP_ER_NOT_ALLOWED, 0);
+    if (LIBZIP_WANT_TORRENTZIP(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_NOT_ALLOWED, 0);
         return -1;
     }
 
     e = za->entry + idx;
 
-    unchanged_opsys = (e->orig ? (libzip_uint8_t)(e->orig->version_madeby >> 8) : (libzip_uint8_t)ZIP_OPSYS_DEFAULT);
-    unchanged_attributes = e->orig ? e->orig->ext_attrib : ZIP_EXT_ATTRIB_DEFAULT;
+    unchanged_opsys = (e->orig ? (libzip_uint8_t)(e->orig->version_madeby >> 8) : (libzip_uint8_t)LIBZIP_OPSYS_DEFAULT);
+    unchanged_attributes = e->orig ? e->orig->ext_attrib : LIBZIP_EXT_ATTRIB_DEFAULT;
 
     changed = (opsys != unchanged_opsys || attributes != unchanged_attributes);
 
     if (changed) {
         if (e->changes == NULL) {
             if ((e->changes = _libzip_dirent_clone(e->orig)) == NULL) {
-                libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
                 return -1;
             }
         }
         e->changes->version_madeby = (libzip_uint16_t)((opsys << 8) | (e->changes->version_madeby & 0xff));
         e->changes->ext_attrib = attributes;
-        e->changes->changed |= ZIP_DIRENT_ATTRIBUTES;
+        e->changes->changed |= LIBZIP_DIRENT_ATTRIBUTES;
     }
     else if (e->changes) {
-        e->changes->changed &= ~ZIP_DIRENT_ATTRIBUTES;
+        e->changes->changed &= ~LIBZIP_DIRENT_ATTRIBUTES;
         if (e->changes->changed == 0) {
             _libzip_dirent_free(e->changes);
             e->changes = NULL;

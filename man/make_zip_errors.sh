@@ -83,7 +83,7 @@ cat <<EOF >> "$2.$$" || exit 1
 .\"   from $1; make changes there.
 .\"
 .Dd $date
-.Dt ZIP_ERRORS 3
+.Dt LIBZIP_ERRORS 3
 .Os
 .Sh NAME
 .Nm libzip_errors
@@ -97,7 +97,7 @@ The following error codes are used by libzip:
 .Bl -tag -width XZIPXERXCOMPNOTSUPPXX
 EOF
 
-sed -n  's/^#define \(ZIP_ER_[A-Z_0-9]*\).*\/\* \(.\) \([^*]*\) \*\//.It Bq Er \1@\3./p' "$1" \
+sed -n  's/^#define \(LIBZIP_ER_[A-Z_0-9]*\).*\/\* \(.\) \([^*]*\) \*\//.It Bq Er \1@\3./p' "$1" \
     | sort\
     | tr @ '\012' \
     >> "$2.$$" || exit 1

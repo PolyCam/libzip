@@ -37,7 +37,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN const char *
+LIBZIP_EXTERN const char *
 libzip_get_name(libzip_t *za, libzip_uint64_t idx, libzip_flags_t flags) {
     return _libzip_get_name(za, idx, flags, &za->error);
 }

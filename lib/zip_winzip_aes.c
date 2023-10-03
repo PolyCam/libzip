@@ -45,8 +45,8 @@
 struct _libzip_winlibzip_aes {
     _libzip_crypto_aes_t *aes;
     _libzip_crypto_hmac_t *hmac;
-    libzip_uint8_t counter[ZIP_CRYPTO_AES_BLOCK_LENGTH];
-    libzip_uint8_t pad[ZIP_CRYPTO_AES_BLOCK_LENGTH];
+    libzip_uint8_t counter[LIBZIP_CRYPTO_AES_BLOCK_LENGTH];
+    libzip_uint8_t pad[LIBZIP_CRYPTO_AES_BLOCK_LENGTH];
     int pad_offset;
 };
 
@@ -77,38 +77,38 @@ aes_crypt(libzip_winlibzip_aes_t *ctx, libzip_uint8_t *data, libzip_uint64_t len
 libzip_winlibzip_aes_t *
 _libzip_winlibzip_aes_new(const libzip_uint8_t *password, libzip_uint64_t password_length, const libzip_uint8_t *salt, libzip_uint16_t encryption_method, libzip_uint8_t *password_verify, libzip_error_t *error) {
     libzip_winlibzip_aes_t *ctx;
-    libzip_uint8_t buffer[2 * (MAX_KEY_LENGTH / 8) + WINZIP_AES_PASSWORD_VERIFY_LENGTH];
+    libzip_uint8_t buffer[2 * (MAX_KEY_LENGTH / 8) + WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH];
     libzip_uint16_t key_size = 0; /* in bits */
     libzip_uint16_t key_length;   /* in bytes */
 
     switch (encryption_method) {
-    case ZIP_EM_AES_128:
+    case LIBZIP_EM_AES_128:
         key_size = 128;
         break;
-    case ZIP_EM_AES_192:
+    case LIBZIP_EM_AES_192:
         key_size = 192;
         break;
-    case ZIP_EM_AES_256:
+    case LIBZIP_EM_AES_256:
         key_size = 256;
         break;
     }
 
     if (key_size == 0 || salt == NULL || password == NULL || password_length == 0) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     key_length = key_size / 8;
 
     if ((ctx = (libzip_winlibzip_aes_t *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     memset(ctx->counter, 0, sizeof(ctx->counter));
-    ctx->pad_offset = ZIP_CRYPTO_AES_BLOCK_LENGTH;
+    ctx->pad_offset = LIBZIP_CRYPTO_AES_BLOCK_LENGTH;
 
-    if (!_libzip_crypto_pbkdf2(password, password_length, salt, key_length / 2, PBKDF2_ITERATIONS, buffer, 2 * key_length + WINZIP_AES_PASSWORD_VERIFY_LENGTH)) {
+    if (!_libzip_crypto_pbkdf2(password, password_length, salt, key_length / 2, PBKDF2_ITERATIONS, buffer, 2 * key_length + WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH)) {
         free(ctx);
         return NULL;
     }
@@ -125,7 +125,7 @@ _libzip_winlibzip_aes_new(const libzip_uint8_t *password, libzip_uint64_t passwo
     }
 
     if (password_verify) {
-        (void)memcpy_s(password_verify, WINZIP_AES_PASSWORD_VERIFY_LENGTH, buffer + (2 * key_size / 8), WINZIP_AES_PASSWORD_VERIFY_LENGTH);
+        (void)memcpy_s(password_verify, WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH, buffer + (2 * key_size / 8), WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH);
     }
 
     return ctx;

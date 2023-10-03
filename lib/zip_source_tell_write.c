@@ -35,17 +35,17 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_source_tell_write(libzip_source_t *src) {
-    if (ZIP_SOURCE_IS_LAYERED(src)) {
-        libzip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
+    if (LIBZIP_SOURCE_IS_LAYERED(src)) {
+        libzip_error_set(&src->error, LIBZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 
-    if (!ZIP_SOURCE_IS_OPEN_WRITING(src)) {
-        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
+    if (!LIBZIP_SOURCE_IS_OPEN_WRITING(src)) {
+        libzip_error_set(&src->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    return _libzip_source_call(src, NULL, 0, ZIP_SOURCE_TELL_WRITE);
+    return _libzip_source_call(src, NULL, 0, LIBZIP_SOURCE_TELL_WRITE);
 }

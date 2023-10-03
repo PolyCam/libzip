@@ -35,11 +35,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_error_to_str(char *buf, libzip_uint64_t len, int ze, int se) {
     libzip_error_t error;
     const char *error_string;
@@ -50,7 +50,7 @@ libzip_error_to_str(char *buf, libzip_uint64_t len, int ze, int se) {
 
     error_string = libzip_error_strerror(&error);
 
-    ret = snprintf_s(buf, ZIP_MIN(len, SIZE_MAX), error_string, strlen(error_string));
+    ret = snprintf_s(buf, LIBZIP_MIN(len, SIZE_MAX), error_string, strlen(error_string));
 
     libzip_error_fini(&error);
 

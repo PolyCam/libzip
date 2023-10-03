@@ -37,7 +37,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_function(libzip_t *za, libzip_source_callback zcb, void *ud) {
     if (za == NULL) {
         return NULL;
@@ -47,7 +47,7 @@ libzip_source_function(libzip_t *za, libzip_source_callback zcb, void *ud) {
 }
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_function_create(libzip_source_callback zcb, void *ud, libzip_error_t *error) {
     libzip_source_t *zs;
 
@@ -57,17 +57,17 @@ libzip_source_function_create(libzip_source_callback zcb, void *ud, libzip_error
     zs->cb.f = zcb;
     zs->ud = ud;
 
-    zs->supports = zcb(ud, NULL, 0, ZIP_SOURCE_SUPPORTS);
+    zs->supports = zcb(ud, NULL, 0, LIBZIP_SOURCE_SUPPORTS);
     if (zs->supports < 0) {
-        zs->supports = ZIP_SOURCE_SUPPORTS_READABLE;
+        zs->supports = LIBZIP_SOURCE_SUPPORTS_READABLE;
     }
-    zs->supports |= libzip_source_make_command_bitmap(ZIP_SOURCE_SUPPORTS, -1);
+    zs->supports |= libzip_source_make_command_bitmap(LIBZIP_SOURCE_SUPPORTS, -1);
 
     return zs;
 }
 
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_source_keep(libzip_source_t *src) {
     src->refcount++;
 }
@@ -78,7 +78,7 @@ _libzip_source_new(libzip_error_t *error) {
     libzip_source_t *src;
 
     if ((src = (libzip_source_t *)malloc(sizeof(*src))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -86,7 +86,7 @@ _libzip_source_new(libzip_error_t *error) {
     src->cb.f = NULL;
     src->ud = NULL;
     src->open_count = 0;
-    src->write_state = ZIP_SOURCE_WRITE_CLOSED;
+    src->write_state = LIBZIP_SOURCE_WRITE_CLOSED;
     src->source_closed = false;
     src->source_archive = NULL;
     src->refcount = 1;

@@ -55,7 +55,7 @@ main(int argc, char *argv[]) {
 
     archive = argv[1];
 
-    if ((za = libzip_open(archive, ZIP_CREATE, &err)) == NULL) {
+    if ((za = libzip_open(archive, LIBZIP_CREATE, &err)) == NULL) {
         libzip_error_t error;
         libzip_error_init_with_code(&error, err);
         fprintf(stderr, "can't open zip archive '%s': %s\n", archive, libzip_error_strerror(&error));
@@ -75,7 +75,7 @@ main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (libzip_fopen(za, file, ZIP_FL_UNCHANGED) == NULL) {
+    if (libzip_fopen(za, file, LIBZIP_FL_UNCHANGED) == NULL) {
         fprintf(stderr, "can't libzip_fopen file '%s': %s\n", file, libzip_strerror(za));
         (void)libzip_discard(za);
         return 1;

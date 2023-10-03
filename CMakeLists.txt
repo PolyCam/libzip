@@ -460,7 +460,7 @@ endif()
 
 # write out config file
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake-config.h.in ${PROJECT_BINARY_DIR}/config.h)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake-zipconf.h.in ${PROJECT_BINARY_DIR}/zipconf.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake-zipconf.h.in ${PROJECT_BINARY_DIR}/libzipconf.h)
 
 # for tests
 
@@ -491,7 +491,7 @@ if(LIBZIP_DO_INSTALL)
     FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake")
 
   # installation
-  install(FILES ${PROJECT_BINARY_DIR}/zipconf.h DESTINATION include)
+  install(FILES ${PROJECT_BINARY_DIR}/libzipconf.h DESTINATION include)
   install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
     )

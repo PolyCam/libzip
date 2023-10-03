@@ -35,7 +35,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_stat_index(libzip_t *za, libzip_uint64_t index, libzip_flags_t flags, libzip_stat_t *st) {
     const char *name;
     libzip_dirent_t *de;
@@ -51,34 +51,34 @@ libzip_stat_index(libzip_t *za, libzip_uint64_t index, libzip_flags_t flags, lib
 
     entry = za->entry + index;
 
-    if ((flags & ZIP_FL_UNCHANGED) == 0 && ZIP_ENTRY_DATA_CHANGED(za->entry + index)) {
+    if ((flags & LIBZIP_FL_UNCHANGED) == 0 && LIBZIP_ENTRY_DATA_CHANGED(za->entry + index)) {
 
         if (libzip_source_stat(entry->source, st) < 0) {
-            libzip_error_set(&za->error, ZIP_ER_CHANGED, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_CHANGED, 0);
             return -1;
         }
 
-        if (ZIP_CM_IS_DEFAULT(de->comp_method)) {
-            if (!(st->valid & ZIP_STAT_COMP_METHOD) || st->comp_method == ZIP_CM_STORE) {
-                st->valid &= ~(ZIP_STAT_COMP_SIZE|ZIP_STAT_COMP_METHOD);
+        if (LIBZIP_CM_IS_DEFAULT(de->comp_method)) {
+            if (!(st->valid & LIBZIP_STAT_COMP_METHOD) || st->comp_method == LIBZIP_CM_STORE) {
+                st->valid &= ~(LIBZIP_STAT_COMP_SIZE|LIBZIP_STAT_COMP_METHOD);
             }
         }
         else {
-            if ((st->valid & ZIP_STAT_COMP_METHOD) && st->comp_method != de->comp_method) {
-                st->valid &= ~ZIP_STAT_COMP_SIZE;
+            if ((st->valid & LIBZIP_STAT_COMP_METHOD) && st->comp_method != de->comp_method) {
+                st->valid &= ~LIBZIP_STAT_COMP_SIZE;
             }
-            st->valid |= ZIP_STAT_COMP_METHOD;
+            st->valid |= LIBZIP_STAT_COMP_METHOD;
             st->comp_method = de->comp_method;
         }
 
-        if (((st->valid & (ZIP_STAT_COMP_METHOD|ZIP_STAT_SIZE)) == (ZIP_STAT_COMP_METHOD|ZIP_STAT_SIZE)) && st->comp_method == ZIP_CM_STORE) {
-            st->valid |= ZIP_STAT_COMP_SIZE;
+        if (((st->valid & (LIBZIP_STAT_COMP_METHOD|LIBZIP_STAT_SIZE)) == (LIBZIP_STAT_COMP_METHOD|LIBZIP_STAT_SIZE)) && st->comp_method == LIBZIP_CM_STORE) {
+            st->valid |= LIBZIP_STAT_COMP_SIZE;
             st->comp_size = st->size;
         }
 
-        if (entry->changes != NULL && entry->changes->changed & ZIP_DIRENT_LAST_MOD) {
+        if (entry->changes != NULL && entry->changes->changed & LIBZIP_DIRENT_LAST_MOD) {
             st->mtime = de->last_mod;
-            st->valid |= ZIP_STAT_MTIME;
+            st->valid |= LIBZIP_STAT_MTIME;
         }
     }
     else {
@@ -90,22 +90,22 @@ libzip_stat_index(libzip_t *za, libzip_uint64_t index, libzip_flags_t flags, lib
         st->comp_size = de->comp_size;
         st->comp_method = (libzip_uint16_t)de->comp_method;
         st->encryption_method = de->encryption_method;
-        st->valid = (de->crc_valid ? ZIP_STAT_CRC : 0) | ZIP_STAT_SIZE | ZIP_STAT_MTIME | ZIP_STAT_COMP_SIZE | ZIP_STAT_COMP_METHOD | ZIP_STAT_ENCRYPTION_METHOD;
-        if (entry->changes != NULL && entry->changes->changed & ZIP_DIRENT_COMP_METHOD) {
-            st->valid &= ~ZIP_STAT_COMP_SIZE;
+        st->valid = (de->crc_valid ? LIBZIP_STAT_CRC : 0) | LIBZIP_STAT_SIZE | LIBZIP_STAT_MTIME | LIBZIP_STAT_COMP_SIZE | LIBZIP_STAT_COMP_METHOD | LIBZIP_STAT_ENCRYPTION_METHOD;
+        if (entry->changes != NULL && entry->changes->changed & LIBZIP_DIRENT_COMP_METHOD) {
+            st->valid &= ~LIBZIP_STAT_COMP_SIZE;
         }
     }
 
-    if ((za->ch_flags & ZIP_AFL_WANT_TORRENTZIP) && (flags & ZIP_FL_UNCHANGED) == 0) {
-        st->comp_method = ZIP_CM_DEFLATE;
+    if ((za->ch_flags & LIBZIP_AFL_WANT_TORRENTZIP) && (flags & LIBZIP_FL_UNCHANGED) == 0) {
+        st->comp_method = LIBZIP_CM_DEFLATE;
         st->mtime = _libzip_d2u_time(0xbc00, 0x2198);
-        st->valid |= ZIP_STAT_MTIME | ZIP_STAT_COMP_METHOD;
-        st->valid &= ~ZIP_STAT_COMP_SIZE;
+        st->valid |= LIBZIP_STAT_MTIME | LIBZIP_STAT_COMP_METHOD;
+        st->valid &= ~LIBZIP_STAT_COMP_SIZE;
     }
 
     st->index = index;
     st->name = name;
-    st->valid |= ZIP_STAT_INDEX | ZIP_STAT_NAME;
+    st->valid |= LIBZIP_STAT_INDEX | LIBZIP_STAT_NAME;
 
     return 0;
 }

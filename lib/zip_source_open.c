@@ -34,32 +34,32 @@
 
 #include "zipint.h"
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_source_open(libzip_source_t *src) {
     if (src->source_closed) {
         return -1;
     }
-    if (src->write_state == ZIP_SOURCE_WRITE_REMOVED) {
-        libzip_error_set(&src->error, ZIP_ER_DELETED, 0);
+    if (src->write_state == LIBZIP_SOURCE_WRITE_REMOVED) {
+        libzip_error_set(&src->error, LIBZIP_ER_DELETED, 0);
         return -1;
     }
 
-    if (ZIP_SOURCE_IS_OPEN_READING(src)) {
-        if ((libzip_source_supports(src) & ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_SEEK)) == 0) {
-            libzip_error_set(&src->error, ZIP_ER_INUSE, 0);
+    if (LIBZIP_SOURCE_IS_OPEN_READING(src)) {
+        if ((libzip_source_supports(src) & LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_SEEK)) == 0) {
+            libzip_error_set(&src->error, LIBZIP_ER_INUSE, 0);
             return -1;
         }
     }
     else {
-        if (ZIP_SOURCE_IS_LAYERED(src)) {
+        if (LIBZIP_SOURCE_IS_LAYERED(src)) {
             if (libzip_source_open(src->src) < 0) {
                 libzip_error_set_from_source(&src->error, src->src);
                 return -1;
             }
         }
 
-        if (_libzip_source_call(src, NULL, 0, ZIP_SOURCE_OPEN) < 0) {
-            if (ZIP_SOURCE_IS_LAYERED(src)) {
+        if (_libzip_source_call(src, NULL, 0, LIBZIP_SOURCE_OPEN) < 0) {
+            if (LIBZIP_SOURCE_IS_LAYERED(src)) {
                 libzip_source_close(src->src);
             }
             return -1;

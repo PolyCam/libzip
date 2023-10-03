@@ -52,10 +52,10 @@ libzip_source_layered_create(libzip_source_t *src, libzip_source_layered_callbac
     libzip_int64_t lower_supports, supports;
 
     lower_supports = libzip_source_supports(src);
-    supports = cb(src, ud, &lower_supports, sizeof(lower_supports), ZIP_SOURCE_SUPPORTS);
+    supports = cb(src, ud, &lower_supports, sizeof(lower_supports), LIBZIP_SOURCE_SUPPORTS);
     if (supports < 0) {
-        libzip_error_set(error,ZIP_ER_INVAL, 0); /* Initialize in case cb doesn't return valid error. */
-        cb(src, ud, error, sizeof(*error), ZIP_SOURCE_ERROR);
+        libzip_error_set(error,LIBZIP_ER_INVAL, 0); /* Initialize in case cb doesn't return valid error. */
+        cb(src, ud, error, sizeof(*error), LIBZIP_SOURCE_ERROR);
         return NULL;
     }
 
@@ -69,7 +69,7 @@ libzip_source_layered_create(libzip_source_t *src, libzip_source_layered_callbac
     zs->supports = supports;
 
     /* Layered sources can't support writing, since we currently have no use case. If we want to revisit this, we have to define how the two sources interact. */
-    zs->supports &= ~(ZIP_SOURCE_SUPPORTS_WRITABLE & ~ZIP_SOURCE_SUPPORTS_SEEKABLE);
+    zs->supports &= ~(LIBZIP_SOURCE_SUPPORTS_WRITABLE & ~LIBZIP_SOURCE_SUPPORTS_SEEKABLE);
 
     return zs;
 }

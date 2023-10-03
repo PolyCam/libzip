@@ -59,12 +59,12 @@ libzip_source_pkware_encode(libzip_t *za, libzip_source_t *src, libzip_uint16_t 
     struct trad_pkware *ctx;
     libzip_source_t *s2;
 
-    if (password == NULL || src == NULL || em != ZIP_EM_TRAD_PKWARE) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if (password == NULL || src == NULL || em != LIBZIP_EM_TRAD_PKWARE) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
-    if (!(flags & ZIP_CODEC_ENCODE)) {
-        libzip_error_set(&za->error, ZIP_ER_ENCRNOTSUPP, 0);
+    if (!(flags & LIBZIP_CODEC_ENCODE)) {
+        libzip_error_set(&za->error, LIBZIP_ER_ENCRNOTSUPP, 0);
         return NULL;
     }
 
@@ -97,8 +97,8 @@ encrypt_header(libzip_source_t *src, struct trad_pkware *ctx) {
 
     _libzip_u2d_time(ctx->mtime, &dostime, &dosdate);
 
-    if ((ctx->buffer = _libzip_buffer_new(NULL, ZIP_CRYPTO_PKWARE_HEADERLEN)) == NULL) {
-        libzip_error_set(&ctx->error, ZIP_ER_MEMORY, 0);
+    if ((ctx->buffer = _libzip_buffer_new(NULL, LIBZIP_CRYPTO_PKWARE_HEADERLEN)) == NULL) {
+        libzip_error_set(&ctx->error, LIBZIP_ER_MEMORY, 0);
         return -1;
     }
 
@@ -106,15 +106,15 @@ encrypt_header(libzip_source_t *src, struct trad_pkware *ctx) {
 
     /* generate header from random bytes and mtime
        see appnote.iz, XIII. Decryption, Step 2, last paragraph */
-    if (!libzip_secure_random(header, ZIP_CRYPTO_PKWARE_HEADERLEN - 1)) {
-        libzip_error_set(&ctx->error, ZIP_ER_INTERNAL, 0);
+    if (!libzip_secure_random(header, LIBZIP_CRYPTO_PKWARE_HEADERLEN - 1)) {
+        libzip_error_set(&ctx->error, LIBZIP_ER_INTERNAL, 0);
         _libzip_buffer_free(ctx->buffer);
         ctx->buffer = NULL;
         return -1;
     }
-    header[ZIP_CRYPTO_PKWARE_HEADERLEN - 1] = (libzip_uint8_t)((dostime >> 8) & 0xff);
+    header[LIBZIP_CRYPTO_PKWARE_HEADERLEN - 1] = (libzip_uint8_t)((dostime >> 8) & 0xff);
 
-    _libzip_pkware_encrypt(&ctx->keys, header, header, ZIP_CRYPTO_PKWARE_HEADERLEN);
+    _libzip_pkware_encrypt(&ctx->keys, header, header, LIBZIP_CRYPTO_PKWARE_HEADERLEN);
 
     return 0;
 }
@@ -129,7 +129,7 @@ pkware_encrypt(libzip_source_t *src, void *ud, void *data, libzip_uint64_t lengt
     ctx = (struct trad_pkware *)ud;
 
     switch (cmd) {
-    case ZIP_SOURCE_OPEN:
+    case LIBZIP_SOURCE_OPEN:
         ctx->eof = false;
 
         /* initialize keys */
@@ -141,7 +141,7 @@ pkware_encrypt(libzip_source_t *src, void *ud, void *data, libzip_uint64_t lengt
         }
         return 0;
 
-    case ZIP_SOURCE_READ:
+    case LIBZIP_SOURCE_READ:
         buffer_n = 0;
 
         if (ctx->buffer) {
@@ -173,46 +173,46 @@ pkware_encrypt(libzip_source_t *src, void *ud, void *data, libzip_uint64_t lengt
 
         return (libzip_int64_t)buffer_n + n;
 
-    case ZIP_SOURCE_CLOSE:
+    case LIBZIP_SOURCE_CLOSE:
         _libzip_buffer_free(ctx->buffer);
         ctx->buffer = NULL;
         return 0;
 
-    case ZIP_SOURCE_STAT: {
+    case LIBZIP_SOURCE_STAT: {
         libzip_stat_t *st;
 
         st = (libzip_stat_t *)data;
-        st->encryption_method = ZIP_EM_TRAD_PKWARE;
-        st->valid |= ZIP_STAT_ENCRYPTION_METHOD;
-        if (st->valid & ZIP_STAT_COMP_SIZE) {
-            st->comp_size += ZIP_CRYPTO_PKWARE_HEADERLEN;
+        st->encryption_method = LIBZIP_EM_TRAD_PKWARE;
+        st->valid |= LIBZIP_STAT_ENCRYPTION_METHOD;
+        if (st->valid & LIBZIP_STAT_COMP_SIZE) {
+            st->comp_size += LIBZIP_CRYPTO_PKWARE_HEADERLEN;
         }
         set_mtime(ctx, st);
         st->mtime = ctx->mtime;
-        st->valid |= ZIP_STAT_MTIME;
+        st->valid |= LIBZIP_STAT_MTIME;
 
         return 0;
     }
 
-    case ZIP_SOURCE_GET_FILE_ATTRIBUTES: {
+    case LIBZIP_SOURCE_GET_FILE_ATTRIBUTES: {
         libzip_file_attributes_t *attributes = (libzip_file_attributes_t *)data;
         if (length < sizeof(*attributes)) {
-            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
             return -1;
         }
-        attributes->valid |= ZIP_FILE_ATTRIBUTES_VERSION_NEEDED;
+        attributes->valid |= LIBZIP_FILE_ATTRIBUTES_VERSION_NEEDED;
         attributes->version_needed = 20;
 
         return 0;
     }
 
-    case ZIP_SOURCE_SUPPORTS:
-        return libzip_source_make_command_bitmap(ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_CLOSE, ZIP_SOURCE_STAT, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE, ZIP_SOURCE_GET_FILE_ATTRIBUTES, -1);
+    case LIBZIP_SOURCE_SUPPORTS:
+        return libzip_source_make_command_bitmap(LIBZIP_SOURCE_OPEN, LIBZIP_SOURCE_READ, LIBZIP_SOURCE_CLOSE, LIBZIP_SOURCE_STAT, LIBZIP_SOURCE_ERROR, LIBZIP_SOURCE_FREE, LIBZIP_SOURCE_GET_FILE_ATTRIBUTES, -1);
 
-    case ZIP_SOURCE_ERROR:
+    case LIBZIP_SOURCE_ERROR:
         return libzip_error_to_data(&ctx->error, data, length);
 
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         trad_pkware_free(ctx);
         return 0;
 
@@ -227,12 +227,12 @@ trad_pkware_new(const char *password, libzip_error_t *error) {
     struct trad_pkware *ctx;
 
     if ((ctx = (struct trad_pkware *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
     if ((ctx->password = strdup(password)) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         free(ctx);
         return NULL;
     }
@@ -260,7 +260,7 @@ trad_pkware_free(struct trad_pkware *ctx) {
 
 static void set_mtime(struct trad_pkware* ctx, libzip_stat_t* st) {
     if (!ctx->mtime_set) {
-        if (st->valid & ZIP_STAT_MTIME) {
+        if (st->valid & LIBZIP_STAT_MTIME) {
             ctx->mtime = st->mtime;
         }
         else {

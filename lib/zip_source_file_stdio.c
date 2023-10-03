@@ -66,7 +66,7 @@ static libzip_source_file_operations_t ops_stdio_read = {
 /* clang-format on */
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_filep(libzip_t *za, FILE *file, libzip_uint64_t start, libzip_int64_t len) {
     if (za == NULL) {
         return NULL;
@@ -76,10 +76,10 @@ libzip_source_filep(libzip_t *za, FILE *file, libzip_uint64_t start, libzip_int6
 }
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_filep_create(FILE *file, libzip_uint64_t start, libzip_int64_t length, libzip_error_t *error) {
-    if (file == NULL || length < ZIP_LENGTH_UNCHECKED) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+    if (file == NULL || length < LIBZIP_LENGTH_UNCHECKED) {
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
@@ -102,7 +102,7 @@ _libzip_stdio_op_read(libzip_source_file_context_t *ctx, void *buf, libzip_uint6
 
     if ((i = fread(buf, 1, (size_t)len, ctx->f)) == 0) {
         if (ferror((FILE *)ctx->f)) {
-            libzip_error_set(&ctx->error, ZIP_ER_READ, errno);
+            libzip_error_set(&ctx->error, LIBZIP_ER_READ, errno);
             return -1;
         }
     }
@@ -113,15 +113,15 @@ _libzip_stdio_op_read(libzip_source_file_context_t *ctx, void *buf, libzip_uint6
 
 bool
 _libzip_stdio_op_seek(libzip_source_file_context_t *ctx, void *f, libzip_int64_t offset, int whence) {
-#if ZIP_FSEEK_MAX > ZIP_INT64_MAX
-    if (offset > ZIP_FSEEK_MAX || offset < ZIP_FSEEK_MIN) {
-        libzip_error_set(&ctx->error, ZIP_ER_SEEK, EOVERFLOW);
+#if LIBZIP_FSEEK_MAX > LIBZIP_INT64_MAX
+    if (offset > LIBZIP_FSEEK_MAX || offset < LIBZIP_FSEEK_MIN) {
+        libzip_error_set(&ctx->error, LIBZIP_ER_SEEK, EOVERFLOW);
         return false;
     }
 #endif
 
     if (fseeko((FILE *)f, (off_t)offset, whence) < 0) {
-        libzip_error_set(&ctx->error, ZIP_ER_SEEK, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_SEEK, errno);
         return false;
     }
     return true;
@@ -146,7 +146,7 @@ _libzip_stdio_op_stat(libzip_source_file_context_t *ctx, libzip_source_file_stat
             st->exists = false;
             return true;
         }
-        libzip_error_set(&ctx->error, ZIP_ER_READ, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_READ, errno);
         return false;
     }
 
@@ -158,8 +158,8 @@ _libzip_stdio_op_stat(libzip_source_file_context_t *ctx, libzip_source_file_stat
 
     /* We're using UNIX file API, even on Windows; thus, we supply external file attributes with Unix values. */
     /* TODO: This could be improved on Windows by providing Windows-specific file attributes */
-    ctx->attributes.valid = ZIP_FILE_ATTRIBUTES_HOST_SYSTEM | ZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES;
-    ctx->attributes.host_system = ZIP_OPSYS_UNIX;
+    ctx->attributes.valid = LIBZIP_FILE_ATTRIBUTES_HOST_SYSTEM | LIBZIP_FILE_ATTRIBUTES_EXTERNAL_FILE_ATTRIBUTES;
+    ctx->attributes.host_system = LIBZIP_OPSYS_UNIX;
     ctx->attributes.external_file_attributes = (((libzip_uint32_t)sb.st_mode) << 16) | ((sb.st_mode & S_IWUSR) ? 0 : 1);
 
     return true;
@@ -171,7 +171,7 @@ _libzip_stdio_op_tell(libzip_source_file_context_t *ctx, void *f) {
     off_t offset = ftello((FILE *)f);
 
     if (offset < 0) {
-        libzip_error_set(&ctx->error, ZIP_ER_SEEK, errno);
+        libzip_error_set(&ctx->error, LIBZIP_ER_SEEK, errno);
     }
 
     return offset;

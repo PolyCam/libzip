@@ -34,7 +34,7 @@
 
 #include "zipint.h"
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_ftell(libzip_file_t *zf) {
     libzip_int64_t res;
 

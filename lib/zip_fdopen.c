@@ -38,7 +38,7 @@
 #endif
 
 
-ZIP_EXTERN libzip_t *
+LIBZIP_EXTERN libzip_t *
 libzip_fdopen(int fd_orig, int _flags, int *zep) {
     int fd;
     FILE *fp;
@@ -46,26 +46,26 @@ libzip_fdopen(int fd_orig, int _flags, int *zep) {
     libzip_source_t *src;
     struct libzip_error error;
 
-    if (_flags < 0 || (_flags & ~(ZIP_CHECKCONS | ZIP_RDONLY))) {
-        _libzip_set_open_error(zep, NULL, ZIP_ER_INVAL);
+    if (_flags < 0 || (_flags & ~(LIBZIP_CHECKCONS | LIBZIP_RDONLY))) {
+        _libzip_set_open_error(zep, NULL, LIBZIP_ER_INVAL);
         return NULL;
     }
 
 #ifndef ENABLE_FDOPEN
-    _libzip_set_open_error(zep, NULL, ZIP_ER_OPNOTSUPP);
+    _libzip_set_open_error(zep, NULL, LIBZIP_ER_OPNOTSUPP);
     return NULL;
 #else
     /* We dup() here to avoid messing with the passed in fd.
        We could not restore it to the original state in case of error. */
 
     if ((fd = dup(fd_orig)) < 0) {
-        _libzip_set_open_error(zep, NULL, ZIP_ER_OPEN);
+        _libzip_set_open_error(zep, NULL, LIBZIP_ER_OPEN);
         return NULL;
     }
 
     if ((fp = fdopen(fd, "rb")) == NULL) {
         close(fd);
-        _libzip_set_open_error(zep, NULL, ZIP_ER_OPEN);
+        _libzip_set_open_error(zep, NULL, LIBZIP_ER_OPEN);
         return NULL;
     }
 

@@ -42,7 +42,7 @@
 #include <stdlib.h>
 
 #ifndef HAVE_SECURE_RANDOM
-ZIP_EXTERN bool
+LIBZIP_EXTERN bool
 libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     arc4random_buf(buffer, length);
     return true;
@@ -62,7 +62,7 @@ libzip_random_uint32(void) {
 #include <fcntl.h>
 #include <unistd.h>
 
-ZIP_EXTERN bool
+LIBZIP_EXTERN bool
 libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length) {
     int fd;
 

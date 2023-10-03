@@ -38,14 +38,14 @@
 
 #include "compat.h"
 
-#ifdef ZIP_ALLOCATE_BUFFER
+#ifdef LIBZIP_ALLOCATE_BUFFER
 #include <stdlib.h>
 #endif
 
-#ifdef _ZIP_COMPILING_DEPRECATED
-#define ZIP_DEPRECATED(x)
+#ifdef _LIBZIP_COMPILING_DEPRECATED
+#define LIBZIP_DEPRECATED(x)
 #else
-#define ZIP_DISABLE_DEPRECATED
+#define LIBZIP_DISABLE_DEPRECATED
 #endif
 
 #include "libzip.h"
@@ -66,53 +66,53 @@
 #define CDBUFSIZE (MAXCOMLEN + EOCDLEN + EOCD64LOCLEN)
 #define BUFSIZE 8192
 #define EFZIP64SIZE 28
-#define EF_WINZIP_AES_SIZE 7
+#define EF_WINLIBZIP_AES_SIZE 7
 #define MAX_DATA_DESCRIPTOR_LENGTH 24
 
-#define TORRENTZIP_SIGNATURE "TORRENTZIPPED-"
-#define TORRENTZIP_SIGNATURE_LENGTH 14
-#define TORRENTZIP_CRC_LENGTH 8
-#define TORRENTZIP_MEM_LEVEL 8
-#define TORRENTZIP_COMPRESSION_FLAGS ZIP_UINT16_MAX
+#define TORRENTLIBZIP_SIGNATURE "TORRENTZIPPED-"
+#define TORRENTLIBZIP_SIGNATURE_LENGTH 14
+#define TORRENTLIBZIP_CRC_LENGTH 8
+#define TORRENTLIBZIP_MEM_LEVEL 8
+#define TORRENTLIBZIP_COMPRESSION_FLAGS LIBZIP_UINT16_MAX
 
-#define ZIP_CRYPTO_PKWARE_HEADERLEN 12
+#define LIBZIP_CRYPTO_PKWARE_HEADERLEN 12
 
-#define ZIP_CM_REPLACED_DEFAULT (-2)
-#define ZIP_CM_WINZIP_AES 99 /* Winzip AES encrypted */
+#define LIBZIP_CM_REPLACED_DEFAULT (-2)
+#define LIBZIP_CM_WINLIBZIP_AES 99 /* Winzip AES encrypted */
 
-#define WINZIP_AES_PASSWORD_VERIFY_LENGTH 2
-#define WINZIP_AES_MAX_HEADER_LENGTH (16 + WINZIP_AES_PASSWORD_VERIFY_LENGTH)
+#define WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH 2
+#define WINLIBZIP_AES_MAX_HEADER_LENGTH (16 + WINLIBZIP_AES_PASSWORD_VERIFY_LENGTH)
 #define AES_BLOCK_SIZE 16
 #define HMAC_LENGTH 10
-#define SALT_LENGTH(method) ((method) == ZIP_EM_AES_128 ? 8 : ((method) == ZIP_EM_AES_192 ? 12 : 16))
+#define SALT_LENGTH(method) ((method) == LIBZIP_EM_AES_128 ? 8 : ((method) == LIBZIP_EM_AES_192 ? 12 : 16))
 
-#define ZIP_CM_IS_DEFAULT(x) ((x) == ZIP_CM_DEFAULT || (x) == ZIP_CM_REPLACED_DEFAULT)
-#define ZIP_CM_ACTUAL(x) ((libzip_uint16_t)(ZIP_CM_IS_DEFAULT(x) ? ZIP_CM_DEFLATE : (x)))
+#define LIBZIP_CM_IS_DEFAULT(x) ((x) == LIBZIP_CM_DEFAULT || (x) == LIBZIP_CM_REPLACED_DEFAULT)
+#define LIBZIP_CM_ACTUAL(x) ((libzip_uint16_t)(LIBZIP_CM_IS_DEFAULT(x) ? LIBZIP_CM_DEFLATE : (x)))
 
-#define ZIP_EF_UTF_8_COMMENT 0x6375
-#define ZIP_EF_UTF_8_NAME 0x7075
-#define ZIP_EF_WINZIP_AES 0x9901
-#define ZIP_EF_ZIP64 0x0001
+#define LIBZIP_EF_UTF_8_COMMENT 0x6375
+#define LIBZIP_EF_UTF_8_NAME 0x7075
+#define LIBZIP_EF_WINLIBZIP_AES 0x9901
+#define LIBZIP_EF_ZIP64 0x0001
 
-#define ZIP_EF_IS_INTERNAL(id) ((id) == ZIP_EF_UTF_8_COMMENT || (id) == ZIP_EF_UTF_8_NAME || (id) == ZIP_EF_WINZIP_AES || (id) == ZIP_EF_ZIP64)
+#define LIBZIP_EF_IS_INTERNAL(id) ((id) == LIBZIP_EF_UTF_8_COMMENT || (id) == LIBZIP_EF_UTF_8_NAME || (id) == LIBZIP_EF_WINLIBZIP_AES || (id) == LIBZIP_EF_ZIP64)
 
 /* according to unzip-6.0's zipinfo.c, this corresponds to a regular file with rw permissions for everyone */
-#define ZIP_EXT_ATTRIB_DEFAULT (0100666u << 16)
+#define LIBZIP_EXT_ATTRIB_DEFAULT (0100666u << 16)
 /* according to unzip-6.0's zipinfo.c, this corresponds to a directory with rwx permissions for everyone */
-#define ZIP_EXT_ATTRIB_DEFAULT_DIR (0040777u << 16)
+#define LIBZIP_EXT_ATTRIB_DEFAULT_DIR (0040777u << 16)
 
-#define ZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS_ALLOWED_MASK 0x0836
+#define LIBZIP_FILE_ATTRIBUTES_GENERAL_PURPOSE_BIT_FLAGS_ALLOWED_MASK 0x0836
 
-#define ZIP_MAX(a, b) ((a) > (b) ? (a) : (b))
-#define ZIP_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define LIBZIP_MAX(a, b) ((a) > (b) ? (a) : (b))
+#define LIBZIP_MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /* This section contains API that won't materialize like this.  It's
    placed in the internal section, pending cleanup. */
 
 /* flags for compression and encryption sources */
 
-#define ZIP_CODEC_DECODE 0 /* decompress/decrypt (encode flag not set) */
-#define ZIP_CODEC_ENCODE 1 /* compress/encrypt */
+#define LIBZIP_CODEC_DECODE 0 /* decompress/decrypt (encode flag not set) */
+#define LIBZIP_CODEC_ENCODE 1 /* compress/encrypt */
 
 typedef libzip_source_t *(*libzip_encryption_implementation)(libzip_t *, libzip_source_t *, libzip_uint16_t, int, const char *);
 
@@ -120,10 +120,10 @@ libzip_encryption_implementation _libzip_get_encryption_implementation(libzip_ui
 
 /* clang-format off */
 enum libzip_compression_status {
-    ZIP_COMPRESSION_OK,
-    ZIP_COMPRESSION_END,
-    ZIP_COMPRESSION_ERROR,
-    ZIP_COMPRESSION_NEED_DATA
+    LIBZIP_COMPRESSION_OK,
+    LIBZIP_COMPRESSION_END,
+    LIBZIP_COMPRESSION_ERROR,
+    LIBZIP_COMPRESSION_NEED_DATA
 };
 /* clang-format on */
 typedef enum libzip_compression_status libzip_compression_status_t;
@@ -192,10 +192,10 @@ libzip_source_t *libzip_source_buffer_with_attributes_create(const void *data, l
 
 /* error source for layered sources */
 
-enum libzip_les { ZIP_LES_NONE, ZIP_LES_UPPER, ZIP_LES_LOWER, ZIP_LES_INVAL };
+enum libzip_les { LIBZIP_LES_NONE, LIBZIP_LES_UPPER, LIBZIP_LES_LOWER, LIBZIP_LES_INVAL };
 
-#define ZIP_DETAIL_ET_GLOBAL 0
-#define ZIP_DETAIL_ET_ENTRY  1
+#define LIBZIP_DETAIL_ET_GLOBAL 0
+#define LIBZIP_DETAIL_ET_ENTRY  1
 
 struct _libzip_err_info {
     int type;
@@ -215,53 +215,53 @@ extern const int _libzip_err_details_count;
 #define ADD_INDEX_TO_DETAIL(error, index) MAKE_DETAIL_WITH_INDEX(GET_ERROR_FROM_DETAIL(error), (index))
 
 /* error code for libzip-internal errors */
-#define ZIP_ER_DETAIL_NO_DETAIL 0   /* G no detail */
-#define ZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD 1  /* G central directory overlaps EOCD, or there is space between them */
-#define ZIP_ER_DETAIL_COMMENT_LENGTH_INVALID 2  /* G archive comment length incorrect */
-#define ZIP_ER_DETAIL_CDIR_LENGTH_INVALID 3  /* G central directory length invalid */
-#define ZIP_ER_DETAIL_CDIR_ENTRY_INVALID 4  /* E central header invalid */
-#define ZIP_ER_DETAIL_CDIR_WRONG_ENTRIES_COUNT 5  /* G central directory count of entries is incorrect */
-#define ZIP_ER_DETAIL_ENTRY_HEADER_MISMATCH 6  /* E local and central headers do not match */
-#define ZIP_ER_DETAIL_EOCD_LENGTH_INVALID 7  /* G wrong EOCD length */
-#define ZIP_ER_DETAIL_EOCD64_OVERLAPS_EOCD 8  /* G EOCD64 overlaps EOCD, or there is space between them */
-#define ZIP_ER_DETAIL_EOCD64_WRONG_MAGIC 9  /* G EOCD64 magic incorrect */
-#define ZIP_ER_DETAIL_EOCD64_MISMATCH 10  /* G EOCD64 and EOCD do not match */
-#define ZIP_ER_DETAIL_CDIR_INVALID 11  /* G invalid value in central directory */
-#define ZIP_ER_DETAIL_VARIABLE_SIZE_OVERFLOW 12 /* E variable size fields overflow header */
-#define ZIP_ER_DETAIL_INVALID_UTF8_IN_FILENAME 13 /* E invalid UTF-8 in filename */
-#define ZIP_ER_DETAIL_INVALID_UTF8_IN_COMMENT 13 /* E invalid UTF-8 in comment */
-#define ZIP_ER_DETAIL_INVALID_ZIP64_EF 14 /* E invalid Zip64 extra field */
-#define ZIP_ER_DETAIL_INVALID_WINZIPAES_EF 14 /* E invalid WinZip AES extra field */
-#define ZIP_ER_DETAIL_EF_TRAILING_GARBAGE 15 /* E garbage at end of extra fields */
-#define ZIP_ER_DETAIL_INVALID_EF_LENGTH 16 /* E extra field length is invalid */
-#define ZIP_ER_DETAIL_INVALID_FILE_LENGTH 17 /* E file length in header doesn't match actual file length */
+#define LIBZIP_ER_DETAIL_NO_DETAIL 0   /* G no detail */
+#define LIBZIP_ER_DETAIL_CDIR_OVERLAPS_EOCD 1  /* G central directory overlaps EOCD, or there is space between them */
+#define LIBZIP_ER_DETAIL_COMMENT_LENGTH_INVALID 2  /* G archive comment length incorrect */
+#define LIBZIP_ER_DETAIL_CDIR_LENGTH_INVALID 3  /* G central directory length invalid */
+#define LIBZIP_ER_DETAIL_CDIR_ENTRY_INVALID 4  /* E central header invalid */
+#define LIBZIP_ER_DETAIL_CDIR_WRONG_ENTRIES_COUNT 5  /* G central directory count of entries is incorrect */
+#define LIBZIP_ER_DETAIL_ENTRY_HEADER_MISMATCH 6  /* E local and central headers do not match */
+#define LIBZIP_ER_DETAIL_EOCD_LENGTH_INVALID 7  /* G wrong EOCD length */
+#define LIBZIP_ER_DETAIL_EOCD64_OVERLAPS_EOCD 8  /* G EOCD64 overlaps EOCD, or there is space between them */
+#define LIBZIP_ER_DETAIL_EOCD64_WRONG_MAGIC 9  /* G EOCD64 magic incorrect */
+#define LIBZIP_ER_DETAIL_EOCD64_MISMATCH 10  /* G EOCD64 and EOCD do not match */
+#define LIBZIP_ER_DETAIL_CDIR_INVALID 11  /* G invalid value in central directory */
+#define LIBZIP_ER_DETAIL_VARIABLE_SIZE_OVERFLOW 12 /* E variable size fields overflow header */
+#define LIBZIP_ER_DETAIL_INVALID_UTF8_IN_FILENAME 13 /* E invalid UTF-8 in filename */
+#define LIBZIP_ER_DETAIL_INVALID_UTF8_IN_COMMENT 13 /* E invalid UTF-8 in comment */
+#define LIBZIP_ER_DETAIL_INVALID_ZIP64_EF 14 /* E invalid Zip64 extra field */
+#define LIBZIP_ER_DETAIL_INVALID_WINZIPAES_EF 14 /* E invalid WinZip AES extra field */
+#define LIBZIP_ER_DETAIL_EF_TRAILING_GARBAGE 15 /* E garbage at end of extra fields */
+#define LIBZIP_ER_DETAIL_INVALID_EF_LENGTH 16 /* E extra field length is invalid */
+#define LIBZIP_ER_DETAIL_INVALID_FILE_LENGTH 17 /* E file length in header doesn't match actual file length */
 
 /* directory entry: general purpose bit flags */
 
-#define ZIP_GPBF_ENCRYPTED 0x0001u         /* is encrypted */
-#define ZIP_GPBF_DATA_DESCRIPTOR 0x0008u   /* crc/size after file data */
-#define ZIP_GPBF_STRONG_ENCRYPTION 0x0040u /* uses strong encryption */
-#define ZIP_GPBF_ENCODING_UTF_8 0x0800u    /* file name encoding is UTF-8 */
+#define LIBZIP_GPBF_ENCRYPTED 0x0001u         /* is encrypted */
+#define LIBZIP_GPBF_DATA_DESCRIPTOR 0x0008u   /* crc/size after file data */
+#define LIBZIP_GPBF_STRONG_ENCRYPTION 0x0040u /* uses strong encryption */
+#define LIBZIP_GPBF_ENCODING_UTF_8 0x0800u    /* file name encoding is UTF-8 */
 
 
 /* extra fields */
-#define ZIP_EF_LOCAL ZIP_FL_LOCAL                   /* include in local header */
-#define ZIP_EF_CENTRAL ZIP_FL_CENTRAL               /* include in central directory */
-#define ZIP_EF_BOTH (ZIP_EF_LOCAL | ZIP_EF_CENTRAL) /* include in both */
+#define LIBZIP_EF_LOCAL LIBZIP_FL_LOCAL                   /* include in local header */
+#define LIBZIP_EF_CENTRAL LIBZIP_FL_CENTRAL               /* include in central directory */
+#define LIBZIP_EF_BOTH (LIBZIP_EF_LOCAL | LIBZIP_EF_CENTRAL) /* include in both */
 
-#define ZIP_FL_FORCE_ZIP64 1024 /* force zip64 extra field (_libzip_dirent_write) */
+#define LIBZIP_FL_FORCE_ZIP64 1024 /* force zip64 extra field (_libzip_dirent_write) */
 
-#define ZIP_FL_ENCODING_ALL (ZIP_FL_ENC_GUESS | ZIP_FL_ENC_CP437 | ZIP_FL_ENC_UTF_8)
+#define LIBZIP_FL_ENCODING_ALL (LIBZIP_FL_ENC_GUESS | LIBZIP_FL_ENC_CP437 | LIBZIP_FL_ENC_UTF_8)
 
 
 /* encoding type */
 enum libzip_encoding_type {
-    ZIP_ENCODING_UNKNOWN,      /* not yet analyzed */
-    ZIP_ENCODING_ASCII,        /* plain ASCII */
-    ZIP_ENCODING_UTF8_KNOWN,   /* is UTF-8 */
-    ZIP_ENCODING_UTF8_GUESSED, /* possibly UTF-8 */
-    ZIP_ENCODING_CP437,        /* Code Page 437 */
-    ZIP_ENCODING_ERROR         /* should be UTF-8 but isn't */
+    LIBZIP_ENCODING_UNKNOWN,      /* not yet analyzed */
+    LIBZIP_ENCODING_ASCII,        /* plain ASCII */
+    LIBZIP_ENCODING_UTF8_KNOWN,   /* is UTF-8 */
+    LIBZIP_ENCODING_UTF8_GUESSED, /* possibly UTF-8 */
+    LIBZIP_ENCODING_CP437,        /* Code Page 437 */
+    LIBZIP_ENCODING_ERROR         /* should be UTF-8 but isn't */
 };
 
 typedef enum libzip_encoding_type libzip_encoding_type_t;
@@ -318,15 +318,15 @@ struct libzip_file {
 
 /* zip archive directory entry (central or local) */
 
-#define ZIP_DIRENT_COMP_METHOD 0x0001u
-#define ZIP_DIRENT_FILENAME 0x0002u
-#define ZIP_DIRENT_COMMENT 0x0004u
-#define ZIP_DIRENT_EXTRA_FIELD 0x0008u
-#define ZIP_DIRENT_ATTRIBUTES 0x0010u
-#define ZIP_DIRENT_LAST_MOD 0x0020u
-#define ZIP_DIRENT_ENCRYPTION_METHOD 0x0040u
-#define ZIP_DIRENT_PASSWORD 0x0080u
-#define ZIP_DIRENT_ALL ZIP_UINT32_MAX
+#define LIBZIP_DIRENT_COMP_METHOD 0x0001u
+#define LIBZIP_DIRENT_FILENAME 0x0002u
+#define LIBZIP_DIRENT_COMMENT 0x0004u
+#define LIBZIP_DIRENT_EXTRA_FIELD 0x0008u
+#define LIBZIP_DIRENT_ATTRIBUTES 0x0010u
+#define LIBZIP_DIRENT_LAST_MOD 0x0020u
+#define LIBZIP_DIRENT_ENCRYPTION_METHOD 0x0040u
+#define LIBZIP_DIRENT_PASSWORD 0x0080u
+#define LIBZIP_DIRENT_ALL LIBZIP_UINT32_MAX
 
 struct libzip_dirent {
     libzip_uint32_t changed;
@@ -338,7 +338,7 @@ struct libzip_dirent {
     libzip_uint16_t version_madeby;     /* (c)  version of creator */
     libzip_uint16_t version_needed;     /* (cl) version needed to extract */
     libzip_uint16_t bitflags;           /* (cl) general purpose bit flag */
-    libzip_int32_t comp_method;         /* (cl) compression method used (uint16 and ZIP_CM_DEFAULT (-1)) */
+    libzip_int32_t comp_method;         /* (cl) compression method used (uint16 and LIBZIP_CM_DEFAULT (-1)) */
     time_t last_mod;                 /* (cl) time of last modification */
     libzip_uint32_t crc;                /* (cl) CRC-32 of uncompressed data */
     libzip_uint64_t comp_size;          /* (cl) size of compressed data */
@@ -378,10 +378,10 @@ struct libzip_extra_field {
 };
 
 enum libzip_source_write_state {
-    ZIP_SOURCE_WRITE_CLOSED, /* write is not in progress */
-    ZIP_SOURCE_WRITE_OPEN,   /* write is in progress */
-    ZIP_SOURCE_WRITE_FAILED, /* commit failed, only rollback allowed */
-    ZIP_SOURCE_WRITE_REMOVED /* file was removed */
+    LIBZIP_SOURCE_WRITE_CLOSED, /* write is not in progress */
+    LIBZIP_SOURCE_WRITE_OPEN,   /* write is in progress */
+    LIBZIP_SOURCE_WRITE_FAILED, /* commit failed, only rollback allowed */
+    LIBZIP_SOURCE_WRITE_REMOVED /* file was removed */
 };
 typedef enum libzip_source_write_state libzip_source_write_state_t;
 
@@ -400,13 +400,13 @@ struct libzip_source {
     libzip_t *source_archive;                /* zip archive we're reading from, NULL if not from archive */
     unsigned int refcount;
     bool eof;                /* EOF reached */
-    bool had_read_error;     /* a previous ZIP_SOURCE_READ reported an error */
-    libzip_uint64_t bytes_read; /* for sources that don't support ZIP_SOURCE_TELL. */
+    bool had_read_error;     /* a previous LIBZIP_SOURCE_READ reported an error */
+    libzip_uint64_t bytes_read; /* for sources that don't support LIBZIP_SOURCE_TELL. */
 };
 
-#define ZIP_SOURCE_IS_OPEN_READING(src) ((src)->open_count > 0)
-#define ZIP_SOURCE_IS_OPEN_WRITING(src) ((src)->write_state == ZIP_SOURCE_WRITE_OPEN)
-#define ZIP_SOURCE_IS_LAYERED(src) ((src)->src != NULL)
+#define LIBZIP_SOURCE_IS_OPEN_READING(src) ((src)->open_count > 0)
+#define LIBZIP_SOURCE_IS_OPEN_WRITING(src) ((src)->write_state == LIBZIP_SOURCE_WRITE_OPEN)
+#define LIBZIP_SOURCE_IS_LAYERED(src) ((src)->src != NULL)
 
 /* entry in zip archive directory */
 
@@ -435,7 +435,7 @@ struct libzip_string {
    However, there are (embedded) systems with a stack size of 12k;
    for those, use malloc()/free() */
 
-#ifdef ZIP_ALLOCATE_BUFFER
+#ifdef LIBZIP_ALLOCATE_BUFFER
 #define DEFINE_BYTE_ARRAY(buf, size) libzip_uint8_t *buf
 #define byte_array_init(buf, size) (((buf) = (libzip_uint8_t *)malloc(size)) != NULL)
 #define byte_array_fini(buf) (free(buf))
@@ -474,16 +474,16 @@ struct _libzip_pkware_keys {
 };
 typedef struct _libzip_pkware_keys libzip_pkware_keys_t;
 
-#define ZIP_MAX(a, b) ((a) > (b) ? (a) : (b))
-#define ZIP_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define LIBZIP_MAX(a, b) ((a) > (b) ? (a) : (b))
+#define LIBZIP_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-#define ZIP_ENTRY_CHANGED(e, f) ((e)->changes && ((e)->changes->changed & (f)))
-#define ZIP_ENTRY_DATA_CHANGED(x) ((x)->source != NULL)
-#define ZIP_ENTRY_HAS_CHANGES(e) (ZIP_ENTRY_DATA_CHANGED(e) || (e)->deleted || ZIP_ENTRY_CHANGED((e), ZIP_DIRENT_ALL))
+#define LIBZIP_ENTRY_CHANGED(e, f) ((e)->changes && ((e)->changes->changed & (f)))
+#define LIBZIP_ENTRY_DATA_CHANGED(x) ((x)->source != NULL)
+#define LIBZIP_ENTRY_HAS_CHANGES(e) (LIBZIP_ENTRY_DATA_CHANGED(e) || (e)->deleted || LIBZIP_ENTRY_CHANGED((e), LIBZIP_DIRENT_ALL))
 
-#define ZIP_IS_RDONLY(za) ((za)->ch_flags & ZIP_AFL_RDONLY)
-#define ZIP_IS_TORRENTZIP(za) ((za)->flags & ZIP_AFL_IS_TORRENTZIP)
-#define ZIP_WANT_TORRENTZIP(za) ((za)->ch_flags & ZIP_AFL_WANT_TORRENTZIP)
+#define LIBZIP_IS_RDONLY(za) ((za)->ch_flags & LIBZIP_AFL_RDONLY)
+#define LIBZIP_IS_TORRENTZIP(za) ((za)->flags & LIBZIP_AFL_IS_TORRENTZIP)
+#define LIBZIP_WANT_TORRENTZIP(za) ((za)->ch_flags & LIBZIP_AFL_WANT_TORRENTZIP)
 
 
 #ifdef HAVE_EXPLICIT_MEMSET
@@ -596,7 +596,7 @@ int _libzip_progress_subrange(libzip_progress_t *progress, double start, double 
 int _libzip_progress_update(libzip_progress_t *progress, double value);
 
 /* this symbol is extern so it can be overridden for regression testing */
-ZIP_EXTERN bool libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length);
+LIBZIP_EXTERN bool libzip_secure_random(libzip_uint8_t *buffer, libzip_uint16_t length);
 libzip_uint32_t libzip_random_uint32(void);
 
 int _libzip_read(libzip_source_t *src, libzip_uint8_t *data, libzip_uint64_t length, libzip_error_t *error);

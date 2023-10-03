@@ -37,13 +37,13 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN const char *
+LIBZIP_EXTERN const char *
 libzip_get_archive_comment(libzip_t *za, int *lenp, libzip_flags_t flags) {
     libzip_string_t *comment;
     libzip_uint32_t len;
     const libzip_uint8_t *str;
 
-    if ((flags & ZIP_FL_UNCHANGED) || (za->comment_changes == NULL))
+    if ((flags & LIBZIP_FL_UNCHANGED) || (za->comment_changes == NULL))
         comment = za->comment_orig;
     else
         comment = za->comment_changes;

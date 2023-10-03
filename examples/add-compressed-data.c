@@ -53,22 +53,22 @@ libzip_int64_t callback(libzip_source_t* src, void *ud, void* data, libzip_uint6
     struct ctx* ctx = (struct ctx*)ud;
 
     switch (command) {
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         /* Free our context. */
         free(ctx);
         return 0;
 
-    case ZIP_SOURCE_STAT: {
+    case LIBZIP_SOURCE_STAT: {
         libzip_stat_t *st = (libzip_stat_t *)data;
         /* Fix metadata with provided values. */
-        if (st->valid & ZIP_STAT_SIZE) {
+        if (st->valid & LIBZIP_STAT_SIZE) {
             st->comp_size = st->size;
-            st->valid |= ZIP_STAT_COMP_SIZE;
+            st->valid |= LIBZIP_STAT_COMP_SIZE;
         }
         st->size = ctx->uncompressed_size;
         st->crc = ctx->crc;
         st->comp_method = ctx->compression_method;
-        st->valid |= ZIP_STAT_COMP_METHOD | ZIP_STAT_SIZE | ZIP_STAT_CRC;
+        st->valid |= LIBZIP_STAT_COMP_METHOD | LIBZIP_STAT_SIZE | LIBZIP_STAT_CRC;
 
         return 0;
     }
@@ -85,7 +85,7 @@ libzip_source_t* create_layered_compressed_source(libzip_source_t* source, libzi
 
     /* Allocate context. */
     if (ctx == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -108,7 +108,7 @@ libzip_source_t* create_layered_compressed_source(libzip_source_t* source, libzi
 
 /* This is the information needed to add pre-compressed data to a zip archive. data must be compressed in a format compatible with Zip (e.g. no gzip header for deflate). */
 
-libzip_uint16_t compression_method = ZIP_CM_DEFLATE;
+libzip_uint16_t compression_method = LIBZIP_CM_DEFLATE;
 libzip_uint64_t uncompressed_size = 60;
 libzip_uint32_t crc = 0xb0354048;
 libzip_uint8_t data[] = {
@@ -131,7 +131,7 @@ main(int argc, char *argv[]) {
     }
     archive = argv[1];
 
-    if ((za = libzip_open(archive, ZIP_CREATE, &err)) == NULL) {
+    if ((za = libzip_open(archive, LIBZIP_CREATE, &err)) == NULL) {
         libzip_error_t error;
         libzip_error_init_with_code(&error, err);
         fprintf(stderr, "%s: cannot open zip archive '%s': %s\n", argv[0], archive, libzip_error_strerror(&error));

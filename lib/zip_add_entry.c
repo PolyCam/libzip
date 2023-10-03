@@ -60,12 +60,12 @@ _libzip_add_entry(libzip_t *za) {
         realloc_size = sizeof(struct libzip_entry) * (size_t)nalloc;
 
         if (sizeof(struct libzip_entry) * (size_t)za->nentry_alloc > realloc_size) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             return -1;
         }
         rentries = (libzip_entry_t *)realloc(za->entry, sizeof(struct libzip_entry) * (size_t)nalloc);
         if (!rentries) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             return -1;
         }
         za->entry = rentries;

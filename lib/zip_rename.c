@@ -32,11 +32,11 @@
 */
 
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_rename(libzip_t *za, libzip_uint64_t idx, const char *name) {
     return libzip_file_rename(za, idx, name, 0);
 }

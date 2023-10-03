@@ -34,12 +34,12 @@
 
 #include <stdlib.h>
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
-ZIP_EXTERN libzip_source_t *libzip_source_libzip_create(libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len, libzip_error_t *error) {
+LIBZIP_EXTERN libzip_source_t *libzip_source_libzip_create(libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len, libzip_error_t *error) {
     if (len < -1) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
     
@@ -48,16 +48,16 @@ ZIP_EXTERN libzip_source_t *libzip_source_libzip_create(libzip_t *srcza, libzip_
     }
     
     if (start == 0 && len == -1) {
-        flags |= ZIP_FL_COMPRESSED;
+        flags |= LIBZIP_FL_COMPRESSED;
     }
     else {
-        flags &= ~ZIP_FL_COMPRESSED;
+        flags &= ~LIBZIP_FL_COMPRESSED;
     }
 
     return libzip_source_libzip_file_create(srcza, srcidx, flags, start, len, NULL, error);
 }
 
 
-ZIP_EXTERN libzip_source_t *libzip_source_zip(libzip_t *za, libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len) {
+LIBZIP_EXTERN libzip_source_t *libzip_source_zip(libzip_t *za, libzip_t *srcza, libzip_uint64_t srcidx, libzip_flags_t flags, libzip_uint64_t start, libzip_int64_t len) {
     return libzip_source_libzip_create(srcza, srcidx, flags, start, len, &za->error);
 }

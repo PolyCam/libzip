@@ -31,8 +31,8 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef HAD_ZIP_CRYPTO_WIN_H
-#define HAD_ZIP_CRYPTO_WIN_H
+#ifndef HAD_LIBZIP_CRYPTO_WIN_H
+#define HAD_LIBZIP_CRYPTO_WIN_H
 
 #define HAVE_SECURE_RANDOM
 
@@ -50,4 +50,4 @@ void _libzip_crypto_hmac_free(_libzip_crypto_hmac_t *hmac);
 bool _libzip_crypto_hmac(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data, libzip_uint64_t length);
 bool _libzip_crypto_hmac_output(_libzip_crypto_hmac_t *hmac, libzip_uint8_t *data);
 
-#endif /*  HAD_ZIP_CRYPTO_WIN_H */
+#endif /*  HAD_LIBZIP_CRYPTO_WIN_H */

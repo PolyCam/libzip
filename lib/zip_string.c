@@ -86,14 +86,14 @@ _libzip_string_get(libzip_string_t *string, libzip_uint32_t *lenp, libzip_flags_
         return empty;
     }
 
-    if ((flags & ZIP_FL_ENC_RAW) == 0) {
+    if ((flags & LIBZIP_FL_ENC_RAW) == 0) {
         /* start guessing */
-        if (string->encoding == ZIP_ENCODING_UNKNOWN) {
+        if (string->encoding == LIBZIP_ENCODING_UNKNOWN) {
             /* guess encoding, sets string->encoding */
-            (void)_libzip_guess_encoding(string, ZIP_ENCODING_UNKNOWN);
+            (void)_libzip_guess_encoding(string, LIBZIP_ENCODING_UNKNOWN);
         }
 
-        if (((flags & ZIP_FL_ENC_STRICT) && string->encoding != ZIP_ENCODING_ASCII && string->encoding != ZIP_ENCODING_UTF8_KNOWN) || (string->encoding == ZIP_ENCODING_CP437)) {
+        if (((flags & LIBZIP_FL_ENC_STRICT) && string->encoding != LIBZIP_ENCODING_ASCII && string->encoding != LIBZIP_ENCODING_UTF8_KNOWN) || (string->encoding == LIBZIP_ENCODING_CP437)) {
             if (string->converted == NULL) {
                 if ((string->converted = _libzip_cp437_to_utf8(string->raw, string->length, &string->converted_length, error)) == NULL)
                     return NULL;
@@ -127,23 +127,23 @@ _libzip_string_new(const libzip_uint8_t *raw, libzip_uint16_t length, libzip_fla
     if (length == 0)
         return NULL;
 
-    switch (flags & ZIP_FL_ENCODING_ALL) {
-    case ZIP_FL_ENC_GUESS:
-        expected_encoding = ZIP_ENCODING_UNKNOWN;
+    switch (flags & LIBZIP_FL_ENCODING_ALL) {
+    case LIBZIP_FL_ENC_GUESS:
+        expected_encoding = LIBZIP_ENCODING_UNKNOWN;
         break;
-    case ZIP_FL_ENC_UTF_8:
-        expected_encoding = ZIP_ENCODING_UTF8_KNOWN;
+    case LIBZIP_FL_ENC_UTF_8:
+        expected_encoding = LIBZIP_ENCODING_UTF8_KNOWN;
         break;
-    case ZIP_FL_ENC_CP437:
-        expected_encoding = ZIP_ENCODING_CP437;
+    case LIBZIP_FL_ENC_CP437:
+        expected_encoding = LIBZIP_ENCODING_CP437;
         break;
     default:
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
 
     if ((s = (libzip_string_t *)malloc(sizeof(*s))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -155,14 +155,14 @@ _libzip_string_new(const libzip_uint8_t *raw, libzip_uint16_t length, libzip_fla
     (void)memcpy_s(s->raw, length + 1, raw, length);
     s->raw[length] = '\0';
     s->length = length;
-    s->encoding = ZIP_ENCODING_UNKNOWN;
+    s->encoding = LIBZIP_ENCODING_UNKNOWN;
     s->converted = NULL;
     s->converted_length = 0;
 
-    if (expected_encoding != ZIP_ENCODING_UNKNOWN) {
-        if (_libzip_guess_encoding(s, expected_encoding) == ZIP_ENCODING_ERROR) {
+    if (expected_encoding != LIBZIP_ENCODING_UNKNOWN) {
+        if (_libzip_guess_encoding(s, expected_encoding) == LIBZIP_ENCODING_ERROR) {
             _libzip_string_free(s);
-            libzip_error_set(error, ZIP_ER_INVAL, 0);
+            libzip_error_set(error, LIBZIP_ER_INVAL, 0);
             return NULL;
         }
     }

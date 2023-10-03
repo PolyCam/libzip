@@ -34,9 +34,9 @@
 
 #include "zipint.h"
 
-/* lenp is 32 bit because converted comment can be longer than ZIP_UINT16_MAX */
+/* lenp is 32 bit because converted comment can be longer than LIBZIP_UINT16_MAX */
 
-ZIP_EXTERN const char *
+LIBZIP_EXTERN const char *
 libzip_file_get_comment(libzip_t *za, libzip_uint64_t idx, libzip_uint32_t *lenp, libzip_flags_t flags) {
     libzip_dirent_t *de;
     libzip_uint32_t len;

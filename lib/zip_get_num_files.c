@@ -32,18 +32,18 @@
 */
 
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 #include <limits.h>
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_get_num_files(libzip_t *za) {
     if (za == NULL)
         return -1;
 
     if (za->nentry > INT_MAX) {
-        libzip_error_set(&za->error, ZIP_ER_OPNOTSUPP, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 

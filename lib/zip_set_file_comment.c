@@ -32,14 +32,14 @@
 */
 
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_set_file_comment(libzip_t *za, libzip_uint64_t idx, const char *comment, int len) {
-    if (len < 0 || len > ZIP_UINT16_MAX) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+    if (len < 0 || len > LIBZIP_UINT16_MAX) {
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
     return libzip_file_set_comment(za, idx, comment, (libzip_uint16_t)len, 0);

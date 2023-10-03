@@ -35,7 +35,7 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_fread(libzip_file_t *zf, void *outbuf, libzip_uint64_t toread) {
     libzip_int64_t n;
 
@@ -45,8 +45,8 @@ libzip_fread(libzip_file_t *zf, void *outbuf, libzip_uint64_t toread) {
     if (zf->error.libzip_err != 0)
         return -1;
 
-    if (toread > ZIP_INT64_MAX) {
-        libzip_error_set(&zf->error, ZIP_ER_INVAL, 0);
+    if (toread > LIBZIP_INT64_MAX) {
+        libzip_error_set(&zf->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 

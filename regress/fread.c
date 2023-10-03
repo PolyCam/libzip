@@ -97,23 +97,23 @@ main(int argc, char *argv[]) {
 
     fail += do_read(z, "storedok", 0, WHEN_NEVER, 0, 0);
     fail += do_read(z, "deflateok", 0, WHEN_NEVER, 0, 0);
-    fail += do_read(z, "storedcrcerror", 0, WHEN_READ, ZIP_ER_CRC, 0);
-    fail += do_read(z, "deflatecrcerror", 0, WHEN_READ, ZIP_ER_CRC, 0);
-    fail += do_read(z, "deflatezliberror", 0, WHEN_READ, ZIP_ER_ZLIB, -3);
+    fail += do_read(z, "storedcrcerror", 0, WHEN_READ, LIBZIP_ER_CRC, 0);
+    fail += do_read(z, "deflatecrcerror", 0, WHEN_READ, LIBZIP_ER_CRC, 0);
+    fail += do_read(z, "deflatezliberror", 0, WHEN_READ, LIBZIP_ER_ZLIB, -3);
 #ifndef __clang_analyzer__ /* This test intentionally violates nullability. */
-    fail += do_read(z, NULL, 0, WHEN_OPEN, ZIP_ER_INVAL, 0);
+    fail += do_read(z, NULL, 0, WHEN_OPEN, LIBZIP_ER_INVAL, 0);
 #endif
-    fail += do_read(z, "nosuchfile", 0, WHEN_OPEN, ZIP_ER_NOENT, 0);
-    fail += do_read(z, "deflatezliberror", ZIP_FL_COMPRESSED, WHEN_NEVER, 0, 0);
-    fail += do_read(z, "deflatecrcerror", ZIP_FL_COMPRESSED, WHEN_NEVER, 0, 0);
-    fail += do_read(z, "storedcrcerror", ZIP_FL_COMPRESSED, WHEN_READ, ZIP_ER_CRC, 0);
-    fail += do_read(z, "storedok", ZIP_FL_COMPRESSED, WHEN_NEVER, 0, 0);
+    fail += do_read(z, "nosuchfile", 0, WHEN_OPEN, LIBZIP_ER_NOENT, 0);
+    fail += do_read(z, "deflatezliberror", LIBZIP_FL_COMPRESSED, WHEN_NEVER, 0, 0);
+    fail += do_read(z, "deflatecrcerror", LIBZIP_FL_COMPRESSED, WHEN_NEVER, 0, 0);
+    fail += do_read(z, "storedcrcerror", LIBZIP_FL_COMPRESSED, WHEN_READ, LIBZIP_ER_CRC, 0);
+    fail += do_read(z, "storedok", LIBZIP_FL_COMPRESSED, WHEN_NEVER, 0, 0);
 
-    fail += do_read(z, "cryptok", 0, WHEN_OPEN, ZIP_ER_NOPASSWD, 0);
+    fail += do_read(z, "cryptok", 0, WHEN_OPEN, LIBZIP_ER_NOPASSWD, 0);
     libzip_set_default_password(z, "crypt");
     fail += do_read(z, "cryptok", 0, WHEN_NEVER, 0, 0);
     libzip_set_default_password(z, "wrong");
-    fail += do_read(z, "cryptok", 0, WHEN_OPEN, ZIP_ER_WRONGPASSWD, 0);
+    fail += do_read(z, "cryptok", 0, WHEN_OPEN, LIBZIP_ER_WRONGPASSWD, 0);
     libzip_set_default_password(z, NULL);
 
     zs = libzip_source_buffer(z, "asdf", 4, 0);
@@ -128,7 +128,7 @@ main(int argc, char *argv[]) {
         }
         else {
             fail += do_read(z, "storedok", 0, WHEN_NEVER, 0, 0);
-            fail += do_read(z, "storedok", ZIP_FL_UNCHANGED, WHEN_NEVER, 0, 0);
+            fail += do_read(z, "storedok", LIBZIP_FL_UNCHANGED, WHEN_NEVER, 0, 0);
         }
     }
     if ((idx = libzip_name_locate(z, "storedok", 0)) < 0) {
@@ -141,8 +141,8 @@ main(int argc, char *argv[]) {
             fail++;
         }
         else {
-            fail += do_read(z, "storedok", 0, WHEN_OPEN, ZIP_ER_NOENT, 0);
-            fail += do_read(z, "storedok", ZIP_FL_UNCHANGED, WHEN_NEVER, 0, 0);
+            fail += do_read(z, "storedok", 0, WHEN_OPEN, LIBZIP_ER_NOENT, 0);
+            fail += do_read(z, "storedok", LIBZIP_FL_UNCHANGED, WHEN_NEVER, 0, 0);
         }
     }
     zs = libzip_source_buffer(z, "asdf", 4, 0);

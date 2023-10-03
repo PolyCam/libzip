@@ -36,39 +36,39 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_error_code_system(const libzip_error_t *error) {
     return error->sys_err;
 }
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_error_code_zip(const libzip_error_t *error) {
     return error->libzip_err;
 }
 
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_error_fini(libzip_error_t *err) {
     free(err->str);
     err->str = NULL;
 }
 
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_error_init(libzip_error_t *err) {
-    err->libzip_err = ZIP_ER_OK;
+    err->libzip_err = LIBZIP_ER_OK;
     err->sys_err = 0;
     err->str = NULL;
 }
 
-ZIP_EXTERN void
+LIBZIP_EXTERN void
 libzip_error_init_with_code(libzip_error_t *error, int ze) {
     libzip_error_init(error);
     error->libzip_err = ze;
     switch (libzip_error_system_type(error)) {
-        case ZIP_ET_SYS:
-        case ZIP_ET_LIBZIP:
+        case LIBZIP_ET_SYS:
+        case LIBZIP_ET_LIBZIP:
             error->sys_err = errno;
             break;
             
@@ -79,10 +79,10 @@ libzip_error_init_with_code(libzip_error_t *error, int ze) {
 }
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_error_system_type(const libzip_error_t *error) {
     if (error->libzip_err < 0 || error->libzip_err >= _libzip_err_str_count)
-        return ZIP_ET_NONE;
+        return LIBZIP_ET_NONE;
 
     return _libzip_err_str[error->libzip_err].type;
 }
@@ -93,7 +93,7 @@ _libzip_error_clear(libzip_error_t *err) {
     if (err == NULL)
         return;
 
-    err->libzip_err = ZIP_ER_OK;
+    err->libzip_err = LIBZIP_ER_OK;
     err->sys_err = 0;
 }
 
@@ -114,7 +114,7 @@ _libzip_error_get(const libzip_error_t *err, int *zep, int *sep) {
     if (zep)
         *zep = err->libzip_err;
     if (sep) {
-        if (libzip_error_system_type(err) != ZIP_ET_NONE)
+        if (libzip_error_system_type(err) != LIBZIP_ET_NONE)
             *sep = err->sys_err;
         else
             *sep = 0;
@@ -134,7 +134,7 @@ libzip_error_set(libzip_error_t *err, int ze, int se) {
 void
 libzip_error_set_from_source(libzip_error_t *err, libzip_source_t *src) {
     if (src == NULL) {
-        libzip_error_set(err, ZIP_ER_INVAL, 0);
+        libzip_error_set(err, LIBZIP_ER_INVAL, 0);
         return;
     }
 

@@ -53,7 +53,7 @@ _libzip_crypto_aes_free(_libzip_crypto_aes_t *aes) {
 bool
 _libzip_crypto_aes_encrypt_block(_libzip_crypto_aes_t *aes, const libzip_uint8_t *in, libzip_uint8_t *out) {
     size_t len;
-    CCCryptorUpdate(aes, in, ZIP_CRYPTO_AES_BLOCK_LENGTH, out, ZIP_CRYPTO_AES_BLOCK_LENGTH, &len);
+    CCCryptorUpdate(aes, in, LIBZIP_CRYPTO_AES_BLOCK_LENGTH, out, LIBZIP_CRYPTO_AES_BLOCK_LENGTH, &len);
     return true;
 }
 
@@ -70,15 +70,15 @@ _libzip_crypto_aes_new(const libzip_uint8_t *key, libzip_uint16_t key_size, libz
         return aes;
 
     case kCCMemoryFailure:
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
 
     case kCCParamError:
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
 
     default:
-        libzip_error_set(error, ZIP_ER_INTERNAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INTERNAL, 0);
         return NULL;
     }
 }
@@ -100,7 +100,7 @@ _libzip_crypto_hmac_new(const libzip_uint8_t *secret, libzip_uint64_t secret_len
     _libzip_crypto_hmac_t *hmac;
 
     if ((hmac = (_libzip_crypto_hmac_t *)malloc(sizeof(*hmac))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 

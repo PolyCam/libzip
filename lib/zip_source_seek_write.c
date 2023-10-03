@@ -35,22 +35,22 @@
 #include "zipint.h"
 
 
-ZIP_EXTERN int
+LIBZIP_EXTERN int
 libzip_source_seek_write(libzip_source_t *src, libzip_int64_t offset, int whence) {
     libzip_source_args_seek_t args;
 
-    if (ZIP_SOURCE_IS_LAYERED(src)) {
-        libzip_error_set(&src->error, ZIP_ER_OPNOTSUPP, 0);
+    if (LIBZIP_SOURCE_IS_LAYERED(src)) {
+        libzip_error_set(&src->error, LIBZIP_ER_OPNOTSUPP, 0);
         return -1;
     }
 
-    if (!ZIP_SOURCE_IS_OPEN_WRITING(src) || (whence != SEEK_SET && whence != SEEK_CUR && whence != SEEK_END)) {
-        libzip_error_set(&src->error, ZIP_ER_INVAL, 0);
+    if (!LIBZIP_SOURCE_IS_OPEN_WRITING(src) || (whence != SEEK_SET && whence != SEEK_CUR && whence != SEEK_END)) {
+        libzip_error_set(&src->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
     args.offset = offset;
     args.whence = whence;
 
-    return (_libzip_source_call(src, &args, sizeof(args), ZIP_SOURCE_SEEK_WRITE) < 0 ? -1 : 0);
+    return (_libzip_source_call(src, &args, sizeof(args), LIBZIP_SOURCE_SEEK_WRITE) < 0 ? -1 : 0);
 }

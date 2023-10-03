@@ -48,12 +48,12 @@ _libzip_set_name(libzip_t *za, libzip_uint64_t idx, const char *name, libzip_fla
     libzip_string_t *old_str;
 
     if (idx >= za->nentry) {
-        libzip_error_set(&za->error, ZIP_ER_INVAL, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_INVAL, 0);
         return -1;
     }
 
-    if (ZIP_IS_RDONLY(za)) {
-        libzip_error_set(&za->error, ZIP_ER_RDONLY, 0);
+    if (LIBZIP_IS_RDONLY(za)) {
+        libzip_error_set(&za->error, LIBZIP_ER_RDONLY, 0);
         return -1;
     }
 
@@ -61,8 +61,8 @@ _libzip_set_name(libzip_t *za, libzip_uint64_t idx, const char *name, libzip_fla
         /* TODO: check for string too long */
         if ((str = _libzip_string_new((const libzip_uint8_t *)name, (libzip_uint16_t)strlen(name), flags, &za->error)) == NULL)
             return -1;
-        if ((flags & ZIP_FL_ENCODING_ALL) == ZIP_FL_ENC_GUESS && _libzip_guess_encoding(str, ZIP_ENCODING_UNKNOWN) == ZIP_ENCODING_UTF8_GUESSED)
-            str->encoding = ZIP_ENCODING_UTF8_KNOWN;
+        if ((flags & LIBZIP_FL_ENCODING_ALL) == LIBZIP_FL_ENC_GUESS && _libzip_guess_encoding(str, LIBZIP_ENCODING_UNKNOWN) == LIBZIP_ENCODING_UTF8_GUESSED)
+            str->encoding = LIBZIP_ENCODING_UTF8_KNOWN;
     }
     else
         str = NULL;
@@ -70,7 +70,7 @@ _libzip_set_name(libzip_t *za, libzip_uint64_t idx, const char *name, libzip_fla
     /* TODO: encoding flags needed for CP437? */
     if ((i = _libzip_name_locate(za, name, 0, NULL)) >= 0 && (libzip_uint64_t)i != idx) {
         _libzip_string_free(str);
-        libzip_error_set(&za->error, ZIP_ER_EXISTS, 0);
+        libzip_error_set(&za->error, LIBZIP_ER_EXISTS, 0);
         return -1;
     }
 
@@ -89,7 +89,7 @@ _libzip_set_name(libzip_t *za, libzip_uint64_t idx, const char *name, libzip_fla
 
     if (!same_as_orig && e->changes == NULL) {
         if ((e->changes = _libzip_dirent_clone(e->orig)) == NULL) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             _libzip_string_free(str);
             return -1;
         }
@@ -130,9 +130,9 @@ _libzip_set_name(libzip_t *za, libzip_uint64_t idx, const char *name, libzip_fla
 
     if (same_as_orig) {
         if (e->changes) {
-            if (e->changes->changed & ZIP_DIRENT_FILENAME) {
+            if (e->changes->changed & LIBZIP_DIRENT_FILENAME) {
                 _libzip_string_free(e->changes->filename);
-                e->changes->changed &= ~ZIP_DIRENT_FILENAME;
+                e->changes->changed &= ~LIBZIP_DIRENT_FILENAME;
                 if (e->changes->changed == 0) {
                     _libzip_dirent_free(e->changes);
                     e->changes = NULL;
@@ -146,10 +146,10 @@ _libzip_set_name(libzip_t *za, libzip_uint64_t idx, const char *name, libzip_fla
         _libzip_string_free(str);
     }
     else {
-        if (e->changes->changed & ZIP_DIRENT_FILENAME) {
+        if (e->changes->changed & LIBZIP_DIRENT_FILENAME) {
             _libzip_string_free(e->changes->filename);
         }
-        e->changes->changed |= ZIP_DIRENT_FILENAME;
+        e->changes->changed |= LIBZIP_DIRENT_FILENAME;
         e->changes->filename = str;
     }
 

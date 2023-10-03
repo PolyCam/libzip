@@ -59,7 +59,7 @@ struct window {
 static libzip_int64_t window_read(libzip_source_t *, void *, void *, libzip_uint64_t, libzip_source_cmd_t);
 
 
-ZIP_EXTERN libzip_source_t *
+LIBZIP_EXTERN libzip_source_t *
 libzip_source_window_create(libzip_source_t *src, libzip_uint64_t start, libzip_int64_t len, libzip_error_t *error) {
     return _libzip_source_window_new(src, start, len, NULL, 0, NULL, NULL, 0, false, error);
 }
@@ -71,19 +71,19 @@ _libzip_source_window_new(libzip_source_t *src, libzip_uint64_t start, libzip_in
     struct window *ctx;
 
     if (src == NULL || length < -1 || (source_archive == NULL && source_index != 0)) {
-        libzip_error_set(error, ZIP_ER_INVAL, 0);
+        libzip_error_set(error, LIBZIP_ER_INVAL, 0);
         return NULL;
     }
     
     if (length >= 0) {
         if (start + (libzip_uint64_t)length < start) {
-            libzip_error_set(error, ZIP_ER_INVAL, 0);
+            libzip_error_set(error, LIBZIP_ER_INVAL, 0);
             return NULL;
         }
     }
 
     if ((ctx = (struct window *)malloc(sizeof(*ctx))) == NULL) {
-        libzip_error_set(error, ZIP_ER_MEMORY, 0);
+        libzip_error_set(error, LIBZIP_ER_MEMORY, 0);
         return NULL;
     }
 
@@ -106,8 +106,8 @@ _libzip_source_window_new(libzip_source_t *src, libzip_uint64_t start, libzip_in
     ctx->source_archive = source_archive;
     ctx->source_index = source_index;
     libzip_error_init(&ctx->error);
-    ctx->supports = (libzip_source_supports(src) & (ZIP_SOURCE_SUPPORTS_SEEKABLE | ZIP_SOURCE_SUPPORTS_REOPEN)) | (libzip_source_make_command_bitmap(ZIP_SOURCE_GET_FILE_ATTRIBUTES, ZIP_SOURCE_SUPPORTS, ZIP_SOURCE_TELL, ZIP_SOURCE_FREE, -1));
-    ctx->needs_seek = (ctx->supports & ZIP_SOURCE_MAKE_COMMAND_BITMASK(ZIP_SOURCE_SEEK)) ? true : false;
+    ctx->supports = (libzip_source_supports(src) & (LIBZIP_SOURCE_SUPPORTS_SEEKABLE | LIBZIP_SOURCE_SUPPORTS_REOPEN)) | (libzip_source_make_command_bitmap(LIBZIP_SOURCE_GET_FILE_ATTRIBUTES, LIBZIP_SOURCE_SUPPORTS, LIBZIP_SOURCE_TELL, LIBZIP_SOURCE_FREE, -1));
+    ctx->needs_seek = (ctx->supports & LIBZIP_SOURCE_MAKE_COMMAND_BITMASK(LIBZIP_SOURCE_SEEK)) ? true : false;
 
     if (st) {
         if (_libzip_stat_merge(&ctx->stat, st, error) < 0) {
@@ -136,8 +136,8 @@ void
 _libzip_source_invalidate(libzip_source_t *src) {
     src->source_closed = 1;
 
-    if (libzip_error_code_zip(&src->error) == ZIP_ER_OK) {
-        libzip_error_set(&src->error, ZIP_ER_ZIPCLOSED, 0);
+    if (libzip_error_code_zip(&src->error) == LIBZIP_ER_OK) {
+        libzip_error_set(&src->error, LIBZIP_ER_ZIPCLOSED, 0);
     }
 }
 
@@ -151,17 +151,17 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
     ctx = (struct window *)_ctx;
 
     switch (cmd) {
-    case ZIP_SOURCE_CLOSE:
+    case LIBZIP_SOURCE_CLOSE:
         return 0;
 
-    case ZIP_SOURCE_ERROR:
+    case LIBZIP_SOURCE_ERROR:
         return libzip_error_to_data(&ctx->error, data, len);
 
-    case ZIP_SOURCE_FREE:
+    case LIBZIP_SOURCE_FREE:
         free(ctx);
         return 0;
 
-    case ZIP_SOURCE_OPEN:
+    case LIBZIP_SOURCE_OPEN:
         if (ctx->source_archive) {
             libzip_uint64_t offset;
 
@@ -170,7 +170,7 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
             }
             if (ctx->end + offset < ctx->end) {
                 /* zip archive data claims end of data past zip64 limits */
-                libzip_error_set(&ctx->error, ZIP_ER_INCONS, MAKE_DETAIL_WITH_INDEX(ZIP_ER_DETAIL_CDIR_ENTRY_INVALID, ctx->source_index));
+                libzip_error_set(&ctx->error, LIBZIP_ER_INCONS, MAKE_DETAIL_WITH_INDEX(LIBZIP_ER_DETAIL_CDIR_ENTRY_INVALID, ctx->source_index));
                 return -1;
             }
             ctx->start += offset;
@@ -182,7 +182,7 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
             DEFINE_BYTE_ARRAY(b, BUFSIZE);
 
             if (!byte_array_init(b, BUFSIZE)) {
-                libzip_error_set(&ctx->error, ZIP_ER_MEMORY, 0);
+                libzip_error_set(&ctx->error, LIBZIP_ER_MEMORY, 0);
                 return -1;
             }
 
@@ -194,7 +194,7 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
                     return -1;
                 }
                 if (ret == 0) {
-                    libzip_error_set(&ctx->error, ZIP_ER_EOF, 0);
+                    libzip_error_set(&ctx->error, LIBZIP_ER_EOF, 0);
                     byte_array_fini(b);
                     return -1;
                 }
@@ -206,7 +206,7 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
         ctx->offset = ctx->start;
         return 0;
 
-    case ZIP_SOURCE_READ:
+    case LIBZIP_SOURCE_READ:
         if (ctx->end_valid && len > ctx->end - ctx->offset) {
             len = ctx->end - ctx->offset;
         }
@@ -223,7 +223,7 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
         }
 
         if ((ret = libzip_source_read(src, data, len)) < 0) {
-            libzip_error_set(&ctx->error, ZIP_ER_EOF, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_EOF, 0);
             return -1;
         }
 
@@ -231,17 +231,17 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
 
         if (ret == 0) {
             if (ctx->end_valid && ctx->offset < ctx->end) {
-                libzip_error_set(&ctx->error, ZIP_ER_EOF, 0);
+                libzip_error_set(&ctx->error, LIBZIP_ER_EOF, 0);
                 return -1;
             }
         }
         return ret;
 
-    case ZIP_SOURCE_SEEK: {
+    case LIBZIP_SOURCE_SEEK: {
         libzip_int64_t new_offset;
         
         if (!ctx->end_valid) {
-            libzip_source_args_seek_t *args = ZIP_SOURCE_GET_ARGS(libzip_source_args_seek_t, data, len, &ctx->error);
+            libzip_source_args_seek_t *args = LIBZIP_SOURCE_GET_ARGS(libzip_source_args_seek_t, data, len, &ctx->error);
             
             if (args == NULL) {
                 return -1;
@@ -257,7 +257,7 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
                     return -1;
                 }
                 if ((libzip_uint64_t)new_offset < ctx->start) {
-                    libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+                    libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
                     (void)libzip_source_seek(src, (libzip_int64_t)ctx->offset, SEEK_SET);
                     return -1;
                 }
@@ -276,7 +276,7 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
         return 0;
     }
 
-    case ZIP_SOURCE_STAT: {
+    case LIBZIP_SOURCE_STAT: {
         libzip_stat_t *st;
 
         st = (libzip_stat_t *)data;
@@ -285,12 +285,12 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
             return -1;
         }
 
-        if (!(ctx->stat.valid & ZIP_STAT_SIZE)) {
+        if (!(ctx->stat.valid & LIBZIP_STAT_SIZE)) {
             if (ctx->end_valid) {
-                st->valid |= ZIP_STAT_SIZE;
+                st->valid |= LIBZIP_STAT_SIZE;
                 st->size = ctx->end - ctx->start;
             }
-            else if (st->valid & ZIP_STAT_SIZE) {
+            else if (st->valid & LIBZIP_STAT_SIZE) {
                 st->size -= ctx->start;
             }
         }
@@ -300,19 +300,19 @@ window_read(libzip_source_t *src, void *_ctx, void *data, libzip_uint64_t len, l
         return 0;
     }
 
-    case ZIP_SOURCE_GET_FILE_ATTRIBUTES:
+    case LIBZIP_SOURCE_GET_FILE_ATTRIBUTES:
         if (len < sizeof(ctx->attributes)) {
-            libzip_error_set(&ctx->error, ZIP_ER_INVAL, 0);
+            libzip_error_set(&ctx->error, LIBZIP_ER_INVAL, 0);
             return -1;
         }
 
         (void)memcpy_s(data, sizeof(ctx->attributes), &ctx->attributes, sizeof(ctx->attributes));
         return sizeof(ctx->attributes);
 
-    case ZIP_SOURCE_SUPPORTS:
+    case LIBZIP_SOURCE_SUPPORTS:
         return ctx->supports;
 
-    case ZIP_SOURCE_TELL:
+    case LIBZIP_SOURCE_TELL:
         return (libzip_int64_t)(ctx->offset - ctx->start);
 
     default:
@@ -344,7 +344,7 @@ _libzip_register_source(libzip_t *za, libzip_source_t *src) {
         n = za->nopen_source_alloc + 10;
         open_source = (libzip_source_t **)realloc(za->open_source, n * sizeof(libzip_source_t *));
         if (open_source == NULL) {
-            libzip_error_set(&za->error, ZIP_ER_MEMORY, 0);
+            libzip_error_set(&za->error, LIBZIP_ER_MEMORY, 0);
             return -1;
         }
         za->nopen_source_alloc = n;

@@ -32,13 +32,13 @@
 */
 
 
-#define _ZIP_COMPILING_DEPRECATED
+#define _LIBZIP_COMPILING_DEPRECATED
 #include "zipint.h"
 
 
 /* NOTE: Signed due to -1 on error.  See libzip_add.c for more details. */
 
-ZIP_EXTERN libzip_int64_t
+LIBZIP_EXTERN libzip_int64_t
 libzip_add_dir(libzip_t *za, const char *name) {
     return libzip_dir_add(za, name, 0);
 }
